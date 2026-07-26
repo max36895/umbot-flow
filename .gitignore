@@ -1,0 +1,12 @@
+.idea/*
+.gigacode/*
+.mimocode/*
+.vscode/*
+/logs/*
+/json/*
+/dist/*
+/docs/*
+/node_modules/*
+/repos1/*
+/coverage/*
+/package-lock.json

@@ -1,0 +1,301 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["schemaVersion", "name", "nodes", "edges", "platforms"],
+    "properties": {
+        "schemaVersion": { "type": "string", "const": "1.0" },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string" },
+        "description": { "type": "string" },
+        "platforms": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["alisa", "marusia", "smart_app", "telegram", "vk", "max_app", "viber"]
+            },
+            "minItems": 1
+        },
+        "database": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string", "enum": ["file", "mongo", "none"] },
+                "config": { "type": "object" }
+            },
+            "required": ["type"]
+        },
+        "mode": { "type": "string", "enum": ["dev", "prod", "strict_prod"] },
+        "isLocalStorage": { "type": "boolean" },
+        "nodes": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    { "$ref": "#/$defs/CommandNode" },
+                    { "$ref": "#/$defs/ResponseNode" },
+                    { "$ref": "#/$defs/StepNode" },
+                    { "$ref": "#/$defs/ActionNode" },
+                    { "$ref": "#/$defs/ConditionNode" },
+                    { "$ref": "#/$defs/EndNode" }
+                ]
+            }
+        },
+        "edges": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/Edge" }
+        },
+        "fallback": {
+            "type": "object",
+            "properties": { "text": { "type": "string" } },
+            "required": ["text"]
+        },
+        "welcome": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string" },
+                "buttons": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/Button" }
+                }
+            },
+            "required": ["text"]
+        },
+        "variables": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+        }
+    },
+    "$defs": {
+        "CommandNode": {
+            "type": "object",
+            "required": ["id", "type", "name"],
+            "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string", "const": "command" },
+                "name": { "type": "string" },
+                "slots": { "type": "array", "items": { "type": "string" } },
+                "isPattern": { "type": "boolean" },
+                "saveTo": { "type": "string" },
+                "response": { "$ref": "#/$defs/Response" },
+                "actions": { "type": "array", "items": { "$ref": "#/$defs/ActionBlock" } },
+                "conditions": { "type": "array", "items": { "$ref": "#/$defs/FlowCondition" } },
+                "role": { "type": "string", "enum": ["command", "welcome", "help"] }
+            }
+        },
+        "StepNode": {
+            "type": "object",
+            "required": ["id", "type", "name"],
+            "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string", "const": "step" },
+                "name": { "type": "string" },
+                "prompt": { "$ref": "#/$defs/Prompt" },
+                "saveTo": { "type": "string" },
+                "saveAs": { "type": "string", "enum": ["original", "lowercase"] },
+                "next": { "type": "string" },
+                "actions": { "type": "array", "items": { "$ref": "#/$defs/ActionBlock" } },
+                "conditions": { "type": "array", "items": { "$ref": "#/$defs/FlowCondition" } }
+            }
+        },
+        "ConditionNode": {
+            "type": "object",
+            "required": ["id", "type", "name", "variable", "operator"],
+            "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string", "const": "condition" },
+                "name": { "type": "string" },
+                "variable": { "type": "string" },
+                "operator": {
+                    "type": "string",
+                    "enum": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "contains",
+                        "isEmpty",
+                        "isNotEmpty",
+                        "isSayTrue",
+                        "isSayFalse",
+                        "isUrl"
+                    ]
+                },
+                "value": {}
+            }
+        },
+        "EndNode": {
+            "type": "object",
+            "required": ["id", "type"],
+            "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string", "const": "end" }
+            }
+        },
+        "ResponseNode": {
+            "type": "object",
+            "required": ["id", "type", "name"],
+            "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string", "const": "response" },
+                "name": { "type": "string" },
+                "response": { "$ref": "#/$defs/Response" }
+            }
+        },
+        "ActionNode": {
+            "type": "object",
+            "required": ["id", "type", "name"],
+            "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string", "const": "action" },
+                "name": { "type": "string" },
+                "actions": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/ActionBlock" }
+                },
+                "text": { "type": "string" },
+                "buttons": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/Button" }
+                }
+            }
+        },
+        "ActionBlock": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["set_variable", "random_number", "http_request"]
+                },
+                "field": { "type": "string" },
+                "value": { "type": "string" },
+                "min": { "type": "number" },
+                "max": { "type": "number" },
+                "url": { "type": "string" },
+                "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                "headers": { "type": "string" },
+                "body": { "type": "string" },
+                "saveResponseTo": { "type": "string" }
+            }
+        },
+        "FlowCondition": {
+            "type": "object",
+            "required": ["variable", "operator", "value"],
+            "properties": {
+                "variable": { "type": "string" },
+                "operator": {
+                    "type": "string",
+                    "enum": [
+                        "eq",
+                        "neq",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "contains",
+                        "isEmpty",
+                        "isNotEmpty",
+                        "isSayTrue",
+                        "isSayFalse",
+                        "isUrl"
+                    ]
+                },
+                "value": {},
+                "responseTrue": { "$ref": "#/$defs/ConditionResponse" },
+                "responseFalse": { "$ref": "#/$defs/ConditionResponse" }
+            }
+        },
+        "ConditionResponse": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string" },
+                "buttons": { "type": "array", "items": { "$ref": "#/$defs/Button" } },
+                "targetNodeId": { "type": "string" }
+            }
+        },
+        "Edge": {
+            "type": "object",
+            "required": ["from", "to", "type"],
+            "properties": {
+                "from": { "type": "string" },
+                "to": { "type": "string" },
+                "type": {
+                    "type": "string",
+                    "enum": ["next", "slot_match", "branch_true", "branch_false"]
+                },
+                "label": { "type": "string" }
+            }
+        },
+        "Response": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string" },
+                "tts": { "type": "string" },
+                "emotion": { "type": "string" },
+                "isEnd": { "type": "boolean" },
+                "buttons": { "type": "array", "items": { "$ref": "#/$defs/Button" } },
+                "card": { "$ref": "#/$defs/Card" },
+                "sounds": { "type": "array", "items": { "$ref": "#/$defs/Sound" } }
+            }
+        },
+        "Prompt": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string" },
+                "tts": { "type": "string" },
+                "emotion": { "type": "string" },
+                "buttons": { "type": "array", "items": { "$ref": "#/$defs/Button" } }
+            }
+        },
+        "Button": {
+            "type": "object",
+            "required": ["title", "type"],
+            "properties": {
+                "title": { "type": "string" },
+                "type": { "type": "string", "enum": ["action", "link"] },
+                "targetNodeId": { "type": "string" },
+                "url": { "type": "string" }
+            }
+        },
+        "Card": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string", "enum": ["single", "list", "gallery"] },
+                "title": { "type": "string" },
+                "images": { "type": "array", "items": { "$ref": "#/$defs/CardImage" } }
+            }
+        },
+        "CardImage": {
+            "type": "object",
+            "required": ["src", "title"],
+            "properties": {
+                "src": { "type": "string" },
+                "title": { "type": "string" },
+                "description": { "type": "string" },
+                "button": { "$ref": "#/$defs/Button" }
+            }
+        },
+        "Sound": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string", "enum": ["standard", "custom"] },
+                "key": { "type": "string" },
+                "src": { "type": "string" },
+                "placeholder": { "type": "string" }
+            }
+        },
+        "Validation": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["none", "number", "email", "phone", "regex", "minLength", "maxLength"]
+                },
+                "pattern": { "type": ["string", "null"] },
+                "min": { "type": ["number", "null"] },
+                "max": { "type": ["number", "null"] },
+                "errorMessage": { "type": "string" }
+            }
+        }
+    }
+}

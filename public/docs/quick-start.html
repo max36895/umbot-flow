@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Быстрый старт — Umbot Flow Editor</title>
+        <meta
+            name="description"
+            content="Пошаговая инструкция по запуску бота с помощью Umbot Flow Editor. От открытия редактора до запуска бота за 15 минут."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/quick-start" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #0f0f14;
+                color: #e0e0e0;
+                line-height: 1.7;
+            }
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 8px;
+                color: #fff;
+            }
+            h2 {
+                font-size: 1.3rem;
+                margin: 32px 0 12px;
+                color: #00f0ff;
+            }
+            .subtitle {
+                color: #888;
+                margin-bottom: 32px;
+            }
+            .back {
+                display: inline-block;
+                margin-bottom: 24px;
+                color: #00f0ff;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            .back:hover {
+                text-decoration: underline;
+            }
+            .step {
+                display: flex;
+                gap: 16px;
+                margin-bottom: 24px;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+            }
+            .step-num {
+                flex-shrink: 0;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(0, 240, 255, 0.15);
+                color: #00f0ff;
+                font-weight: bold;
+                font-size: 0.9rem;
+            }
+            .step-content h3 {
+                font-size: 1rem;
+                color: #fff;
+                margin-bottom: 4px;
+            }
+            .step-content p {
+                font-size: 0.9rem;
+                color: #888;
+            }
+            code {
+                background: rgba(0, 240, 255, 0.1);
+                color: #00f0ff;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: 'SF Mono', 'Fira Code', monospace;
+                font-size: 0.85em;
+            }
+            pre {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                padding: 16px;
+                overflow-x: auto;
+                margin: 12px 0;
+            }
+            pre code {
+                background: none;
+                padding: 0;
+            }
+            a {
+                color: #00f0ff;
+            }
+            .note {
+                background: rgba(0, 240, 255, 0.05);
+                border: 1px solid rgba(0, 240, 255, 0.2);
+                border-radius: 8px;
+                padding: 16px;
+                margin: 16px 0;
+                font-size: 0.9rem;
+            }
+            .note strong {
+                color: #00f0ff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a class="back" href="/docs">← Документация</a>
+            <h1>Быстрый старт</h1>
+            <p class="subtitle">От открытия редактора до запуска бота за 15 минут</p>
+
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h3>Откройте редактор</h3>
+                    <p>
+                        Перейдите на <a href="/">главную страницу</a> и начните собирать бота.
+                        Перетащите блок "Команда" на холст.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h3>Настройте бота</h3>
+                    <p>
+                        Нажмите на блок и заполните слова-триггеры (слова, на которые бот реагирует)
+                        и текст ответа. Добавьте кнопки, условия и другие блоки по необходимости.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h3>Экспортируйте конфигурацию</h3>
+                    <p>
+                        Нажмите "Проверить и экспортировать" в верхней панели. Скачайте файл
+                        <code>flow.json</code>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h3>Установите Node.js</h3>
+                    <p>
+                        Если у вас ещё не установлен Node.js, скачайте и установите версию 18 или
+                        выше с <a href="https://nodejs.org" target="_blank">nodejs.org</a>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <h3>Сгенерируйте проект</h3>
+                    <p>Откройте терминал в папке с файлом <code>flow.json</code> и выполните:</p>
+                    <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
+                    <p>Готовый проект с кодом появится в папке <code>my-bot</code>.</p>
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>Не знаете что делать с кодом?</strong> Отправьте папку
+                <code>my-bot</code> вашему разработчику — он запустит бота за вас.
+            </div>
+
+            <div class="step">
+                <div class="step-num">6</div>
+                <div class="step-content">
+                    <h3>Запустите бота</h3>
+                    <p>Откройте папку <code>my-bot</code> и следуйте инструкциям в файле README.</p>
+                </div>
+            </div>
+
+            <h2>Следующие шаги</h2>
+            <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
+                <li>
+                    <a href="/docs/blocks.html">Описание блоков</a> — узнаете как работают команды,
+                    шаги, условия
+                </li>
+                <li>
+                    <a href="/docs/json-format.html">JSON-формат</a> — полная спецификация
+                    конфигурации
+                </li>
+                <li><a href="/docs/faq.html">FAQ</a> — ответы на частые вопросы</li>
+            </ul>
+        </div>
+    </body>
+</html>

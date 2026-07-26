@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>JSON-формат — Umbot Flow Editor</title>
+        <meta
+            name="description"
+            content="Полная спецификация JSON-конфигурации для Umbot Flow Editor. Структура документа, типы узлов, связи, переменные."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/json-format" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #0f0f14;
+                color: #e0e0e0;
+                line-height: 1.7;
+            }
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 8px;
+                color: #fff;
+            }
+            h2 {
+                font-size: 1.3rem;
+                margin: 32px 0 12px;
+                color: #00f0ff;
+            }
+            .subtitle {
+                color: #888;
+                margin-bottom: 32px;
+            }
+            .back {
+                display: inline-block;
+                margin-bottom: 24px;
+                color: #00f0ff;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            .back:hover {
+                text-decoration: underline;
+            }
+            pre {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                padding: 16px;
+                overflow-x: auto;
+                margin: 12px 0;
+                font-size: 0.85rem;
+            }
+            code {
+                background: rgba(0, 240, 255, 0.1);
+                color: #00f0ff;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: 'SF Mono', 'Fira Code', monospace;
+                font-size: 0.85em;
+            }
+            pre code {
+                background: none;
+                padding: 0;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 12px 0;
+                font-size: 0.9rem;
+            }
+            th,
+            td {
+                padding: 8px 12px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                text-align: left;
+            }
+            th {
+                background: rgba(255, 255, 255, 0.05);
+                color: #aaa;
+            }
+            td:first-child {
+                color: #00f0ff;
+                font-family: monospace;
+            }
+            a {
+                color: #00f0ff;
+            }
+            .note {
+                background: rgba(0, 240, 255, 0.05);
+                border: 1px solid rgba(0, 240, 255, 0.2);
+                border-radius: 8px;
+                padding: 16px;
+                margin: 16px 0;
+                font-size: 0.9rem;
+            }
+            .note strong {
+                color: #00f0ff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a class="back" href="/docs">← Документация</a>
+            <h1>JSON-формат конфигурации</h1>
+            <p class="subtitle">
+                Полная спецификация формата, который генерирует визуальный редактор
+            </p>
+
+            <div class="note">
+                <strong>Совет:</strong> Полная спецификация с примерами кода доступна в
+                <a
+                    href="https://github.com/max36895/universal_bot-ts/blob/main/repos/umbot-flow-editor/JSON_FORMAT.md"
+                    >репозитории на GitHub</a
+                >.
+            </div>
+
+            <h2>Структура документа</h2>
+            <pre><code>{
+    "schemaVersion": "1.0",
+    "name": "my-bot",
+    "version": "1.0.0",
+    "platforms": ["telegram", "alisa"],
+    "database": { "type": "file", "config": {} },
+    "nodes": [],
+    "edges": [],
+    "fallback": { "text": "Извините, я вас не понял." },
+    "welcome": { "text": "Привет!" }
+}</code></pre>
+
+            <h2>Типы узлов</h2>
+            <table>
+                <tr>
+                    <th>Тип</th>
+                    <th>Описание</th>
+                </tr>
+                <tr>
+                    <td>command</td>
+                    <td>Команда — реагирует на слова-триггеры</td>
+                </tr>
+                <tr>
+                    <td>step</td>
+                    <td>Шаг — запрашивает ввод и сохраняет</td>
+                </tr>
+                <tr>
+                    <td>condition</td>
+                    <td>Условие — ветвление по переменной</td>
+                </tr>
+                <tr>
+                    <td>action</td>
+                    <td>Действие — HTTP-запросы, переменные, числа</td>
+                </tr>
+                <tr>
+                    <td>response</td>
+                    <td>Ответ — показывает текст и кнопки</td>
+                </tr>
+                <tr>
+                    <td>end</td>
+                    <td>Завершение — закрывает диалог</td>
+                </tr>
+            </table>
+
+            <h2>Связи (edges)</h2>
+            <table>
+                <tr>
+                    <th>Тип</th>
+                    <th>Описание</th>
+                </tr>
+                <tr>
+                    <td>next</td>
+                    <td>Последовательный переход к следующему блоку</td>
+                </tr>
+                <tr>
+                    <td>branch_true</td>
+                    <td>Ветка "да" от условия</td>
+                </tr>
+                <tr>
+                    <td>branch_false</td>
+                    <td>Ветка "нет" от условия</td>
+                </tr>
+            </table>
+
+            <h2>Подстановка переменных</h2>
+            <p style="color: #888; font-size: 0.9rem">
+                В тексте используйте <code>{{имя}}</code> — значение подставится автоматически.
+            </p>
+            <pre><code>"Привет, {{userName}}!"  →  setText(ctrl, `Привет, ${ctrl.userData.userName}!`)</code></pre>
+
+            <h2>Дополнительно</h2>
+            <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
+                <li><a href="/docs/blocks.html">Описание блоков</a> — какие бывают типы узлов</li>
+                <li>
+                    <a href="/docs/quick-start.html">Быстрый старт</a> — как использовать редактор
+                </li>
+                <li>
+                    <a
+                        href="https://github.com/max36895/universal_bot-ts/blob/main/repos/umbot-flow-editor/JSON_FORMAT.md"
+                        >Полная спецификация на GitHub</a
+                    >
+                </li>
+            </ul>
+        </div>
+    </body>
+</html>

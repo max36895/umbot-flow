@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FAQ — Umbot Flow Editor</title>
+        <meta
+            name="description"
+            content="Ответы на часто задаваемые вопросы о Umbot Flow Editor: бесплатность, платформы, запуск бота, формат конфигурации."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/faq" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #0f0f14;
+                color: #e0e0e0;
+                line-height: 1.7;
+            }
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 8px;
+                color: #fff;
+            }
+            .subtitle {
+                color: #888;
+                margin-bottom: 32px;
+            }
+            .back {
+                display: inline-block;
+                margin-bottom: 24px;
+                color: #00f0ff;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            .back:hover {
+                text-decoration: underline;
+            }
+            .faq-item {
+                margin-bottom: 24px;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+            }
+            .faq-item h2 {
+                font-size: 1.1rem;
+                color: #00f0ff;
+                margin-bottom: 8px;
+            }
+            .faq-item p {
+                font-size: 0.9rem;
+                color: #888;
+            }
+            a {
+                color: #00f0ff;
+            }
+            code {
+                background: rgba(0, 240, 255, 0.1);
+                color: #00f0ff;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: 'SF Mono', 'Fira Code', monospace;
+                font-size: 0.85em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a class="back" href="/docs">← Документация</a>
+            <h1>Часто задаваемые вопросы</h1>
+            <p class="subtitle">Ответы на популярные вопросы о Umbot Flow Editor</p>
+
+            <div class="faq-item">
+                <h2>Это бесплатно?</h2>
+                <p>
+                    Да, Umbot Flow Editor полностью бесплатен и open-source. Редактор работает в
+                    браузере, генератор проекта доступен через npm. Никаких скрытых платежей и
+                    подписок.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Нужен ли свой сервер?</h2>
+                <p>
+                    Редактор работает в браузере — сервер не нужен. Для запуска сгенерированного
+                    бота нужен компьютер с Node.js 18+. Бот будет работать на вашем сервере, данные
+                    хранятся локально.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Какие платформы поддерживаются?</h2>
+                <p>
+                    Поддерживаются: Алиса (Яндекс), Telegram, VK, Маруся (Сбер), Max (VK), Viber,
+                    SmartApp (Сбер). Можно выбрать одну или несколько платформ одновременно.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Сложно ли запустить бота после скачивания?</h2>
+                <p>
+                    Нет. Скачиваете файл конфигурации, устанавливаете Node.js и выполняете одну
+                    команду. Готовый проект с кодом появится автоматически. Если не знаете что
+                    делать с кодом — отправьте его разработчику.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Что такое umbot?</h2>
+                <p>
+                    Umbot — это фреймворк для создания мультиплатформенных чат-ботов. Поддерживает
+                    Алису, Telegram, VK, Марусю и другие платформы. Визуальный редактор создаёт
+                    конфигурацию, а специальная программа генерирует готовый проект.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Можно ли редактировать конфигурацию вручную?</h2>
+                <p>
+                    Да, формат полностью документирован. Можно редактировать в любом текстовом
+                    редакторе и загружать обратно в визуальный редактор. Формат стабилен —
+                    обновления не ломают ранее созданные конфигурации.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Можно ли использовать без написания кода?</h2>
+                <p>
+                    Визуальный редактор позволяет собрать логику бота без кода. Однако для запуска
+                    бота необходим Node.js и базовые навыки работы с терминалом. Если вы не
+                    программист — отправьте сгенерированный проект вашему разработчику.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Какие форматы данных поддерживаются?</h2>
+                <p>
+                    Боты могут работать с текстом, кнопками, изображениями, карточками, озвучкой
+                    (TTS) и HTTP-запросами. Поддерживаются переменные, условия и ветвления.
+                </p>
+            </div>
+        </div>
+    </body>
+</html>

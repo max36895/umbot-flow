@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Типы блоков — Umbot Flow Editor</title>
+        <meta
+            name="description"
+            content="Подробное описание каждого типа блока в Umbot Flow Editor: команды, шаги, условия, действия, ответы, завершение."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/blocks" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #0f0f14;
+                color: #e0e0e0;
+                line-height: 1.7;
+            }
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 8px;
+                color: #fff;
+            }
+            h2 {
+                font-size: 1.3rem;
+                margin: 32px 0 12px;
+                color: #00f0ff;
+            }
+            .subtitle {
+                color: #888;
+                margin-bottom: 32px;
+            }
+            .back {
+                display: inline-block;
+                margin-bottom: 24px;
+                color: #00f0ff;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            .back:hover {
+                text-decoration: underline;
+            }
+            .block {
+                margin-bottom: 24px;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+                border-left: 4px solid;
+            }
+            .block h3 {
+                font-size: 1.1rem;
+                margin-bottom: 8px;
+            }
+            .block p {
+                font-size: 0.9rem;
+                color: #888;
+            }
+            .block .example {
+                margin-top: 12px;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                font-size: 0.85rem;
+            }
+            .block .example strong {
+                color: #aaa;
+            }
+            .cmd {
+                border-left-color: #00f0ff;
+            }
+            .cmd h3 {
+                color: #00f0ff;
+            }
+            .step {
+                border-left-color: #bc13fe;
+            }
+            .step h3 {
+                color: #bc13fe;
+            }
+            .cond {
+                border-left-color: #ff0055;
+            }
+            .cond h3 {
+                color: #ff0055;
+            }
+            .action {
+                border-left-color: #ff9d00;
+            }
+            .action h3 {
+                color: #ff9d00;
+            }
+            .response {
+                border-left-color: #00ff9d;
+            }
+            .response h3 {
+                color: #00ff9d;
+            }
+            .end {
+                border-left-color: #ef4444;
+            }
+            .end h3 {
+                color: #ef4444;
+            }
+            code {
+                background: rgba(0, 240, 255, 0.1);
+                color: #00f0ff;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: 'SF Mono', 'Fira Code', monospace;
+                font-size: 0.85em;
+            }
+            a {
+                color: #00f0ff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a class="back" href="/docs">← Документация</a>
+            <h1>Типы блоков</h1>
+            <p class="subtitle">Подробное описание каждого типа блока в редакторе</p>
+
+            <div class="block cmd">
+                <h3>Команда</h3>
+                <p>
+                    Реагирует на определённые слова. Пользователь вводит слово — бот отвечает
+                    настроенным текстом и кнопками.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Блок "Команда" со словами "привет", "здравствуй" и
+                    текстом "Привет! Как дела?" — бот ответит при вводе любого из этих слов.
+                </div>
+            </div>
+
+            <div class="block step">
+                <h3>Шаг</h3>
+                <p>
+                    Запрашивает ввод у пользователя и сохраняет его в поле. Используйте для сбора
+                    данных: имя, email, возраст и т.д.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Блок "Шаг" с текстом "Как вас зовут?" и настройкой
+                    "Сохранить в" = "userName" — ответ пользователя сохранится в поле
+                    <code>userName</code>.
+                </div>
+            </div>
+
+            <div class="block cond">
+                <h3>Условие</h3>
+                <p>
+                    Проверяет значение переменной и ведёт диалог по разным веткам. Позволяет
+                    создавать ветвления: "если условие выполнено — идти туда, иначе — сюда".
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Если <code>возраст >= 18</code> — показать одно
+                    сообщение, иначе — другое.
+                </div>
+            </div>
+
+            <div class="block action">
+                <h3>Действие</h3>
+                <p>
+                    Выполняет дополнительные действия: установка переменных, генерация случайных
+                    чисел, HTTP-запросы. Показывает текст после выполнения.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Генерация случайного числа от 1 до 100, отправка
+                    HTTP-запроса к API, установка переменной.
+                </div>
+            </div>
+
+            <div class="block response">
+                <h3>Ответ</h3>
+                <p>
+                    Показывает текст пользователю без запроса ввода. Используйте для информационных
+                    сообщений или как промежуточный блок.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Блок "Ответ" с текстом "Это справка по боту" — просто
+                    покажет сообщение.
+                </div>
+            </div>
+
+            <div class="block end">
+                <h3>Завершение</h3>
+                <p>
+                    Завершает диалог. Бот перестаёт отвечать, пока пользователь не начнёт новый
+                    разговор.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> После сообщения "До свидания!" диалог завершается.
+                </div>
+            </div>
+
+            <h2>Как соединять блоки</h2>
+            <p style="color: #888; font-size: 0.9rem">
+                Перетаскивайте от края одного блока к другому, чтобы создать связь. Бот будет
+                двигаться по блокам в порядке соединений. Используйте условие для ветвления: один
+                выход для "да", другой для "нет".
+            </p>
+        </div>
+    </body>
+</html>
