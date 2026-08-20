@@ -143,7 +143,8 @@ export default {
     'export.afterCommand': 'Для проверки откройте папку my-bot и следуйте инструкциям в README.',
     'export.tip':
         'Не знаете что делать с кодом? Отправьте папку my-bot разработчику — он запустит бота за вас.',
-    'export.jsonFormatHint': 'Подробнее о JSON-формате:',
+    'export.jsonFormatHint':
+        'Подробнее о блоках и формате — в справке (кнопка «Справка» в тулбаре).',
     'export.cloudTitle': 'Для Yandex Cloud Functions:',
     'export.cloudDesc':
         'Yandex Cloud — облачная платформа Яндекса для серверless-приложений. Документация: cloud.yandex.ru/docs/functions',

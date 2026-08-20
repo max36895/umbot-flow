@@ -114,6 +114,7 @@ export default function ExportDialog() {
                         {doc.nodes.length} {t('export.nodes')}, {doc.edges.length}{' '}
                         {t('export.edges')}, {doc.platforms.length} {t('export.platforms')}
                     </p>
+                    <p className="mt-2 text-[11px] text-white/40">{t('export.note')}</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -269,15 +270,7 @@ export default function ExportDialog() {
                         </p>
 
                         <p className="mt-2 text-[11px] text-info/40">
-                            {t('export.jsonFormatHint')}{' '}
-                            <a
-                                href="https://github.com/max36895/universal_bot-ts/blob/main/repos/umbot-flow-editor/src/docs/json-format.md"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-info/70 transition-colors"
-                            >
-                                src/docs/json-format.md
-                            </a>
+                            {t('export.jsonFormatHint')}
                         </p>
                     </div>
                 )}

@@ -156,7 +156,8 @@ export default {
         'To verify, open the my-bot folder and follow the instructions in README.',
     'export.tip':
         'Not sure what to do with the code? Send the my-bot folder to a developer — they will run the bot for you.',
-    'export.jsonFormatHint': 'More about JSON format:',
+    'export.jsonFormatHint':
+        'Learn more about blocks and the format in the Help guide (the "Help" button in the toolbar).',
     'export.cloudTitle': 'For Yandex Cloud Functions:',
     'export.cloudDesc':
         'Yandex Cloud is a serverless platform by Yandex. Documentation: cloud.yandex.ru/docs/functions',
