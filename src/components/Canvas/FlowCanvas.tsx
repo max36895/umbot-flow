@@ -222,42 +222,10 @@ export default function FlowCanvas() {
         reactFlowInstance.current = instance;
     }, []);
 
-    const onKeyDown = useCallback(
-        (e: React.KeyboardEvent) => {
-            const isInput =
-                e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
-            if (isInput) return;
-
-            // Delete — удаление выделенных нод и рёбер (поддерживается мультивыделение)
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-                const state = useFlowStore.getState();
-                const nodeIds = new Set(
-                    state.nodes.filter((n) => n.selected).map((n) => n.id),
-                );
-                const edgeIds = new Set(
-                    state.edges.filter((ed) => ed.selected).map((ed) => ed.id),
-                );
-                const uiNodeId = useUiStore.getState().selectedNodeId;
-                const uiEdgeId = useUiStore.getState().selectedEdgeId;
-                if (uiNodeId) nodeIds.add(uiNodeId);
-                if (uiEdgeId) edgeIds.add(uiEdgeId);
-
-                if (nodeIds.size > 0 || edgeIds.size > 0) {
-                    e.preventDefault();
-                    state.removeSelection([...nodeIds], [...edgeIds]);
-                    selectNode(null);
-                    selectEdge(null);
-                }
-            }
-        },
-        [selectNode, selectEdge],
-    );
-
     return (
         <div
             ref={reactFlowWrapper}
             className="h-full w-full transition-shadow"
-            onKeyDown={onKeyDown}
             onContextMenu={onContextMenu}
             tabIndex={0}
             onDragEnter={onDragEnter}

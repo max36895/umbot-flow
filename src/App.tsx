@@ -66,6 +66,25 @@ export default function App() {
                 }
             }
 
+            // Delete/Backspace — удаление выделенных нод и рёбер.
+            // Глобально, чтобы работало без фокуса на канвасе.
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !isInput) {
+                const state = useFlowStore.getState();
+                const nodeIds = new Set(state.nodes.filter((n) => n.selected).map((n) => n.id));
+                const edgeIds = new Set(state.edges.filter((ed) => ed.selected).map((ed) => ed.id));
+                const uiNodeId = useUiStore.getState().selectedNodeId;
+                const uiEdgeId = useUiStore.getState().selectedEdgeId;
+                if (uiNodeId) nodeIds.add(uiNodeId);
+                if (uiEdgeId) edgeIds.add(uiEdgeId);
+
+                if (nodeIds.size > 0 || edgeIds.size > 0) {
+                    e.preventDefault();
+                    state.removeSelection([...nodeIds], [...edgeIds]);
+                    useUiStore.getState().selectNode(null);
+                    useUiStore.getState().selectEdge(null);
+                }
+            }
+
             // Ctrl+C — копирование (fallback через localStorage)
             if (mod && e.key === 'c' && !isInput) {
                 const id = useUiStore.getState().selectedNodeId;

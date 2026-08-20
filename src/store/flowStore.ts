@@ -8,6 +8,7 @@ import type {
 } from '../types/flow';
 import { DEFAULT_METADATA } from '../types/flow';
 import { toReactFlowEdge, fromReactFlowEdge } from '../types/nodes';
+import { t } from '../i18n';
 
 interface HistoryEntry {
     nodes: Node[];
@@ -197,7 +198,7 @@ const useFlowStore = create<FlowStore>((set, get) => {
             data: {
                 ...structuredClone(sourceNode.data),
                 id: newId,
-                name: `${(sourceNode.data as { name?: string })?.name ?? 'node'}_copy`,
+                name: `${(sourceNode.data as { name?: string })?.name ?? 'node'}_${t('node.copySuffix')}`,
             } as NodeData,
         };
 
@@ -626,7 +627,7 @@ function getDefaultNodeData(
         case 'response':
             return { type: 'response', id, name, response: { text: '', buttons: [], sounds: [] } };
         case 'end':
-            return { type: 'end', id };
+            return { type: 'end', id, name };
     }
 }
 

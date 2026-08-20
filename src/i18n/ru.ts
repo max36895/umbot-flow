@@ -71,8 +71,9 @@ export default {
     'props.promptHelp': 'Вопрос или сообщение, которое бот отправит пользователю.',
     'props.varComment': 'Комментарий к переменной',
     'props.varCommentHelp': 'Описание назначения переменной (видно в панели данных)',
-    'props.nextStep': 'Следующий шаг (ID)',
-    'props.nextStepHelp': 'Название следующего блока (оставьте пустым для завершения)',
+    'props.nextStep': 'Следующий блок',
+    'props.nextStepHelp':
+        'То же, что стрелка на холсте: куда перейти после этого шага. Оставьте пустым, чтобы завершить диалог.',
     'props.operator': 'Оператор',
     'props.variable': 'Проверяемая переменная',
     'props.variableHelp': 'Имя переменной для проверки.',
@@ -440,6 +441,7 @@ export default {
     'condition.compareWith': 'Сравнить с:',
     'condition.thisAnswer': 'последний ввод пользователя',
     'node.endAutoName': 'Конец {n}',
+    'node.copySuffix': 'копия',
     'detail.botName': 'Имя бота',
     'detail.botNameHelp':
         'Используется как имя файла (BotName.json) и в команде генерации. Лучше ASCII, без пробелов.',

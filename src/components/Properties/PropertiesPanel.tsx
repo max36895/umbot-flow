@@ -235,11 +235,7 @@ export default function PropertiesPanel() {
                     <NodeIcon name="chevronLeft" size={16} />
                 </button>
                 <button
-                    onClick={() => {
-                        if (window.confirm(t('props.deleteConfirm'))) {
-                            removeNode(selectedNode.id);
-                        }
-                    }}
+                    onClick={() => removeNode(selectedNode.id)}
                     className="rounded-lg p-2 text-error transition-colors hover:bg-[rgba(255,0,85,0.15)]"
                     title={t('props.delete')}
                 >
@@ -333,11 +329,7 @@ export default function PropertiesPanel() {
                         />
                     </button>
                     <button
-                        onClick={() => {
-                            if (window.confirm(t('props.deleteConfirm'))) {
-                                removeNode(selectedNode.id);
-                            }
-                        }}
+                        onClick={() => removeNode(selectedNode.id)}
                         className="flex-shrink-0 rounded-lg bg-[rgba(255,0,85,0.15)] px-2 py-1 text-xs text-error transition-colors hover:bg-[rgba(255,0,85,0.25)]"
                     >
                         {t('props.delete')}

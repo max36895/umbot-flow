@@ -42,7 +42,8 @@ export default {
         'Words that make the bot react to this command.\n\nHow to use:\n• Type a word and press Enter\n• Case-insensitive (hello = Hello = HELLO)\n• You can add multiple words\n\nNote: the command fires if the word APPEARS anywhere in the message. Short words like "yes" or "my" may trigger accidentally — choose unambiguous ones.',
     'props.slots.placeholder': 'Type a word and press Enter',
     'props.patternMode': 'Pattern mode',
-    'props.patternHelp': 'Words are recognized as regular expressions',
+    'props.patternHelp':
+        'Allows complex recognition rules (regular expressions). For beginners — better to leave it off.',
     'props.responseText': 'Response text',
     'props.responseTextHelp': 'Use {{variable}} to substitute user data',
     'props.tts': 'Voice text',
@@ -71,8 +72,9 @@ export default {
     'props.promptHelp': 'What to ask the user',
     'props.varComment': 'Variable comment',
     'props.varCommentHelp': 'Description of the variable purpose (visible in data panel)',
-    'props.nextStep': 'Next step (ID)',
-    'props.nextStepHelp': 'Name of the next block (leave empty to end)',
+    'props.nextStep': 'Next block',
+    'props.nextStepHelp':
+        'Same as an arrow on the canvas: where to go after this step. Leave empty to end the dialog.',
     'props.operator': 'Operator',
     'props.variable': 'Variable',
     'props.variableHelp': 'Variable name to check',
@@ -516,6 +518,7 @@ export default {
 
     // Node system
     'node.endAutoName': 'End {n}',
+    'node.copySuffix': 'copy',
 
     // Deep detail
     'detail.botName': 'Bot name',
