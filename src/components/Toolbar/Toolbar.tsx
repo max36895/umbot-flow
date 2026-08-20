@@ -1,21 +1,58 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
-import { t } from '../../i18n';
+import { t, tf } from '../../i18n';
 import { validate } from '../../utils/validator';
 import PlatformSelector from '../ui/PlatformSelector';
+import ProjectsMenu from './ProjectsMenu';
+import { saveRecentProject } from '../../utils/projectsStore';
+import AlertDialog from '../ui/AlertDialog';
+import {
+    IconUndo,
+    IconRedo,
+    IconNew,
+    IconImport,
+    IconExport,
+    IconImage,
+    IconChat,
+    IconCheck,
+    IconHelp,
+    IconMinimap,
+    IconSettings,
+} from './icons';
 
 export default function Toolbar() {
-    const { undo, redo, toJSON, fromJSON } = useFlowStore();
-    const { togglePreview, toggleExportDialog, toggleHelp, toggleLocale, locale } = useUiStore();
+    const undo = useFlowStore((s) => s.undo);
+    const redo = useFlowStore((s) => s.redo);
+    const toJSON = useFlowStore((s) => s.toJSON);
+    const fromJSON = useFlowStore((s) => s.fromJSON);
+    const togglePreview = useUiStore((s) => s.togglePreview);
+    const toggleExportDialog = useUiStore((s) => s.toggleExportDialog);
+    const toggleHelp = useUiStore((s) => s.toggleHelp);
+    const toggleLocale = useUiStore((s) => s.toggleLocale);
+    const toggleBotSettings = useUiStore((s) => s.toggleBotSettings);
+    const toggleMinimap = useUiStore((s) => s.toggleMinimap);
+    const minimapVisible = useUiStore((s) => s.minimapVisible);
+    const locale = useUiStore((s) => s.locale);
     const metadata = useFlowStore((s) => s.metadata);
     const setMetadata = useFlowStore((s) => s.setMetadata);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+
+    // Автоматически сохраняем проект в историю при изменении (debounced)
+    const nodes = useFlowStore((s) => s.nodes);
+    useEffect(() => {
+        if (nodes.length === 0) return;
+        const timer = setTimeout(() => {
+            saveRecentProject(metadata.name, toJSON());
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [metadata.name, nodes, toJSON]);
 
     const handleNewProject = useCallback(() => {
         if (window.confirm(t('toolbar.newProject') + '?')) {
             fromJSON({
-                schemaVersion: '1.0.0',
+                schemaVersion: '1.0',
                 name: 'New Bot',
                 version: '1.0.0',
                 description: '',
@@ -36,7 +73,7 @@ export default function Toolbar() {
                 variables: {},
             });
         }
-    }, [fromJSON]);
+    }, [fromJSON, locale]);
 
     const handleExportJSON = useCallback(() => {
         const doc = toJSON();
@@ -44,7 +81,9 @@ export default function Toolbar() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${metadata.name || 'flow'}.json`;
+        // Безопасное имя файла: латиница, цифры, - и _ (иначе ломается команда ниже)
+        const safeName = (metadata.name || 'flow').replace(/[^a-zA-Z0-9_-]+/g, '_');
+        a.download = `${safeName}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }, [toJSON, metadata.name]);
@@ -60,16 +99,25 @@ export default function Toolbar() {
                     // Валидация перед загрузкой в state
                     const errors = validate(doc);
                     if (errors.length > 0) {
-                        alert(
-                            t('error.validationFailed') +
-                                '\n' +
-                                errors.map((e) => e.message).join('\n'),
-                        );
+                        setAlertDialog({
+                            title: t('error.importTitle'),
+                            message:
+                                t('error.validationFailed') +
+                                '\n\n' +
+                                errors.map((e) => `• ${e.message}`).join('\n'),
+                        });
                         return;
                     }
                     fromJSON(doc);
-                } catch {
-                    alert(t('error.parseFailed'));
+                    // Сохраняем в историю после успешного импорта
+                    saveRecentProject(doc.name || 'imported', doc);
+                } catch (err) {
+                    setAlertDialog({
+                        title: t('error.importTitle'),
+                        message: tf('error.parseFailedDetail', {
+                            details: err instanceof Error ? err.message : String(err),
+                        }),
+                    });
                 }
             };
             reader.readAsText(file);
@@ -78,15 +126,22 @@ export default function Toolbar() {
         [fromJSON],
     );
 
-    const handleExportPNG = useCallback(async () => {
+    const handleExportPNGFull = useCallback(async () => {
         try {
             const { toPng } = await import('html-to-image');
+            // Просим react-flow fit все ноды перед экспортом
+            const fitBtn = document.querySelector(
+                '.react-flow__controls-fitview',
+            ) as HTMLButtonElement;
+            fitBtn?.click();
+            // Даём react-flow перерисоваться
+            await new Promise((resolve) => setTimeout(resolve, 300));
             const el = document.querySelector('.react-flow') as HTMLElement;
             if (!el) return;
             const dataUrl = await toPng(el, { backgroundColor: '#0F0F14' });
             const a = document.createElement('a');
             a.href = dataUrl;
-            a.download = `${metadata.name || 'flow'}.png`;
+            a.download = `${metadata.name || 'flow'}-full.png`;
             a.click();
         } catch {
             alert(t('error.exportFailed'));
@@ -149,15 +204,19 @@ export default function Toolbar() {
     }, [handleNewProject, handleExportJSON, togglePreview, undo, redo]);
 
     return (
-        <div className="absolute left-[10px] right-[10px] top-[10px] z-[100] flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(15,15,20,0.7)] px-4 py-2 shadow-lg backdrop-blur-xl">
+        <>
+        <div className="absolute left-[10px] right-[10px] top-[10px] z-toolbar flex items-center gap-2 rounded-full border border-glass-border bg-surface-dim/70 px-4 py-2 shadow-lg backdrop-blur-xl">
             {/* Название бота */}
-            <input
-                type="text"
-                value={metadata.name}
-                onChange={(e) => setMetadata({ name: e.target.value })}
-                className="w-40 rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-3 py-1.5 text-sm font-semibold text-white/90 transition-colors focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] focus:outline-none"
-                placeholder={t('toolbar.botName')}
-            />
+            <div className="relative">
+                <input
+                    type="text"
+                    value={metadata.name}
+                    onChange={(e) => setMetadata({ name: e.target.value })}
+                    className="w-40 rounded-lg border border-glass-border bg-white/5 px-3 py-1.5 text-sm font-semibold text-white/90 transition-colors focus:border-info focus:ring-1 focus:ring-info focus:outline-none"
+                    placeholder={t('toolbar.botName')}
+                    title={t('detail.botNameHelp')}
+                />
+            </div>
 
             <Divider />
 
@@ -175,6 +234,7 @@ export default function Toolbar() {
             <ToolBtn onClick={handleNewProject} title={t('toolbar.newProject')}>
                 <IconNew />
             </ToolBtn>
+            <ProjectsMenu />
             <ToolBtn onClick={() => fileInputRef.current?.click()} title={t('toolbar.importJson')}>
                 <IconImport />
             </ToolBtn>
@@ -188,7 +248,7 @@ export default function Toolbar() {
             <ToolBtn onClick={handleExportJSON} title={t('toolbar.exportJson')}>
                 <IconExport />
             </ToolBtn>
-            <ToolBtn onClick={handleExportPNG} title={t('toolbar.exportPng')}>
+            <ToolBtn onClick={handleExportPNGFull} title={t('toolbar.exportPng')}>
                 <IconImage />
             </ToolBtn>
 
@@ -198,9 +258,15 @@ export default function Toolbar() {
             <ToolBtn onClick={togglePreview} title={t('toolbar.preview')} accent="chat">
                 <IconChat />
             </ToolBtn>
-            <ToolBtn onClick={toggleExportDialog} title={t('toolbar.validate')} accent="green">
+            {/* Главный CTA — с текстовой подписью, чтобы не тонул среди иконок */}
+            <button
+                onClick={toggleExportDialog}
+                title={t('toolbar.validate')}
+                className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[#00f0ff] to-[#00ff9d] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_0_12px_rgba(0,255,157,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(0,255,157,0.5)]"
+            >
                 <IconCheck />
-            </ToolBtn>
+                {t('toolbar.validate')}
+            </button>
 
             <Divider />
 
@@ -212,22 +278,15 @@ export default function Toolbar() {
             <div className="flex-1" />
 
             {/* Настройки бота */}
-            <ToolBtn
-                onClick={useUiStore.getState().toggleBotSettings}
-                title={t('toolbar.botSettings')}
-            >
+            <ToolBtn onClick={toggleBotSettings} title={t('toolbar.botSettings')}>
                 <IconSettings />
             </ToolBtn>
 
             {/* Миниатюра */}
             <ToolBtn
-                onClick={useUiStore.getState().toggleMinimap}
-                title={
-                    useUiStore.getState().minimapVisible
-                        ? t('toolbar.hideMinimap')
-                        : t('toolbar.showMinimap')
-                }
-                active={useUiStore.getState().minimapVisible}
+                onClick={toggleMinimap}
+                title={minimapVisible ? t('toolbar.hideMinimap') : t('toolbar.showMinimap')}
+                active={minimapVisible}
             >
                 <IconMinimap />
             </ToolBtn>
@@ -249,6 +308,15 @@ export default function Toolbar() {
                 onChange={(platforms) => setMetadata({ platforms })}
             />
         </div>
+
+            {alertDialog && (
+                <AlertDialog
+                    title={alertDialog.title}
+                    message={alertDialog.message}
+                    onClose={() => setAlertDialog(null)}
+                />
+            )}
+        </>
     );
 }
 
@@ -279,7 +347,7 @@ function ToolBtn({
             title={title}
             className={`rounded-lg p-2 transition-all duration-200 hover:-translate-y-0.5 ${
                 active
-                    ? 'bg-[rgba(0,240,255,0.15)] text-[#00f0ff]'
+                    ? 'bg-[rgba(0,240,255,0.15)] text-info'
                     : 'text-white/60 hover:bg-[rgba(255,255,255,0.1)] hover:text-white/90'
             } ${accent ? accentStyles[accent] : ''}`}
         >
@@ -288,202 +356,3 @@ function ToolBtn({
     );
 }
 
-// SVG иконки — единый стиль 16x16, stroke-based
-function IconUndo() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M3 7h6a3 3 0 0 1 0 6H9" />
-            <path d="M6 4L3 7l3 3" />
-        </svg>
-    );
-}
-
-function IconRedo() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M13 7H7a3 3 0 0 0 0 6h1" />
-            <path d="M10 4l3 3-3 3" />
-        </svg>
-    );
-}
-
-function IconNew() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <rect x="3" y="2" width="10" height="12" rx="1" />
-            <path d="M8 5v6M5 8h6" />
-        </svg>
-    );
-}
-
-function IconImport() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M8 2v8M5 7l3 3 3-3" />
-            <path d="M2 12v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1" />
-        </svg>
-    );
-}
-
-function IconExport() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M8 10V2M5 5l3-3 3 3" />
-            <path d="M2 12v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1" />
-        </svg>
-    );
-}
-
-function IconImage() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <rect x="2" y="2" width="12" height="12" rx="1" />
-            <circle cx="5.5" cy="5.5" r="1" />
-            <path d="M14 10l-3-3-7 7" />
-        </svg>
-    );
-}
-
-function IconChat() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="rgba(0,0,0,0.7)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M2 2h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5l-3 3V3a1 1 0 0 1 1-1z" />
-        </svg>
-    );
-}
-
-function IconCheck() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="rgba(0,0,0,0.7)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M3 8l3 3 7-7" />
-        </svg>
-    );
-}
-
-function IconHelp() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <circle cx="8" cy="8" r="6" />
-            <path d="M6 6a2 2 0 1 1 2 2v1" />
-            <circle cx="8" cy="12" r="0.5" fill="currentColor" />
-        </svg>
-    );
-}
-
-function IconMinimap() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <rect x="2" y="2" width="12" height="12" rx="2" />
-            <rect x="4" y="4" width="3" height="3" rx="0.5" />
-            <rect x="9" y="8" width="3" height="3" rx="0.5" />
-        </svg>
-    );
-}
-
-function IconSettings() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M6.58 2.27a1.25 1.25 0 0 1 1.84 0l.42.6a1.25 1.25 0 0 0 .9.42h.72a1.25 1.25 0 0 1 1.25 1.25v.72a1.25 1.25 0 0 0 .42.9l.6.42a1.25 1.25 0 0 1 0 1.84l-.6.42a1.25 1.25 0 0 0-.42.9v.72a1.25 1.25 0 0 1-1.25 1.25h-.72a1.25 1.25 0 0 0-.9.42l-.42.6a1.25 1.25 0 0 1-1.84 0l-.42-.6a1.25 1.25 0 0 0-.9-.42H4.5a1.25 1.25 0 0 1-1.25-1.25v-.72a1.25 1.25 0 0 0-.42-.9l-.6-.42a1.25 1.25 0 0 1 0-1.84l.6-.42a1.25 1.25 0 0 0 .42-.9v-.72A1.25 1.25 0 0 1 4.5 3.29h.72a1.25 1.25 0 0 0 .9-.42l.42-.6Z" />
-            <circle cx="7.5" cy="7.5" r="2" />
-        </svg>
-    );
-}

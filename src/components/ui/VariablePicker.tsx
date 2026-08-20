@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import useFlowStore from '../../store/flowStore';
 import type { ActionBlock } from '../../types/flow';
 import { t } from '../../i18n';
+import { NodeIcon } from './NodeIcons';
 
 interface VariablePickerProps {
     value: string;
@@ -11,6 +12,8 @@ interface VariablePickerProps {
     rows?: number;
     /** Режим: 'text' — вставляет {{var}}, 'value' — вставляет выражение */
     mode?: 'text' | 'value';
+    /** ID текущей ноды — для группировки переменных на "из этого блока" / "из других" */
+    currentNodeId?: string;
 }
 
 /**
@@ -24,6 +27,7 @@ export default function VariablePicker({
     className,
     rows,
     mode = 'text',
+    currentNodeId,
 }: VariablePickerProps) {
     const [showPicker, setShowPicker] = useState(false);
     const nodes = useFlowStore((s) => s.nodes);
@@ -32,31 +36,54 @@ export default function VariablePicker({
     const pickerRef = useRef<HTMLDivElement>(null);
 
     // Собираем все переменные из нод (мемоизировано)
-    const variables = useMemo(() => {
-        const vars = new Set<string>();
+    // Группируем: из текущей ноды vs из других
+    interface VariableSource {
+        name: string;
+        source: 'current' | 'other' | 'metadata';
+        sourceNode?: string; // имя ноды-источника
+    }
+    const variablesBySource = useMemo(() => {
+        const map = new Map<string, VariableSource>();
         for (const node of nodes) {
             const data = node.data as Record<string, unknown>;
-            if (data.saveTo) vars.add(data.saveTo as string);
-            if (data.field) vars.add(data.field as string);
-            if (data.variable) vars.add(data.variable as string);
-            if (data.saveResponseTo) vars.add(data.saveResponseTo as string);
-            if (data.saveTextTo) vars.add(data.saveTextTo as string);
+            const nodeName = (data.name as string) || node.id;
+
+            const addVar = (name: string | undefined | null) => {
+                if (!name) return;
+                map.set(name, {
+                    name,
+                    source: node.id === currentNodeId ? 'current' : 'other',
+                    sourceNode: nodeName,
+                });
+            };
+
+            addVar(data.saveTo as string);
+            addVar(data.field as string);
+            addVar(data.variable as string);
+            addVar(data.saveResponseTo as string);
+            addVar(data.saveTextTo as string);
 
             const actions = data.actions as ActionBlock[] | undefined;
             if (actions) {
                 for (const action of actions) {
-                    if (action.field) vars.add(action.field);
-                    if (action.saveResponseTo) vars.add(action.saveResponseTo);
-                    if (action.saveTextTo) vars.add(action.saveTextTo);
+                    addVar(action.field);
+                    addVar(action.saveResponseTo);
+                    addVar(action.saveTextTo);
                 }
             }
         }
 
         for (const key of Object.keys(metadataVariables ?? {})) {
-            if (key) vars.add(key);
+            if (key && !map.has(key)) {
+                map.set(key, { name: key, source: 'metadata' });
+            }
         }
-        return vars;
-    }, [nodes, metadataVariables]);
+        return map;
+    }, [nodes, metadataVariables, currentNodeId]);
+
+    const currentVars = [...variablesBySource.values()].filter((v) => v.source === 'current');
+    const otherVars = [...variablesBySource.values()].filter((v) => v.source === 'other');
+    const metaVars = [...variablesBySource.values()].filter((v) => v.source === 'metadata');
 
     // Закрытие при клике вне
     useEffect(() => {
@@ -95,7 +122,7 @@ export default function VariablePicker({
 
     // Дефолтные стили, если className не передан
     const defaultInputClass =
-        'w-full resize-none border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 pr-12 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-[#00f0ff] focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
+        'w-full resize-none border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 pr-16 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
 
     return (
         <div className="relative min-w-0" ref={pickerRef}>
@@ -121,7 +148,7 @@ export default function VariablePicker({
             <button
                 type="button"
                 onClick={() => setShowPicker(!showPicker)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2 py-0.5 text-[10px] text-[#00f0ff] transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
+                className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2 py-0.5 text-[10px] text-info transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
                 title={t('variable.insertVar')}
             >
                 <span>+</span>
@@ -137,25 +164,66 @@ export default function VariablePicker({
                         <button
                             key={sv.name}
                             onClick={() => insertVariable(sv.name)}
-                            className="block w-full px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
+                            className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
                         >
-                            <span className="text-white/30">⚙️</span> {sv.label}
+                            <span className="text-white/30">
+                                <NodeIcon name="gear" size={11} />
+                            </span>
+                            {sv.label}
                         </button>
                     ))}
 
-                    {/* Пользовательские переменные */}
-                    {variables.size > 0 && (
+                    {/* Переменные из текущего блока */}
+                    {currentVars.length > 0 && (
+                        <>
+                            <div className="flex items-center gap-1 border-b border-[rgba(0,240,255,0.2)] bg-[rgba(0,240,255,0.05)] px-3 py-1 text-[10px] font-medium text-info/70">
+                                <NodeIcon name="pin" size={10} />
+                                {t('variable.thisBlock')}
+                            </div>
+                            {currentVars.map((v) => (
+                                <button
+                                    key={`cur-${v.name}`}
+                                    onClick={() => insertVariable(v.name)}
+                                    className="block w-full px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(0,240,255,0.08)]"
+                                >
+                                    {'{{' + v.name + '}}'}
+                                </button>
+                            ))}
+                        </>
+                    )}
+
+                    {/* Переменные из других блоков */}
+                    {otherVars.length > 0 && (
                         <>
                             <div className="border-b border-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-medium text-white/30">
                                 {t('userData.title')}
                             </div>
-                            {[...variables].map((v) => (
+                            {otherVars.map((v) => (
                                 <button
-                                    key={v}
-                                    onClick={() => insertVariable(v)}
+                                    key={`oth-${v.name}`}
+                                    onClick={() => insertVariable(v.name)}
+                                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
+                                >
+                                    <span className="flex-1">{'{{' + v.name + '}}'}</span>
+                                    <span className="text-[9px] text-white/25">{v.sourceNode}</span>
+                                </button>
+                            ))}
+                        </>
+                    )}
+
+                    {/* Глобальные переменные */}
+                    {metaVars.length > 0 && (
+                        <>
+                            <div className="border-b border-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-medium text-white/30">
+                                {t('variable.global')}
+                            </div>
+                            {metaVars.map((v) => (
+                                <button
+                                    key={`meta-${v.name}`}
+                                    onClick={() => insertVariable(v.name)}
                                     className="block w-full px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
                                 >
-                                    {'{{' + v + '}}'}
+                                    {'{{' + v.name + '}}'}
                                 </button>
                             ))}
                         </>

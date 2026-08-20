@@ -3,13 +3,14 @@ import { t } from '../../../i18n';
 import VariablePicker from '../../ui/VariablePicker';
 import { VariableConfig } from './VariableConfig';
 import { HttpConfig } from './HttpConfig';
+import { NodeIcon, type NodeIconName } from '../../ui/NodeIcons';
 import { useState } from 'react';
 
 /** Пресет типов действий для кнопок добавления. */
-const ACTION_PRESETS: { type: ActionBlock['type']; labelKey: string; icon: string }[] = [
-    { type: 'set_variable', labelKey: 'action.set_variable', icon: '💾' },
-    { type: 'random_number', labelKey: 'action.random_number', icon: '🎲' },
-    { type: 'http_request', labelKey: 'action.http_request', icon: '🌐' },
+const ACTION_PRESETS: { type: ActionBlock['type']; labelKey: string; icon: NodeIconName }[] = [
+    { type: 'set_variable', labelKey: 'action.set_variable', icon: 'set_variable' },
+    { type: 'random_number', labelKey: 'action.random_number', icon: 'random_number' },
+    { type: 'http_request', labelKey: 'action.http_request', icon: 'http_request' },
 ];
 
 /** Значения по умолчанию для каждого типа действия. */
@@ -21,14 +22,14 @@ const ACTION_DEFAULTS: Record<ActionBlock['type'], ActionBlock> = {
 
 /** Стиль инпута для полей действия. */
 const ACTION_INPUT_CLASS =
-    'w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-xs font-mono text-white placeholder-white/35 focus:border-b-2 focus:border-[#00f0ff] focus:outline-none';
+    'w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-xs font-mono text-white placeholder-white/35 focus:border-b-2 focus:border-info focus:outline-none';
 
 /** Стиль неоновых кнопок пресетов. Используется также в ActionProps. */
 export const PRESET_BUTTON_CLASS =
-    'rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2.5 py-0.5 text-[10px] text-[#00f0ff] transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]';
+    'rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2.5 py-0.5 text-[10px] text-info transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]';
 
 /** Стиль кнопки удаления. */
-const DELETE_BUTTON_CLASS = 'text-xs text-[#ff0055]/50 hover:text-[#ff0055]';
+const DELETE_BUTTON_CLASS = 'text-xs text-error/50 hover:text-error';
 
 /** Стиль контейнера блока действия. */
 const BLOCK_CONTAINER_CLASS = 'min-w-0 rounded-lg border border-[rgba(255,255,255,0.1)] p-3';
@@ -41,6 +42,8 @@ interface ActionBlockEditorProps {
     onChange: (actions: ActionBlock[]) => void;
     /** Дополнительные пресеты переменных для VariableConfig */
     variablePresets?: { labelKey: string; value: string }[];
+    /** Ошибки валидации по индексу блока: Map<actionIndex, messages[]> */
+    actionErrors?: string[] | Map<number, string[]>;
 }
 
 /** Рендерит один блок действия (set_variable/random_number/http_request) с VariableConfig, инпутами и кнопкой удаления. */
@@ -49,23 +52,31 @@ function ActionBlock({
     onUpdate,
     onRemove,
     variablePresets,
+    error,
 }: {
     action: ActionBlock;
     onUpdate: (patch: Partial<ActionBlock>) => void;
     onRemove: () => void;
     variablePresets?: { labelKey: string; value: string }[];
+    error?: string;
 }) {
     const preset = ACTION_PRESETS.find((p) => p.type === action.type);
     const [showComment, setShowComment] = useState(false);
 
+    // Визуальный индикатор ошибки — красная рамка на всём блоке
+    const containerClass = error
+        ? `${BLOCK_CONTAINER_CLASS} !border-error shadow-[0_0_12px_rgba(255,0,85,0.3)]`
+        : BLOCK_CONTAINER_CLASS;
+
     return (
-        <div className={BLOCK_CONTAINER_CLASS}>
+        <div className={containerClass}>
             <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-bold text-white/60">
-                    {preset?.icon} {t(`action.${action.type}`)}
+                <span className="flex items-center gap-1.5 text-xs font-bold text-white/60">
+                    <NodeIcon name={preset?.icon ?? 'action'} size={12} />
+                    {t(`action.${action.type}`)}
                 </span>
                 <button onClick={onRemove} className={DELETE_BUTTON_CLASS}>
-                    ✕
+                    <NodeIcon name="close" size={10} />
                 </button>
             </div>
 
@@ -75,6 +86,7 @@ function ActionBlock({
                         fieldName={action.field ?? ''}
                         onFieldNameChange={(val) => onUpdate({ field: val })}
                         presets={variablePresets}
+                        errors={error && action.field === '' ? [error] : undefined}
                     />
                     <VariablePicker
                         value={action.value ?? ''}
@@ -97,6 +109,7 @@ function ActionBlock({
                             { labelKey: 'preset.num2', value: 'num2' },
                             { labelKey: 'preset.rand', value: 'rand' },
                         ]}
+                        errors={error && action.field === '' ? [error] : undefined}
                     />
                     <div className="flex gap-2">
                         <input
@@ -137,7 +150,11 @@ function ActionBlock({
                     onClick={() => setShowComment(!showComment)}
                     className="flex items-center gap-1 text-[10px] text-white/25 hover:text-white/45"
                 >
-                    <span>{showComment ? '▼' : '▶'}</span>
+                    <NodeIcon
+                        name={showComment ? 'chevronDown' : 'chevronRight'}
+                        size={8}
+                        strokeWidth={2}
+                    />
                     <span>{t('props.varComment')}</span>
                 </button>
                 {showComment && (
@@ -148,7 +165,7 @@ function ActionBlock({
                             onUpdate({ fieldComment: e.target.value });
                         }}
                         placeholder={t('props.varCommentHelp')}
-                        className="mt-1.5 w-full border-b border-[rgba(255,255,255,0.12)] bg-transparent px-0 py-1.5 text-[11px] text-white/50 placeholder-white/20 transition-colors focus:border-[#00f0ff] focus:outline-none"
+                        className="mt-1.5 w-full border-b border-[rgba(255,255,255,0.12)] bg-transparent px-0 py-1.5 text-[11px] text-white/50 placeholder-white/20 transition-colors focus:border-info focus:outline-none"
                     />
                 )}
             </div>
@@ -161,7 +178,12 @@ function ActionBlock({
  * Используется и в ActionProps (standalone), и в ActionEditor (inline).
  * Гарантирует одинаковый внешний вид и поведение.
  */
-export function ActionBlockEditor({ actions, onChange, variablePresets }: ActionBlockEditorProps) {
+export function ActionBlockEditor({
+    actions,
+    onChange,
+    variablePresets,
+    actionErrors,
+}: ActionBlockEditorProps) {
     const addAction = (type: ActionBlock['type']) => {
         onChange([...actions, { ...ACTION_DEFAULTS[type] }]);
     };
@@ -181,9 +203,10 @@ export function ActionBlockEditor({ actions, onChange, variablePresets }: Action
                     <button
                         key={preset.type}
                         onClick={() => addAction(preset.type)}
-                        className={PRESET_BUTTON_CLASS}
+                        className={`${PRESET_BUTTON_CLASS} inline-flex items-center gap-1`}
                     >
-                        +{preset.icon} {t(preset.labelKey)}
+                        <NodeIcon name={preset.icon} size={11} />
+                        {t(preset.labelKey)}
                     </button>
                 ))}
             </div>
@@ -195,6 +218,10 @@ export function ActionBlockEditor({ actions, onChange, variablePresets }: Action
                     onUpdate={(patch) => updateBlock(i, patch)}
                     onRemove={() => removeBlock(i)}
                     variablePresets={variablePresets}
+                    error={
+                        (actionErrors as Map<number, string[]>)?.get(i)?.[0] ??
+                        (actionErrors as string[])?.[0]
+                    }
                 />
             ))}
         </div>

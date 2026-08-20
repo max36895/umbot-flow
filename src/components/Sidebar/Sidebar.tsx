@@ -2,22 +2,24 @@ import useUiStore from '../../store/uiStore';
 import useFlowStore from '../../store/flowStore';
 import type { FlowNodeData } from '../../types/flow';
 import { t } from '../../i18n';
+import { useState } from 'react';
+import { NodeIcon, type NodeIconName } from '../ui/NodeIcons';
 
 const NODE_TYPES: {
-    type: FlowNodeData['type'] | 'welcome' | 'help';
+    type: FlowNodeData['type'] | 'welcome' | 'help' | 'fallback';
     labelKey: string;
     descKey: string;
     borderColor: string;
-    icon: string;
+    icon: NodeIconName;
     tooltipKey: string;
-    role?: 'welcome' | 'help';
+    role?: 'welcome' | 'help' | 'fallback';
 }[] = [
     {
         type: 'welcome',
         labelKey: 'sidebar.welcome.label',
         descKey: 'sidebar.welcome.desc',
         borderColor: '#22c55e',
-        icon: '🚀',
+        icon: 'welcome',
         tooltipKey: 'sidebar.welcome.desc',
         role: 'welcome',
     },
@@ -26,16 +28,25 @@ const NODE_TYPES: {
         labelKey: 'sidebar.help.label',
         descKey: 'sidebar.help.desc',
         borderColor: '#eab308',
-        icon: '❓',
+        icon: 'help',
         tooltipKey: 'sidebar.help.desc',
         role: 'help',
+    },
+    {
+        type: 'fallback',
+        labelKey: 'sidebar.fallback.label',
+        descKey: 'sidebar.fallback.desc',
+        borderColor: '#ff9d00',
+        icon: 'fallback',
+        tooltipKey: 'sidebar.fallback.desc',
+        role: 'fallback',
     },
     {
         type: 'command',
         labelKey: 'sidebar.command.label',
         descKey: 'sidebar.command.desc',
         borderColor: '#00f0ff',
-        icon: '💬',
+        icon: 'command',
         tooltipKey: 'help.cmdDesc',
     },
     {
@@ -43,7 +54,7 @@ const NODE_TYPES: {
         labelKey: 'sidebar.response.label',
         descKey: 'sidebar.response.desc',
         borderColor: '#00ff9d',
-        icon: '📢',
+        icon: 'response',
         tooltipKey: 'help.responseDesc',
     },
     {
@@ -51,7 +62,7 @@ const NODE_TYPES: {
         labelKey: 'sidebar.step.label',
         descKey: 'sidebar.step.desc',
         borderColor: '#bc13fe',
-        icon: '📝',
+        icon: 'step',
         tooltipKey: 'help.stepDesc',
     },
     {
@@ -59,7 +70,7 @@ const NODE_TYPES: {
         labelKey: 'sidebar.custom.label',
         descKey: 'sidebar.custom.desc',
         borderColor: '#ff9d00',
-        icon: '⚡',
+        icon: 'action',
         tooltipKey: 'help.actionDesc',
     },
     {
@@ -67,7 +78,7 @@ const NODE_TYPES: {
         labelKey: 'sidebar.condition.label',
         descKey: 'sidebar.condition.desc',
         borderColor: '#ff0055',
-        icon: '🔀',
+        icon: 'condition',
         tooltipKey: 'help.condDesc',
     },
     {
@@ -75,35 +86,49 @@ const NODE_TYPES: {
         labelKey: 'sidebar.end.label',
         descKey: 'sidebar.end.desc',
         borderColor: '#ef4444',
-        icon: '⏹',
+        icon: 'end',
         tooltipKey: 'help.endDesc',
     },
 ];
 
 export default function Sidebar() {
-    const { sidebarOpen, toggleSidebar, selectNode } = useUiStore();
+    const sidebarOpen = useUiStore((s) => s.sidebarOpen);
+    const toggleSidebar = useUiStore((s) => s.toggleSidebar);
+    const selectNode = useUiStore((s) => s.selectNode);
     const addNode = useFlowStore((s) => s.addNode);
     const nodes = useFlowStore((s) => s.nodes);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleAddNode = (
-        type: FlowNodeData['type'] | 'welcome' | 'help',
-        role?: 'welcome' | 'help',
+        type: FlowNodeData['type'] | 'welcome' | 'help' | 'fallback',
+        role?: 'welcome' | 'help' | 'fallback',
     ) => {
-        // Проверка уникальности для welcome/help
+        // Проверка уникальности для welcome/help/fallback
         if (role) {
             const exists = nodes.some((n) => (n.data as { role?: string }).role === role);
             if (exists) return;
         }
-        const x = 200 + Math.random() * 200;
-        const y = 200 + Math.random() * 200;
+        // Ставим ноду у центра масс существующих нод (каскадом), а не в случайную точку
+        let x: number;
+        let y: number;
+        if (nodes.length > 0) {
+            const avgX = nodes.reduce((s, n) => s + n.position.x, 0) / nodes.length;
+            const avgY = nodes.reduce((s, n) => s + n.position.y, 0) / nodes.length;
+            const cascade = (nodes.length % 5) * 40;
+            x = avgX + 80 + cascade;
+            y = avgY + 80 + cascade;
+        } else {
+            x = 200;
+            y = 200;
+        }
         const newId = addNode(type as FlowNodeData['type'], { x, y });
         setTimeout(() => selectNode(newId), 50);
     };
 
     const onDragStart = (
         e: React.DragEvent,
-        type: FlowNodeData['type'] | 'welcome' | 'help',
-        role?: 'welcome' | 'help',
+        type: FlowNodeData['type'] | 'welcome' | 'help' | 'fallback',
+        role?: 'welcome' | 'help' | 'fallback',
     ) => {
         if (role) {
             const exists = nodes.some((n) => (n.data as { role?: string }).role === role);
@@ -117,28 +142,48 @@ export default function Sidebar() {
         return (
             <button
                 onClick={toggleSidebar}
-                className="fixed left-2 top-24 z-10 rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(30,30,35,0.8)] p-2 text-white/60 shadow-lg backdrop-blur-xl hover:bg-[rgba(255,255,255,0.1)] hover:text-white/90"
+                className="fixed left-2 top-24 z-sticky rounded-lg border border-glass-border bg-surface p-2 text-white/60 shadow-lg backdrop-blur-xl hover:bg-white/10 hover:text-white/90"
             >
-                ☰
+                <NodeIcon name="menu" size={16} />
             </button>
         );
     }
 
+    // Фильтрация блоков по поисковому запросу — работает и по имени, и по описанию
+    const filteredNodeTypes = NODE_TYPES.filter((nt) => {
+        const query = searchQuery.toLowerCase();
+        return (
+            t(nt.labelKey).toLowerCase().includes(query) ||
+            t(nt.descKey).toLowerCase().includes(query)
+        );
+    });
+
     return (
-        <div className="flex min-w-[220px] max-w-[280px] flex-1 flex-col border-r border-[rgba(255,255,255,0.08)] bg-[rgba(20,20,25,0.95)] backdrop-blur-xl">
-            <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-4 py-3">
+        <div className="flex min-w-[220px] max-w-[280px] flex-1 flex-col border-r border-outline-variant bg-surface-panel-docked backdrop-blur-xl">
+            <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
                 <h2 className="text-sm font-bold text-white/80">{t('sidebar.nodes')}</h2>
                 <button
                     onClick={toggleSidebar}
                     className="text-white/30 transition-colors hover:text-white/60"
                 >
-                    ✕
+                    <NodeIcon name="close" size={14} />
                 </button>
+            </div>
+
+            {/* Поиск по блокам */}
+            <div className="border-b border-outline-variant px-3 py-2">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t('sidebar.searchPlaceholder')}
+                    className="w-full rounded-lg border border-glass-border bg-white/5 px-3 py-2 text-sm text-white/90 placeholder-white/30 focus:border-info focus:outline-none"
+                />
             </div>
 
             <div className="flex-1 overflow-y-auto p-3">
                 <div className="space-y-2">
-                    {NODE_TYPES.map((nt) => {
+                    {filteredNodeTypes.map((nt) => {
                         const isDisabled = nt.role
                             ? nodes.some((n) => (n.data as { role?: string }).role === nt.role)
                             : false;
@@ -151,7 +196,7 @@ export default function Sidebar() {
                                 className={`rounded-xl border-l-4 p-3 transition-all duration-200 ${
                                     isDisabled
                                         ? 'cursor-not-allowed opacity-40'
-                                        : 'cursor-grab hover:bg-[rgba(255,255,255,0.05)] hover:shadow-lg hover:scale-[1.02] active:cursor-grabbing active:scale-[0.98]'
+                                        : 'cursor-grab hover:bg-white/5 hover:shadow-lg hover:scale-[1.02] active:cursor-grabbing active:scale-[0.98]'
                                 }`}
                                 style={{
                                     borderLeftColor: nt.borderColor,
@@ -159,7 +204,9 @@ export default function Sidebar() {
                                 }}
                             >
                                 <div className="flex items-center gap-2">
-                                    <span className="text-lg">{nt.icon}</span>
+                                    <span style={{ color: nt.borderColor }}>
+                                        <NodeIcon name={nt.icon} size={16} />
+                                    </span>
                                     <span className="text-sm font-medium text-white/80">
                                         {t(nt.labelKey)}
                                     </span>
@@ -174,6 +221,12 @@ export default function Sidebar() {
                         );
                     })}
                 </div>
+
+                {filteredNodeTypes.length === 0 && (
+                    <div className="py-8 text-center text-xs text-white/30 italic">
+                        {t('sidebar.noResults')}
+                    </div>
+                )}
 
                 <div className="mt-6">
                     <h3 className="mb-2 text-xs font-bold text-white/50 uppercase">

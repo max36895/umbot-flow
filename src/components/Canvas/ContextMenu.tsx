@@ -3,6 +3,7 @@ import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
 import type { FlowNodeData } from '../../types/flow';
 import { t } from '../../i18n';
+import { NodeIcon, type NodeIconName } from '../ui/NodeIcons';
 
 interface ContextMenuProps {
     x: number;
@@ -49,50 +50,89 @@ export default function ContextMenu({ x, y, flowX, flowY, onClose }: ContextMenu
         onClose();
     };
 
+    const removeNode = useFlowStore((s) => s.removeNode);
+
+    const handleDelete = () => {
+        if (selectedNodeId) {
+            removeNode(selectedNodeId);
+            selectNode(null);
+        }
+        onClose();
+    };
+
+    const handlePreviewFromHere = () => {
+        if (selectedNodeId) {
+            // Открываем превью и выставляем стартовую ноду
+            const uiState = useUiStore.getState();
+            if (!uiState.previewOpen) uiState.togglePreview();
+            // Сообщаем превью через кастомное событие (чтобы не связывать сторы)
+            setTimeout(() => {
+                window.dispatchEvent(
+                    new CustomEvent('umbot:preview-from', { detail: { nodeId: selectedNodeId } }),
+                );
+            }, 100);
+        }
+        onClose();
+    };
+
     const menuItems = [
         { type: 'divider' as const, label: '' },
         {
             type: 'node' as const,
-            icon: '💬',
+            icon: 'command' as NodeIconName,
             label: t('contextMenu.command'),
             nodeType: 'command' as FlowNodeData['type'],
         },
         {
             type: 'node' as const,
-            icon: '📝',
+            icon: 'step' as NodeIconName,
             label: t('contextMenu.step'),
             nodeType: 'step' as FlowNodeData['type'],
         },
         {
             type: 'node' as const,
-            icon: '📢',
+            icon: 'response' as NodeIconName,
             label: t('contextMenu.response'),
             nodeType: 'response' as FlowNodeData['type'],
         },
         {
             type: 'node' as const,
-            icon: '⚡',
+            icon: 'action' as NodeIconName,
             label: t('contextMenu.action'),
             nodeType: 'action' as FlowNodeData['type'],
         },
         {
             type: 'node' as const,
-            icon: '🔀',
+            icon: 'condition' as NodeIconName,
             label: t('contextMenu.condition'),
             nodeType: 'condition' as FlowNodeData['type'],
         },
         {
             type: 'node' as const,
-            icon: '⏹',
+            icon: 'end' as NodeIconName,
             label: t('contextMenu.end'),
             nodeType: 'end' as FlowNodeData['type'],
         },
         { type: 'divider' as const, label: '' },
         {
             type: 'action' as const,
-            icon: '📋',
+            icon: 'copy' as NodeIconName,
             label: t('contextMenu.duplicate'),
             action: handleDuplicate,
+            disabled: !selectedNodeId,
+        },
+        {
+            type: 'action' as const,
+            icon: 'play' as NodeIconName,
+            label: t('contextMenu.previewFrom'),
+            action: handlePreviewFromHere,
+            disabled: !selectedNodeId,
+        },
+        {
+            type: 'action' as const,
+            icon: 'trash' as NodeIconName,
+            label: t('contextMenu.delete'),
+            action: handleDelete,
             disabled: !selectedNodeId,
         },
     ];
@@ -100,13 +140,13 @@ export default function ContextMenu({ x, y, flowX, flowY, onClose }: ContextMenu
     return (
         <div
             ref={ref}
-            className={`fixed z-50 w-56 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(30,30,35,0.95)] py-1.5 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-100 ${animate ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+            className={`fixed z-popover w-56 rounded-xl border border-glass-border bg-surface-panel py-1.5 shadow-panel-lg backdrop-blur-xl transition-all duration-100 ${animate ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
             style={{ left: x, top: y }}
         >
             {menuItems.map((item, i) => {
                 if (item.type === 'divider') {
                     return (
-                        <div key={i} className="my-1 border-t border-[rgba(255,255,255,0.08)]" />
+                        <div key={i} className="my-1 border-t border-outline-variant" />
                     );
                 }
                 if (item.type === 'node') {
@@ -114,9 +154,9 @@ export default function ContextMenu({ x, y, flowX, flowY, onClose }: ContextMenu
                         <button
                             key={i}
                             onClick={() => handleAddNode(item.nodeType)}
-                            className="flex w-full items-center gap-3 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.1)]"
+                            className="flex w-full items-center gap-3 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10"
                         >
-                            <span className="text-base">{item.icon}</span>
+                            <NodeIcon name={item.icon} size={15} />
                             {item.label}
                         </button>
                     );
@@ -126,9 +166,9 @@ export default function ContextMenu({ x, y, flowX, flowY, onClose }: ContextMenu
                         key={i}
                         onClick={item.action}
                         disabled={item.disabled}
-                        className="flex w-full items-center gap-3 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-40"
+                        className="flex w-full items-center gap-3 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:opacity-40"
                     >
-                        <span className="text-base">{item.icon}</span>
+                        <NodeIcon name={item.icon} size={15} />
                         {item.label}
                     </button>
                 );

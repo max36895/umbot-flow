@@ -2,6 +2,7 @@ import type { FlowButton } from '../../../types/flow';
 import { t } from '../../../i18n';
 import NodeSelector from '../../ui/NodeSelector';
 import VariablePicker from '../../ui/VariablePicker';
+import { NodeIcon } from '../../ui/NodeIcons';
 
 interface ButtonEditorProps {
     buttons: FlowButton[];
@@ -33,13 +34,13 @@ export function ButtonEditor({ buttons, onChange, excludeId, showType = true }: 
                             value={btn.title}
                             onChange={(val) => updateButton(i, { title: val })}
                             placeholder={t('props.buttonTitle')}
-                            className="min-w-0 flex-1 border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-1.5 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-[#00f0ff] focus:outline-none"
+                            className="min-w-0 flex-1 border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-1.5 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-info focus:outline-none"
                         />
                         <button
                             onClick={() => removeButton(i)}
-                            className="flex-shrink-0 rounded-lg bg-[rgba(255,0,85,0.15)] px-2 text-xs text-[#ff0055] hover:bg-[rgba(255,0,85,0.25)]"
+                            className="flex-shrink-0 rounded-lg bg-[rgba(255,0,85,0.15)] px-2 text-xs text-error hover:bg-[rgba(255,0,85,0.25)]"
                         >
-                            ✕
+                            <NodeIcon name="close" size={10} />
                         </button>
                     </div>
                     {showType && (
@@ -48,7 +49,7 @@ export function ButtonEditor({ buttons, onChange, excludeId, showType = true }: 
                             onChange={(e) =>
                                 updateButton(i, { type: e.target.value as FlowButton['type'] })
                             }
-                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-[#00f0ff] focus:outline-none"
+                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-info focus:outline-none"
                         >
                             <option value="action">{t('props.buttonAction')}</option>
                             <option value="link">{t('props.buttonLink')}</option>
@@ -67,14 +68,14 @@ export function ButtonEditor({ buttons, onChange, excludeId, showType = true }: 
                             value={btn.url ?? ''}
                             onChange={(e) => updateButton(i, { url: e.target.value })}
                             placeholder={t('props.url')}
-                            className="w-full min-w-0 border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-1.5 text-xs text-white placeholder-white/35 focus:border-b-2 focus:border-[#00f0ff] focus:outline-none"
+                            className="w-full min-w-0 border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-1.5 text-xs text-white placeholder-white/35 focus:border-b-2 focus:border-info focus:outline-none"
                         />
                     )}
                 </div>
             ))}
             <button
                 onClick={() => onChange([...buttons, { title: '', type: 'action' as const }])}
-                className="w-full rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.15)] py-2 text-xs text-white/40 transition-colors hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-[#00f0ff]"
+                className="w-full rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.15)] py-2 text-xs text-white/40 transition-colors hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-info"
             >
                 + {t('props.addButton')}
             </button>

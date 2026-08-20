@@ -7,6 +7,8 @@ export default {
     'sidebar.welcome.desc': 'Bot greeting on launch',
     'sidebar.help.label': 'Help',
     'sidebar.help.desc': 'Response to help command',
+    'sidebar.fallback.label': 'Fallback',
+    'sidebar.fallback.desc': "Response when the bot didn't understand input",
     'help.welcomeDesc':
         'The "Start" block defines the greeting message sent when a user first interacts with the bot. Text is taken from bot settings.',
     'help.helpNodeDesc':
@@ -23,26 +25,32 @@ export default {
     'sidebar.response.desc': 'Show text with variables, no input needed',
     'sidebar.howToUse': 'How to use',
     'sidebar.added': 'Added',
+    'sidebar.alreadyAdded': 'Already on canvas',
+    'sidebar.searchPlaceholder': 'Search blocks...',
+    'sidebar.noResults': 'No blocks found',
     'sidebar.tip1': 'Drag a block to the canvas',
     'sidebar.tip2': 'Click a block to edit properties',
-    'sidebar.tip3': 'Connect blocks by dragging handles',
+    'sidebar.tip3': 'Connect blocks by dragging edges',
     'sidebar.tip4': 'Press Delete to remove a block',
 
     // Properties panel
     'props.name': 'Name',
-    'props.slots': 'Slot triggers',
+    'props.nameHelp':
+        'Block name shown on the canvas. Any text is fine — it is converted to a system identifier on export.',
+    'props.slots': 'Trigger words',
     'slots.tooltip':
-        'Words that trigger this command. Type and press Enter to add. The bot matches user input case-insensitively.',
+        'Words that make the bot react to this command.\n\nHow to use:\n• Type a word and press Enter\n• Case-insensitive (hello = Hello = HELLO)\n• You can add multiple words\n\nNote: the command fires if the word APPEARS anywhere in the message. Short words like "yes" or "my" may trigger accidentally — choose unambiguous ones.',
     'props.slots.placeholder': 'Type a word and press Enter',
     'props.patternMode': 'Pattern mode',
     'props.patternHelp': 'Words are recognized as regular expressions',
     'props.responseText': 'Response text',
     'props.responseTextHelp': 'Use {{variable}} to substitute user data',
-    'props.tts': 'Text-to-speech (TTS)',
+    'props.tts': 'Voice text',
     'props.ttsHelp':
-        'Text for voice platforms (Alisa, Marusia). If empty, the response text is used.',
-    'props.ttsPlaceholder': 'Optional voice text',
-    'props.patternWarning': 'Regular expressions are advanced. Use at your own risk.',
+        'Text the bot will speak aloud on voice platforms (Alisa, Marusia). If left empty, the main response text is spoken.',
+    'props.ttsPlaceholder': 'Optional',
+    'props.patternWarning':
+        'Regular expressions define complex matching rules. If unsure, it is safer to leave this off.',
     'props.emotion': 'Emotion (SmartApp)',
     'props.endDialog': 'End dialog',
     'props.endDialogHelp': 'Close dialog after this response',
@@ -72,6 +80,8 @@ export default {
     'tooltip.operator':
         'How to compare:\nEquals (=)\nNot equals (≠)\nGreater than (>)\nGreater than or equal (≥)\nLess than (<)\nLess than or equal (≤)\nContains\nEmpty / Not empty\nUser said "yes" / "no"\nIs a URL',
     'tooltip.variable': 'Name of the variable to check',
+    'tooltip.variableIsUserInput':
+        'This operator checks the last user response — you can leave the variable field empty.',
     'tooltip.comparisonValue':
         'Value to compare the variable against. Can be a number, text, or another variable name',
     'tooltip.field': 'Name of the field to store the result',
@@ -82,6 +92,7 @@ export default {
     'props.fieldPlaceholder': 'e.g. userName',
     'props.httpUrl': 'URL',
     'props.httpMethod': 'Method',
+    'props.httpBody': 'Request body (JSON)',
     'props.httpSaveTo': 'Save response to field',
 
     // Quick presets
@@ -108,6 +119,9 @@ export default {
     'toolbar.validate': 'Validate & Export',
     'toolbar.help': 'Help',
     'toolbar.newProject': 'New Project (Ctrl+N)',
+    'toolbar.recentProjects': 'Recent Projects',
+    'toolbar.noProjects': 'No other projects yet',
+    'toolbar.removeProject': 'Remove from history',
     'toolbar.platforms': 'Platforms',
     'toolbar.platformsAll': 'All platforms',
     'toolbar.platformsVoice': 'Voice',
@@ -122,6 +136,11 @@ export default {
     'export.download': 'Download flow.json',
     'export.copied': 'Copied to clipboard',
     'export.nodes': 'blocks',
+
+    // Status bar
+    'statusbar.ok': 'Ready to export',
+    'statusbar.errors': 'errors',
+    'statusbar.more': 'more',
     'export.edges': 'connections',
     'export.platforms': 'platforms',
     'export.nextSteps': 'What to do next?',
@@ -146,14 +165,19 @@ export default {
     'preview.send': 'Send',
     'preview.empty': 'Type a message to test your bot',
     'preview.debug': 'Debug mode',
+    'preview.reset': 'Reset preview (clear messages and variables)',
     'preview.debugVars': 'User data',
     'preview.waiting': 'Waiting for input',
 
     // General
 
     // Errors
-    'error.parseFailed': 'Failed to parse JSON file',
+    'error.parseFailed': 'Failed to process JSON file',
     'error.exportFailed': 'Failed to export PNG',
+    'error.crashTitle': 'Something went wrong',
+    'error.crashDesc':
+        'An unexpected error occurred in the editor. Your project is saved in the browser — reload the page to continue.',
+    'error.reload': 'Reload page',
 
     // Help modal
     'help.title': 'User Guide',
@@ -194,13 +218,28 @@ export default {
         'Click "Validate & Export" to download flow.json. Then run:\n\nnpx umbot create from-flow flow.json --output ./my-bot\n\nThis generates a complete umbot project with all the code you need.',
     'help.customTitle': 'Custom code',
     'help.customDesc':
-        'Use "Action" blocks for HTTP requests and custom logic. Actions run in a safe mode \u2014 you can access user data and use built-in utilities, but cannot access the filesystem or network directly.',
+        'Use "Action" blocks for HTTP requests and custom logic. Actions run in a safe mode — you can access user data and use built-in utilities, but cannot access the filesystem or network directly.',
+    'help.sysVarsTitle': 'System variables',
+    'help.sysVarsDesc':
+        'These variables are filled in automatically by the bot — no need to create them:\n\n• {{__currentTime}} — current time\n• {{__currentDate}} — current date\n• {{__currentTimestamp}} — Unix time\n• {{__randomNumber}} — random number from 0 to 100\n• {{__userName}} — user name (if provided by the platform)',
+    'help.shortcutsTitle': 'Keyboard shortcuts',
+    'help.shortcutSearch': 'Search blocks',
+    'help.shortcutNew': 'New project',
+    'help.shortcutExport': 'Export JSON',
+    'help.shortcutPreview': 'Chat preview',
+    'help.shortcutUndo': 'Undo',
+    'help.shortcutRedo': 'Redo',
+    'help.shortcutCopy': 'Copy block',
+    'help.shortcutPaste': 'Paste block',
+    'help.shortcutDuplicate': 'Duplicate block',
+    'help.shortcutDelete': 'Delete block or connection',
     'help.close': 'Got it',
 
     // Node badges
     'node.badge.cmd': 'COMMAND',
     'node.badge.welcome': 'START',
     'node.badge.help': 'HELP',
+    'node.badge.fallback': 'NOT UNDERSTOOD',
     'node.badge.step': 'STEP',
     'node.badge.if': 'IF',
     'node.badge.end': 'END',
@@ -223,6 +262,11 @@ export default {
     // UserData panel
     'userData.title': 'User Data',
     'userData.empty': 'No data saved yet',
+    'userData.comment': 'Comment',
+    'userData.commentPlaceholder': 'Variable description',
+    'userData.definedIn': 'Defined in:',
+    'userData.usedIn': 'Used in:',
+    'userData.notFound': 'Not found in blocks',
     'variable.insertVar': 'Insert variable',
     'variable.system': 'System',
     'variable.currentTime': 'Current time (HH:MM)',
@@ -230,6 +274,12 @@ export default {
     'variable.currentTimestamp': 'Unix timestamp',
     'variable.randomNumber': 'Random number (0-100)',
     'variable.userName': 'User name',
+    'variable.thisBlock': 'Variables from this block',
+    'variable.global': 'Global variables',
+
+    // Command palette
+    'palette.placeholder': 'Search blocks... (Ctrl+K)',
+    'palette.noResults': 'No results',
     'props.cardHelp':
         'A visual block with images. Shown instead of text or alongside it.\n\nTypes:\n• Single image — one picture\n• List — images top to bottom\n• Gallery — images horizontally',
     'props.addCard': 'Add card',
@@ -287,6 +337,7 @@ export default {
     // Node labels
     'node.noActions': '(no actions)',
     'node.saveTo': 'Save to:',
+    'node.hasErrors': 'Validation errors present. Click to open this block.',
 
     // Condition labels
     'condition.true': 'Yes',
@@ -345,16 +396,134 @@ export default {
     'contextMenu.condition': 'Condition',
     'contextMenu.end': 'End',
     'contextMenu.duplicate': 'Duplicate',
+    'contextMenu.previewFrom': 'Run preview from here',
+    'contextMenu.delete': 'Delete',
 
     // Canvas
     'canvas.edgeDelete': 'Delete connection (or press Delete)',
-
-    // Chat preview
-
-    // Save indicator
+    'canvas.dropHere': 'Release to add block',
 
     // Emotion labels
-    'props.emotion.good': 'Good',
+    'props.emotion.good': 'Happy',
     'props.emotion.neutral': 'Neutral',
-    'props.emotion.bad': 'Bad',
+    'props.emotion.bad': 'Sad',
+
+    // Status bar extras
+    'statusbar.saved': 'Saved',
+    'statusbar.saving': 'Saving…',
+    'statusbar.clickToExport': 'Validate & export',
+    'projects.openConfirm':
+        'Open project "{name}"? The current project stays in recent list, but your current editing session will be replaced.',
+
+    // Export extras
+    'export.note':
+        'This file contains your entire bot. It runs on your own server via umbot and does not depend on this website.',
+
+    // Preview extras
+    'preview.waitingPlaceholder': 'Your reply (saved to "{var}")…',
+    'preview.httpMock': '[simulated HTTP {method} → {url}]',
+    'preview.httpMockData': 'test HTTP response',
+    'preview.varsTitle': 'Variables',
+    'preview.warning':
+        'Preview is a simulation: HTTP requests and voice playback are not executed.',
+
+    // Errors
+    'error.importTitle': 'Import error',
+    'error.parseFailedDetail': 'Failed to parse JSON file. Details: {details}',
+    'error.validationFailed':
+        'The file failed validation. Fix the errors in the JSON and try again:',
+
+    // Condition labels
+    'condition.ifLabel': 'If',
+    'condition.userInput': 'last user input',
+
+    // Validation (validator *
+    'validation.v.unknownType':
+        'Unknown block type "{type}". Valid types: command, step, condition, action, response, end',
+    'validation.v.badType': 'Block #{idx}: invalid type "{type}"',
+    'validation.v.badTypeNoName': 'Block #{idx}: invalid type',
+    'validation.v.unknownOperator': 'Unknown operator in a condition',
+    'validation.v.badValue': 'Invalid value in field "{field}"',
+    'validation.v.required': 'Required field "{field}" is missing',
+    'validation.v.mustBeString': 'Expected text in field "{field}"',
+    'validation.v.mustBeArray': 'Expected a list in field "{field}"',
+    'validation.v.mustBeObject': 'Expected an object in field "{field}"',
+    'validation.v.invalidJson':
+        'The block does not match any known type. Please check its "type" field',
+    'validation.v.duplicateId': 'Duplicate node ID "{id}"',
+    'validation.v.emptyNodeName':
+        'Block has no name (ID: {id}). Fill in the "Name" field on the right.',
+    'validation.v.duplicateNames':
+        'Block name "{name}" is used twice: by blocks "{a}" and "{b}". Names must be unique.',
+    'validation.v.invalidVarName':
+        'Variable name "{name}" is invalid. Use letters, digits, and underscore (do not start with a digit).',
+    'validation.v.emptyVarName':
+        'Block "{name}": variable name is empty. Fill in the field or remove it.',
+    'validation.v.actionVarEmpty':
+        'Action in block "{name}": variable name is empty. Fill it in or delete the action.',
+    'validation.v.randomNoField':
+        'Block "{name}": the "Random number" action has no variable name. Fill in the "Field".',
+    'validation.v.randomMinGtMax':
+        'Block "{name}": in "Random number", min ({min}) is greater than max ({max}). Please swap them.',
+    'validation.v.setNoField':
+        'Block "{name}": the "Set variable" action has no variable name. Fill in the "Field".',
+    'validation.v.setNoValue':
+        'Block "{name}": the "Set variable" action has no value. Enter an expression.',
+    'validation.v.httpNoUrl': 'Block "{name}": HTTP request has no URL. Specify one.',
+    'validation.v.httpBadJson':
+        'Block "{name}": the HTTP body is not valid JSON and contains no {{variables}}. Check the syntax.',
+    'validation.v.dupSlot':
+        'Trigger word "{slot}" is used by both blocks "{a}" and "{b}". Triggers must be unique.',
+    'validation.v.condNoVar':
+        'Block "{name}": condition #{idx} has no variable. Choose one or delete the condition.',
+    'validation.v.condNoVal':
+        'Block "{name}": condition #{idx} has no comparison value. Enter one or delete the condition.',
+    'validation.v.edgeFromMissing': 'Connection from a non-existent block "{id}".',
+    'validation.v.edgeToMissing': 'Connection to a non-existent block "{id}".',
+    'validation.v.buttonTargetMissing': 'A button points to a non-existent block "{id}".',
+    'validation.v.stepTargetMissing': 'Step points to a non-existent block "{id}".',
+    'validation.v.stepNoNext':
+        'Step "{name}" is not connected to anything and has no "Next block" set.',
+    'validation.v.condMissingBranches':
+        'Condition "{name}": missing branches {missing}. Connect both "Yes" and "No" outputs to blocks.',
+    'validation.v.condMissingVar':
+        'Condition "{name}": no variable selected. Open the block and choose a variable.',
+    'validation.v.condMissingVal':
+        'Condition "{name}": no comparison value. Enter a value or delete the condition.',
+    'validation.v.orphan':
+        'Block "{name}" is not connected to any other block. Connect it or delete it.',
+
+    // Variables modal
+    'vars.comment': 'Comment',
+    'vars.commentPlaceholder': 'What this variable is for',
+    'vars.definedIn': 'Defined in:',
+    'vars.usedIn': 'Used in:',
+    'vars.notFound': 'Not found in blocks',
+
+    // Settings helps
+    'settings.title': 'Bot settings',
+    'settings.dbTypeHelp':
+        'Where the bot stores user data between sessions.\n\n• File — simplest option, saved next to the bot. Good to start.\n• MongoDB — external database. Needed for many users. Requires MongoDB installed.\n• None — data is not saved between restarts.',
+    'settings.modeHelp':
+        'dev — development mode with verbose logs.\nprod — production mode.\nstrict_prod — like prod, but any error stops the bot (for critical production scenarios).',
+    'settings.localStorageHelp':
+        'Save user answers to local storage. When off — variables are lost between runs.',
+
+    // Condition node / props
+    'condition.preview': 'Condition',
+    'condition.compareWith': 'Compare with:',
+    'condition.thisAnswer': 'last user input',
+
+    // Node system
+    'node.endAutoName': 'End {n}',
+
+    // Deep detail
+    'detail.botName': 'Bot name',
+    'detail.botNameHelp':
+        'Used as the file name (BotName.json) and in the generation command. Prefer ASCII, no spaces.',
+
+    // Misc UI
+    'ui.done': 'Done',
+    'ui.up': 'Up',
+    'ui.down': 'Down',
 } as const;

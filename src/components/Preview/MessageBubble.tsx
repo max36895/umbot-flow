@@ -86,7 +86,7 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                                                         targetNodeId: img.button!.targetNodeId,
                                                     })
                                                 }
-                                                className="mt-1 rounded bg-[rgba(0,240,255,0.15)] px-2 py-0.5 text-[10px] text-[#00f0ff] hover:bg-[rgba(0,240,255,0.25)]"
+                                                className="mt-1 rounded bg-[rgba(0,240,255,0.15)] px-2 py-0.5 text-[10px] text-info hover:bg-[rgba(0,240,255,0.25)]"
                                             >
                                                 {img.button.title}
                                             </button>
@@ -105,7 +105,7 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                             <button
                                 key={i}
                                 onClick={() => onButtonClick?.(btn)}
-                                className="rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.05)] px-2 py-0.5 text-[10px] text-[#00f0ff] hover:bg-[rgba(0,240,255,0.15)]"
+                                className="rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.05)] px-2 py-0.5 text-[10px] text-info hover:bg-[rgba(0,240,255,0.15)]"
                             >
                                 {btn.title}
                             </button>

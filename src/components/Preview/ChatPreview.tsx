@@ -5,18 +5,24 @@ import type {
     CommandNodeData,
     StepNodeData,
     ActionNodeData,
+    ResponseNodeData,
     FlowDocument,
     FlowNodeData,
     FlowCard,
+    FlowButton,
 } from '../../types/flow';
 import { MessageBubble } from './MessageBubble';
-import { t } from '../../i18n';
+import { DebugVarsPanel } from './DebugVarsPanel';
+import { ChatInput } from './ChatInput';
+import { NodeIcon } from '../ui/NodeIcons';
+import { t, tf } from '../../i18n';
 import {
     TEMPLATE_VAR_REGEX,
     IS_SAY_TRUE_REGEX,
     IS_SAY_FALSE_REGEX,
     URL_REGEX,
 } from '../../utils/regex';
+import { safeEvalExpression } from '../../utils/safeMath';
 
 interface Message {
     role: 'user' | 'bot';
@@ -74,25 +80,14 @@ function substituteVars(expr: string, vars: Record<string, string>): string {
     return result;
 }
 
-/** Allowlist regex for safe math evaluation - created once. */
-const MATH_ONLY_REGEX = /^[0-9+\-*/().,%\s'"]+$/;
-
 /**
- * Safe math evaluation - only allows digits, operators, parens, spaces, dots, quotes.
- * Uses allowlist instead of blocklist for security.
+ * Безопасное вычисление арифметики без eval(): парсер допускает только
+ * числа, строки в кавычках, операторы и скобки. Если вход — не арифметика,
+ * возвращается исходная строка.
  */
 function safeEval(expr: string, vars: Record<string, string> = {}): string {
     const sanitized = substituteVars(expr, vars);
-    if (!MATH_ONLY_REGEX.test(sanitized)) {
-        return sanitized;
-    }
-    try {
-        // eslint-disable-next-line no-eval
-        const result = eval(sanitized);
-        return String(result);
-    } catch {
-        return sanitized;
-    }
+    return safeEvalExpression(sanitized) ?? sanitized;
 }
 
 /** Проверяет, является ли имя переменной безопасным (нет prototype pollution). */
@@ -123,6 +118,12 @@ function executeActions(
                     newVars[action.field] = String(
                         Math.floor(Math.random() * (max - min + 1)) + min,
                     );
+                }
+                break;
+            case 'http_request':
+                // Превью — имитация: запрос не выполняется, подставляем тестовое значение
+                if (action.saveResponseTo && isSafeVarName(action.saveResponseTo)) {
+                    newVars[action.saveResponseTo] = `(${t('preview.httpMockData')})`;
                 }
                 break;
         }
@@ -164,6 +165,75 @@ function substitute(text: string, vars: Record<string, string>): string {
     });
 }
 
+/** Маппинг кнопок с подстановкой переменных. */
+function mapButtons(
+    buttons: FlowButton[] | undefined,
+    vars: Record<string, string>,
+): Message['buttons'] {
+    return buttons?.map((b) => ({
+        title: substitute(b.title, vars),
+        targetNodeId: b.targetNodeId,
+        url: b.url,
+    }));
+}
+
+/** Маппинг карточки с подстановкой переменных. */
+function mapCard(
+    card: FlowCard | undefined,
+    vars: Record<string, string>,
+): FlowCard | undefined {
+    if (!card) return undefined;
+    return {
+        ...card,
+        title: substitute(card.title, vars),
+        images: card.images.map((img) => ({
+            ...img,
+            src: substitute(img.src, vars),
+            title: substitute(img.title, vars),
+            description: substitute(img.description, vars),
+            button: img.button
+                ? { ...img.button, title: substitute(img.button.title, vars) }
+                : undefined,
+        })),
+    };
+}
+
+/** Собрать сообщение бота из response/prompt-блока. */
+function buildMessage(
+    source: { text: string; buttons?: FlowButton[]; card?: FlowCard },
+    vars: Record<string, string>,
+): Message {
+    return {
+        role: 'bot',
+        text: substitute(source.text, vars),
+        buttons: mapButtons(source.buttons, vars),
+        card: mapCard(source.card, vars),
+    };
+}
+
+/** Найти команду, совпадающую с вводом (по слотам или regex-паттерну). */
+function matchCommand(doc: FlowDocument, text: string): CommandNodeData | null {
+    const lower = text.toLowerCase();
+    for (const node of doc.nodes) {
+        if (node.type !== 'command') continue;
+        const cmd = node as CommandNodeData;
+        if (!cmd.slots || cmd.slots.length === 0) continue;
+        for (const slot of cmd.slots) {
+            if (cmd.isPattern) {
+                try {
+                    const slotRe = getSlotRegex(slot);
+                    if (slotRe && slotRe.test(text)) return cmd;
+                } catch {
+                    /* невалидный regex */
+                }
+            } else if (lower.includes(slot.toLowerCase())) {
+                return cmd;
+            }
+        }
+    }
+    return null;
+}
+
 /** Проверка regex на потенциальный ReDoS — запрещаем вложенные квантификаторы */
 function isSafeRegex(pattern: string): boolean {
     // Паттерны, которые могут вызвать catastrophic backtracking
@@ -186,7 +256,8 @@ function getSlotRegex(slot: string): RegExp | null {
 }
 
 export default function ChatPreview() {
-    const { togglePreview, setActivePreviewNodeId } = useUiStore();
+    const togglePreview = useUiStore((s) => s.togglePreview);
+    const setActivePreviewNodeId = useUiStore((s) => s.setActivePreviewNodeId);
     const nodes = useFlowStore((s) => s.nodes);
     const edges = useFlowStore((s) => s.edges);
     const toJSON = useFlowStore((s) => s.toJSON);
@@ -229,6 +300,26 @@ export default function ChatPreview() {
         setTimeout(() => togglePreview(), 150);
     };
 
+    // Сброс превью к начальному состоянию (Welcome)
+    const handleReset = () => {
+        setVariables({});
+        setWaitingForStep(null);
+        setInput('');
+        // Показываем Welcome снова
+        const doc = toJSON();
+        const welcomeNode = doc.nodes.find(
+            (n) => n.type === 'command' && (n as CommandNodeData).role === 'welcome',
+        );
+        const welcomeText = welcomeNode
+            ? (welcomeNode as CommandNodeData).response.text
+            : doc.welcome.text;
+        if (welcomeText) {
+            setMessages([{ role: 'bot', text: welcomeText }]);
+        } else {
+            setMessages([]);
+        }
+    };
+
     // Мемоизируем doc — пересоздаётся только при изменении nodes/edges
     const doc = useMemo(() => toJSON(), [nodes, edges, toJSON]);
 
@@ -262,66 +353,14 @@ export default function ChatPreview() {
                     const cmd = node as CommandNodeData;
                     // Выполняем inline-действия команды (random_number, set_variable и т.д.)
                     if (cmd.actions) Object.assign(vars, executeActions(cmd.actions, vars));
-                    msgs.push({
-                        role: 'bot',
-                        text: substitute(cmd.response.text, vars),
-                        buttons: cmd.response.buttons.map((b) => ({
-                            title: substitute(b.title, vars),
-                            targetNodeId: b.targetNodeId,
-                            url: b.url,
-                        })),
-                        card: cmd.response.card
-                            ? {
-                                  ...cmd.response.card,
-                                  title: substitute(cmd.response.card.title, vars),
-                                  images: cmd.response.card.images.map((img) => ({
-                                      ...img,
-                                      src: substitute(img.src, vars),
-                                      title: substitute(img.title, vars),
-                                      description: substitute(img.description, vars),
-                                      button: img.button
-                                          ? {
-                                                ...img.button,
-                                                title: substitute(img.button.title, vars),
-                                            }
-                                          : undefined,
-                                  })),
-                              }
-                            : undefined,
-                    });
+                    msgs.push(buildMessage(cmd.response, vars));
                     currentId = findEdge(doc, currentId);
                     continue;
                 }
 
                 if (node.type === 'response') {
-                    const resp = node as unknown as CommandNodeData;
-                    msgs.push({
-                        role: 'bot',
-                        text: substitute(resp.response.text, vars),
-                        buttons: resp.response.buttons.map((b) => ({
-                            title: substitute(b.title, vars),
-                            targetNodeId: b.targetNodeId,
-                            url: b.url,
-                        })),
-                        card: resp.response.card
-                            ? {
-                                  ...resp.response.card,
-                                  title: substitute(resp.response.card.title, vars),
-                                  images: resp.response.card.images.map((img) => ({
-                                      ...img,
-                                      src: substitute(img.src, vars),
-                                      title: substitute(img.title, vars),
-                                      description: substitute(img.description, vars),
-                                      button: img.button
-                                          ? {
-                                                ...img.button,
-                                                title: substitute(img.button.title, vars),
-                                            }
-                                          : undefined,
-                                  })),
-                              }
-                            : undefined,
-                    });
+                    const resp = node as ResponseNodeData;
+                    msgs.push(buildMessage(resp.response, vars));
                     currentId = findEdge(doc, currentId);
                     continue;
                 }
@@ -330,33 +369,36 @@ export default function ChatPreview() {
                     const step = node as StepNodeData;
                     // Выполняем inline-действия шага
                     if (step.actions) Object.assign(vars, executeActions(step.actions, vars));
-                    msgs.push({
-                        role: 'bot',
-                        text: substitute(step.prompt.text, vars),
-                        buttons: step.prompt.buttons?.map((b) => ({
-                            title: substitute(b.title, vars),
-                            targetNodeId: b.targetNodeId,
-                            url: b.url,
-                        })),
-                    });
+                    msgs.push(buildMessage(step.prompt, vars));
                     waitStep = step.id;
                     break;
                 }
 
                 if (node.type === 'action') {
                     const actionNode = node as ActionNodeData;
+                    // Показываем, что HTTP-запросы здесь не выполняются — пользователю важно это видеть
+                    const httpActions = (actionNode.actions ?? []).filter(
+                        (a) => a.type === 'http_request',
+                    );
+                    for (const http of httpActions) {
+                        msgs.push({
+                            role: 'bot',
+                            text: tf('preview.httpMock', {
+                                method: http.method ?? 'GET',
+                                url: http.url || '?',
+                            }),
+                        });
+                    }
+
                     Object.assign(vars, executeActions(actionNode.actions, vars));
 
                     if (actionNode.text) {
-                        msgs.push({
-                            role: 'bot',
-                            text: substitute(actionNode.text, vars),
-                            buttons: actionNode.buttons?.map((b) => ({
-                                title: substitute(b.title, vars),
-                                targetNodeId: b.targetNodeId,
-                                url: b.url,
-                            })),
-                        });
+                        msgs.push(
+                            buildMessage(
+                                { text: actionNode.text, buttons: actionNode.buttons },
+                                vars,
+                            ),
+                        );
                     }
                     currentId = findEdge(doc, currentId);
                     continue;
@@ -471,30 +513,7 @@ export default function ChatPreview() {
                 setWaitingForStep(result.waitStep);
             } else {
                 // Нет целевой ноды — обрабатываем текст кнопки как ввод пользователя (как handleSend)
-                const lower = btnText.toLowerCase();
-                let matched = null;
-                for (const node of doc.nodes) {
-                    if (node.type !== 'command') continue;
-                    const cmd = node as CommandNodeData;
-                    if (!cmd.slots || cmd.slots.length === 0) continue;
-                    for (const slot of cmd.slots) {
-                        if (cmd.isPattern) {
-                            try {
-                                const slotRe = getSlotRegex(slot);
-                                if (slotRe && slotRe.test(btnText)) {
-                                    matched = cmd;
-                                    break;
-                                }
-                            } catch {
-                                /* невалидный regex */
-                            }
-                        } else if (lower.includes(slot.toLowerCase())) {
-                            matched = cmd;
-                            break;
-                        }
-                    }
-                    if (matched) break;
-                }
+                const matched = matchCommand(doc, btnText);
 
                 if (matched) {
                     // Выполняем inline-действия команды (random_number, set_variable и т.д.)
@@ -502,33 +521,7 @@ export default function ChatPreview() {
                     if (matched.actions)
                         Object.assign(updatedVars, executeActions(matched.actions, updatedVars));
 
-                    newMessages.push({
-                        role: 'bot',
-                        text: substitute(matched.response.text, updatedVars),
-                        buttons: matched.response.buttons.map((b) => ({
-                            title: substitute(b.title, updatedVars),
-                            targetNodeId: b.targetNodeId,
-                            url: b.url,
-                        })),
-                        card: matched.response.card
-                            ? {
-                                  ...matched.response.card,
-                                  title: substitute(matched.response.card.title, updatedVars),
-                                  images: matched.response.card.images.map((img) => ({
-                                      ...img,
-                                      src: substitute(img.src, updatedVars),
-                                      title: substitute(img.title, updatedVars),
-                                      description: substitute(img.description, updatedVars),
-                                      button: img.button
-                                          ? {
-                                                ...img.button,
-                                                title: substitute(img.button.title, updatedVars),
-                                            }
-                                          : undefined,
-                                  })),
-                              }
-                            : undefined,
-                    });
+                    newMessages.push(buildMessage(matched.response, updatedVars));
 
                     setVariables(updatedVars);
                     const nextId = findEdge(doc, matched.id);
@@ -593,35 +586,14 @@ export default function ChatPreview() {
             const helpCmd = helpNode as CommandNodeData;
             if (
                 helpCmd.response.text &&
-                (lower === 'help' || lower === 'помощь' || lower === 'помощь')
+                (lower === 'help' || lower === 'помощь')
             ) {
                 matched = helpCmd;
             }
         }
 
         if (!matched) {
-            for (const node of doc.nodes) {
-                if (node.type !== 'command') continue;
-                const cmd = node as CommandNodeData;
-                if (!cmd.slots || cmd.slots.length === 0) continue;
-                for (const slot of cmd.slots) {
-                    if (cmd.isPattern) {
-                        try {
-                            const slotRe = getSlotRegex(slot);
-                            if (slotRe && slotRe.test(text)) {
-                                matched = cmd;
-                                break;
-                            }
-                        } catch {
-                            /* невалидный regex */
-                        }
-                    } else if (lower.includes(slot.toLowerCase())) {
-                        matched = cmd;
-                        break;
-                    }
-                }
-                if (matched) break;
-            }
+            matched = matchCommand(doc, text);
         }
 
         if (matched) {
@@ -630,33 +602,7 @@ export default function ChatPreview() {
             if (matched.actions)
                 Object.assign(updatedVars, executeActions(matched.actions, updatedVars));
 
-            newMessages.push({
-                role: 'bot',
-                text: substitute(matched.response.text, updatedVars),
-                buttons: matched.response.buttons.map((b) => ({
-                    title: substitute(b.title, updatedVars),
-                    targetNodeId: b.targetNodeId,
-                    url: b.url,
-                })),
-                card: matched.response.card
-                    ? {
-                          ...matched.response.card,
-                          title: substitute(matched.response.card.title, updatedVars),
-                          images: matched.response.card.images.map((img) => ({
-                              ...img,
-                              src: substitute(img.src, updatedVars),
-                              title: substitute(img.title, updatedVars),
-                              description: substitute(img.description, updatedVars),
-                              button: img.button
-                                  ? {
-                                        ...img.button,
-                                        title: substitute(img.button.title, updatedVars),
-                                    }
-                                  : undefined,
-                          })),
-                      }
-                    : undefined,
-            });
+            newMessages.push(buildMessage(matched.response, updatedVars));
 
             setVariables(updatedVars);
             const nextId = findEdge(doc, matched.id);
@@ -676,20 +622,27 @@ export default function ChatPreview() {
 
     return (
         <div
-            className={`absolute bottom-4 right-4 z-30 flex h-[480px] w-80 flex-col rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(15,15,20,0.95)] shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-150 ${animate ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+            className={`absolute bottom-4 right-4 z-preview flex h-[480px] w-80 flex-col rounded-xl border border-glass-border bg-surface-dim/95 shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-150 ${animate ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
         >
-            <div className="flex items-center justify-between rounded-t-xl bg-gradient-to-r from-[#bc13fe] to-[#00f0ff] px-4 py-2">
+            <div className="flex items-center justify-between rounded-t-xl bg-gradient-to-r from-accent to-info px-4 py-2">
                 <span className="text-sm font-bold text-white">{t('preview.title')}</span>
                 <div className="flex gap-2">
                     <button
+                        onClick={handleReset}
+                        className="rounded p-1 text-white/60 hover:text-white"
+                        title={t('preview.reset')}
+                    >
+                        <NodeIcon name="refresh" size={13} />
+                    </button>
+                    <button
                         onClick={() => setDebugMode(!debugMode)}
-                        className={`rounded px-1.5 py-0.5 text-[10px] ${debugMode ? 'bg-[rgba(188,19,254,0.2)] text-[#bc13fe]' : 'text-white/60 hover:text-white'}`}
+                        className={`rounded px-1.5 py-0.5 text-[10px] ${debugMode ? 'bg-accent/20 text-accent' : 'text-white/60 hover:text-white'}`}
                         title={t('preview.debug')}
                     >
-                        {'{ }'}
+                        {t('preview.varsTitle')}
                     </button>
                     <button onClick={handleClose} className="text-white/60 hover:text-white">
-                        ✕
+                        <NodeIcon name="close" size={12} />
                     </button>
                 </div>
             </div>
@@ -714,44 +667,20 @@ export default function ChatPreview() {
             </div>
 
             {debugMode && (
-                <div className="border-t border-[rgba(255,255,255,0.08)] bg-[rgba(20,20,25,0.9)] p-2 text-[10px]">
-                    <div className="mb-1 font-bold text-white/40">{t('preview.debugVars')}</div>
-                    {Object.keys(variables).length === 0 ? (
-                        <div className="text-white/30">{t('userData.empty')}</div>
-                    ) : (
-                        <div className="max-h-24 overflow-y-auto">
-                            {Object.entries(variables).map(([key, val]) => (
-                                <div key={key} className="flex gap-2">
-                                    <span className="font-mono text-[#00f0ff]">{key}:</span>
-                                    <span className="truncate text-white/60">{val}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    {waitingForStep && (
-                        <div className="mt-1 text-[#ff9d00]">
-                            {t('preview.waiting')}: {waitingForStep}
-                        </div>
-                    )}
-                </div>
+                <DebugVarsPanel variables={variables} waitingForStep={waitingForStep} />
             )}
 
-            <div className="flex items-center gap-2 border-t border-[rgba(255,255,255,0.08)] p-2">
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder={t('preview.placeholder')}
-                    className="min-w-0 flex-1 rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-3 py-1.5 text-sm text-white/90 placeholder-white/30 focus:border-[#00f0ff] focus:outline-none"
-                />
-                <button
-                    onClick={handleSend}
-                    className="flex-shrink-0 rounded-lg bg-gradient-to-r from-[#bc13fe] to-[#00f0ff] px-3 py-1.5 text-sm text-white shadow-[0_0_10px_rgba(0,240,255,0.3)] hover:shadow-[0_0_15px_rgba(0,240,255,0.5)]"
-                >
-                    {t('preview.send')}
-                </button>
-            </div>
+            <ChatInput
+                value={input}
+                onChange={setInput}
+                onSend={handleSend}
+                waitingForVarName={
+                    waitingForStep
+                        ? ((doc.nodes.find((n) => n.id === waitingForStep) as StepNodeData | undefined)
+                              ?.saveTo ?? '…')
+                        : undefined
+                }
+            />
         </div>
     );
 }

@@ -23,7 +23,7 @@ export function ResponseText({
                 onChange={onChange}
                 rows={3}
                 placeholder={t(placeholder)}
-                className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-[#00f0ff] focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
             />
         </Field>
     );

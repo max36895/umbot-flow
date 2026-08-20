@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
 import useUiStore from '../../store/uiStore';
 import { t } from '../../i18n';
+import { NodeIcon } from '../ui/NodeIcons';
 
-type Tab = 'intro' | 'nodes' | 'slots' | 'userData' | 'export' | 'custom';
+type Tab = 'intro' | 'nodes' | 'slots' | 'userData' | 'export' | 'custom' | 'sysvars' | 'shortcuts';
 
 const TABS: { id: Tab; labelKey: string }[] = [
     { id: 'intro', labelKey: 'help.whatIs' },
     { id: 'nodes', labelKey: 'help.nodeTypes' },
     { id: 'slots', labelKey: 'help.slotsTitle' },
     { id: 'userData', labelKey: 'help.userDataTitle' },
+    { id: 'sysvars', labelKey: 'help.sysVarsTitle' },
     { id: 'export', labelKey: 'help.exportTitle' },
     { id: 'custom', labelKey: 'help.customTitle' },
+    { id: 'shortcuts', labelKey: 'help.shortcutsTitle' },
 ];
 
 export default function HelpModal() {
-    const { toggleHelp } = useUiStore();
+    const toggleHelp = useUiStore((s) => s.toggleHelp);
     const [activeTab, setActiveTab] = useState<Tab>('intro');
     const [animate, setAnimate] = useState(false);
 
@@ -41,7 +44,7 @@ export default function HelpModal() {
                 <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-6 py-4">
                     <h2 className="text-lg font-bold text-white/90">{t('help.title')}</h2>
                     <button onClick={handleClose} className="text-white/30 hover:text-white/60">
-                        ✕
+                        <NodeIcon name="close" size={14} />
                     </button>
                 </div>
 
@@ -54,7 +57,7 @@ export default function HelpModal() {
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                                     activeTab === tab.id
-                                        ? 'bg-[rgba(0,240,255,0.1)] font-medium text-[#00f0ff]'
+                                        ? 'bg-[rgba(0,240,255,0.1)] font-medium text-info'
                                         : 'text-white/50 hover:bg-[rgba(255,255,255,0.05)]'
                                 }`}
                             >
@@ -176,6 +179,53 @@ export default function HelpModal() {
                                 <p className="whitespace-pre-line text-sm leading-relaxed text-white/60">
                                     {t('help.customDesc')}
                                 </p>
+                            </div>
+                        )}
+
+                        {activeTab === 'sysvars' && (
+                            <div className="space-y-4">
+                                <h3 className="text-base font-semibold text-white/90">
+                                    {t('help.sysVarsTitle')}
+                                </h3>
+                                <p className="whitespace-pre-line text-sm leading-relaxed text-white/60">
+                                    {t('help.sysVarsDesc')}
+                                </p>
+                            </div>
+                        )}
+
+                        {activeTab === 'shortcuts' && (
+                            <div className="space-y-4">
+                                <h3 className="text-base font-semibold text-white/90">
+                                    {t('help.shortcutsTitle')}
+                                </h3>
+                                <div className="space-y-1.5">
+                                    {(
+                                        [
+                                            ['Ctrl+K', 'help.shortcutSearch'],
+                                            ['Ctrl+N', 'help.shortcutNew'],
+                                            ['Ctrl+S', 'help.shortcutExport'],
+                                            ['Ctrl+P', 'help.shortcutPreview'],
+                                            ['Ctrl+Z', 'help.shortcutUndo'],
+                                            ['Ctrl+Shift+Z', 'help.shortcutRedo'],
+                                            ['Ctrl+C', 'help.shortcutCopy'],
+                                            ['Ctrl+V', 'help.shortcutPaste'],
+                                            ['Ctrl+D', 'help.shortcutDuplicate'],
+                                            ['Delete / Backspace', 'help.shortcutDelete'],
+                                        ] as [string, string][]
+                                    ).map(([key, labelKey]) => (
+                                        <div
+                                            key={key}
+                                            className="flex items-center justify-between rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5"
+                                        >
+                                            <span className="text-xs text-white/60">
+                                                {t(labelKey)}
+                                            </span>
+                                            <kbd className="rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-1.5 py-0.5 font-mono text-[10px] text-info">
+                                                {key}
+                                            </kbd>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

@@ -3,6 +3,7 @@ import { t } from '../../i18n';
 import HelpButton from '../ui/HelpButton';
 import NodeSelector from '../ui/NodeSelector';
 import VariablePicker from '../ui/VariablePicker';
+import { NodeIcon } from '../ui/NodeIcons';
 
 interface CardEditorProps {
     card: FlowCard | undefined;
@@ -68,7 +69,7 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
                         </div>
                         <button
                             onClick={() => onChange(undefined)}
-                            className="text-[10px] text-[#ff0055]/50 hover:text-[#ff0055]"
+                            className="text-[10px] text-error/50 hover:text-error"
                         >
                             {t('props.removeCard')}
                         </button>
@@ -77,7 +78,7 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
                         <select
                             value={card.type}
                             onChange={(e) => updateCardType(e.target.value as FlowCard['type'])}
-                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-[#00f0ff] focus:outline-none"
+                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-info focus:outline-none"
                         >
                             <option value="single">{t('card.single')}</option>
                             <option value="list">{t('card.list')}</option>
@@ -87,7 +88,7 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
                             value={card.title}
                             onChange={updateCardTitle}
                             placeholder={t('props.cardTitle')}
-                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-[#00f0ff] focus:outline-none"
+                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-info focus:outline-none"
                         />
 
                         {card.images.map((img, i) => (
@@ -101,9 +102,9 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
                                     </span>
                                     <button
                                         onClick={() => removeImage(i)}
-                                        className="text-[10px] text-[#ff0055]/50 hover:text-[#ff0055]"
+                                        className="text-[10px] text-error/50 hover:text-error"
                                     >
-                                        ✕
+                                        <NodeIcon name="close" size={10} />
                                     </button>
                                 </div>
                                 <VariablePicker
@@ -161,7 +162,7 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
                         {canAddImage && (
                             <button
                                 onClick={addImage}
-                                className="w-full rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.15)] py-2 text-xs text-white/40 transition-colors hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-[#00f0ff]"
+                                className="w-full rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.15)] py-2 text-xs text-white/40 transition-colors hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-info"
                             >
                                 + {t('props.addImage')}
                             </button>
@@ -178,7 +179,7 @@ export default function CardEditor({ card, onChange }: CardEditorProps) {
                     </div>
                     <button
                         onClick={createCardWithImage}
-                        className="w-full rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.15)] py-3 text-xs text-white/40 transition-colors hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-[#00f0ff]"
+                        className="w-full rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.15)] py-3 text-xs text-white/40 transition-colors hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-info"
                     >
                         {t('props.addCard')}
                     </button>

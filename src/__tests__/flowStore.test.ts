@@ -145,4 +145,70 @@ describe('flowStore', () => {
         useFlowStore.getState().setMetadata({ name: 'new-name' });
         expect(useFlowStore.getState().metadata.name).toBe('new-name');
     });
+
+    it('coalesces rapid same-shape updates into one undo step', () => {
+        const id = useFlowStore.getState().addNode('command', { x: 0, y: 0 });
+        // Имитация ввода текста: быстрые правки одного поля
+        useFlowStore.getState().updateNodeData(id, { name: 'a' });
+        useFlowStore.getState().updateNodeData(id, { name: 'ab' });
+        useFlowStore.getState().updateNodeData(id, { name: 'abc' });
+        expect(useFlowStore.getState().nodes[0]?.data.name).toBe('abc');
+
+        // Один undo откатывает всю серию к исходному имени
+        useFlowStore.getState().undo();
+        expect(useFlowStore.getState().nodes[0]?.data.name).toBe('command');
+    });
+
+    it('does not coalesce updates with different patch shapes', () => {
+        const id = useFlowStore.getState().addNode('command', { x: 0, y: 0 });
+        useFlowStore.getState().updateNodeData(id, { name: 'renamed' });
+        useFlowStore.getState().updateNodeData(id, { saveTo: 'userInput' });
+
+        // Первый undo откатывает только saveTo
+        useFlowStore.getState().undo();
+        expect(useFlowStore.getState().nodes[0]?.data.name).toBe('renamed');
+        expect((useFlowStore.getState().nodes[0]?.data as { saveTo?: string }).saveTo).toBeUndefined();
+
+        // Второй undo откатывает name
+        useFlowStore.getState().undo();
+        expect(useFlowStore.getState().nodes[0]?.data.name).toBe('command');
+    });
+
+    it('removeSelection deletes multiple nodes and connected edges in one undo step', () => {
+        const a = useFlowStore.getState().addNode('command', { x: 0, y: 0 });
+        const b = useFlowStore.getState().addNode('step', { x: 100, y: 0 });
+        const c = useFlowStore.getState().addNode('response', { x: 200, y: 0 });
+        useFlowStore.getState().addEdge({
+            id: 'e1',
+            source: a,
+            target: b,
+            type: 'flowEdge',
+            data: { edgeType: 'next', label: '' },
+        });
+        useFlowStore.getState().addEdge({
+            id: 'e2',
+            source: b,
+            target: c,
+            type: 'flowEdge',
+            data: { edgeType: 'next', label: '' },
+        });
+
+        useFlowStore.getState().removeSelection([a, b], []);
+
+        // Удалены обе ноды и оба ребра (e2 — потому что source удалён)
+        expect(useFlowStore.getState().nodes).toHaveLength(1);
+        expect(useFlowStore.getState().nodes[0]?.id).toBe(c);
+        expect(useFlowStore.getState().edges).toHaveLength(0);
+
+        // Один undo восстанавливает всё
+        useFlowStore.getState().undo();
+        expect(useFlowStore.getState().nodes).toHaveLength(3);
+        expect(useFlowStore.getState().edges).toHaveLength(2);
+    });
+
+    it('removeSelection with empty lists is a no-op', () => {
+        useFlowStore.getState().addNode('command', { x: 0, y: 0 });
+        useFlowStore.getState().removeSelection([], []);
+        expect(useFlowStore.getState().nodes).toHaveLength(1);
+    });
 });

@@ -2,66 +2,72 @@ import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { CommandNodeData } from '../../../types/flow';
 import useUiStore from '../../../store/uiStore';
-import { t } from '../../../i18n';
+import { useT } from '../../../i18n/hook';
 import NodeHelpButton from './NodeHelpButton';
-import { getNodeClasses, getNodeStyles, type NodeTypeKey } from './useNodeClasses';
+import { getNodeClasses, getNodeStyles, NODE_COLORS, type NodeTypeKey } from './useNodeClasses';
+import { useNodeErrorsMap, NodeErrorsBadge } from './useNodeErrors';
+import { truncatePreview } from '../../../utils/truncate';
+import { NodeIcon, type NodeIconName } from '../../ui/NodeIcons';
 
 function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData }) {
+    const t = useT();
     const selectNode = useUiStore((s) => s.selectNode);
     const selectedNodeId = useUiStore((s) => s.selectedNodeId);
     const activePreviewNodeId = useUiStore((s) => s.activePreviewNodeId);
+    const nodeErrors = useNodeErrorsMap();
+    const errors = nodeErrors.get(id);
+    const hasErrors = (errors?.length ?? 0) > 0;
     const isActivePreview = activePreviewNodeId === id;
     const isSelected = selectedNodeId === id;
     const isDimmed = selectedNodeId !== null && !isSelected && !isActivePreview;
     const slotCount = data.slots?.length ?? 0;
-    const responsePreview = data.response?.text
-        ? data.response.text.length > 50
-            ? data.response.text.slice(0, 50) + '...'
-            : data.response.text
-        : t('node.preview.noResponse');
+    const responsePreview = truncatePreview(data.response?.text, t('node.preview.noResponse'));
 
-    const nodeType: NodeTypeKey = (data.role as NodeTypeKey) || 'command';
+    // role может быть 'welcome' | 'help' | 'fallback' | undefined
+    const role = (data as { role?: string }).role;
+    const nodeType: NodeTypeKey =
+        role === 'welcome' || role === 'help' || role === 'fallback'
+            ? (role as NodeTypeKey)
+            : 'command';
+    const nodeColor = NODE_COLORS[nodeType];
     const badgeKey =
-        data.role === 'welcome'
+        role === 'welcome'
             ? 'node.badge.welcome'
-            : data.role === 'help'
+            : role === 'help'
               ? 'node.badge.help'
-              : 'node.badge.cmd';
+              : role === 'fallback'
+                ? 'node.badge.fallback'
+                : 'node.badge.cmd';
 
     return (
         <div
-            className={getNodeClasses(nodeType, isSelected, isDimmed, isActivePreview)}
-            style={{ minWidth: 220, ...getNodeStyles(nodeType, isSelected, isActivePreview) }}
+            className={`relative min-w-[220px] ${getNodeClasses(nodeType, isSelected, isDimmed, isActivePreview, hasErrors)}`}
+            style={getNodeStyles(nodeType, isSelected, isActivePreview)}
             onClick={() => selectNode(id)}
         >
+            <NodeErrorsBadge errors={errors} />
             <Handle
                 type="target"
                 position={Position.Top}
-                style={{
-                    backgroundColor:
-                        nodeType === 'welcome'
-                            ? '#22c55e'
-                            : nodeType === 'help'
-                              ? '#eab308'
-                              : '#00f0ff',
-                }}
+                className="!-top-3 !h-4 !w-4 !border-2 !border-white/30"
+                style={{ backgroundColor: nodeColor.hex }}
             />
 
             <div className="mb-2 flex items-center gap-2">
                 <span
                     className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                    style={{
-                        backgroundColor:
-                            nodeType === 'welcome'
-                                ? 'rgba(34,197,94,0.25)'
-                                : nodeType === 'help'
-                                  ? 'rgba(234,179,8,0.25)'
-                                  : 'rgba(0,240,255,0.25)',
-                    }}
+                    style={{ backgroundColor: `rgba(${nodeColor.rgb},0.25)` }}
                 >
-                    <span className="text-sm">
-                        {nodeType === 'welcome' ? '🚀' : nodeType === 'help' ? '❓' : '💬'}
-                    </span>
+                    <NodeIcon
+                        name={
+                            (nodeType === 'welcome' ||
+                            nodeType === 'help' ||
+                            nodeType === 'fallback'
+                                ? nodeType
+                                : 'command') as NodeIconName
+                        }
+                        size={12}
+                    />
                     {t(badgeKey)}
                 </span>
                 <span className="font-semibold text-white">
@@ -69,7 +75,9 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                         ? t('sidebar.welcome.label')
                         : data.role === 'help'
                           ? t('sidebar.help.label')
-                          : data.name}
+                          : data.role === 'fallback'
+                            ? t('sidebar.fallback.label')
+                            : data.name}
                 </span>
                 <NodeHelpButton
                     content={t(
@@ -77,15 +85,11 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                             ? 'help.welcomeDesc'
                             : data.role === 'help'
                               ? 'help.helpNodeDesc'
-                              : 'help.cmdDesc',
+                              : data.role === 'fallback'
+                                ? 'sidebar.fallback.desc'
+                                : 'help.cmdDesc',
                     )}
-                    color={
-                        nodeType === 'welcome'
-                            ? '#22c55e'
-                            : nodeType === 'help'
-                              ? '#eab308'
-                              : '#00f0ff'
-                    }
+                    color={nodeColor.hex}
                 />
             </div>
 
@@ -108,7 +112,7 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                       : t('node.preview.noSlots')}
             </div>
 
-            <div className="rounded-lg bg-[rgba(255,255,255,0.05)] px-2.5 py-1.5 text-xs text-white/60 italic">
+            <div className="rounded-lg bg-white/5 px-2.5 py-1.5 text-xs text-white/60 italic">
                 {responsePreview}
             </div>
 
@@ -117,7 +121,7 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                     {data.response.buttons.slice(0, 4).map((btn: { title: string }, i: number) => (
                         <span
                             key={i}
-                            className="rounded-full bg-[rgba(0,240,255,0.1)] px-2 py-0.5 text-[10px] font-medium text-[#00f0ff]"
+                            className="rounded-full bg-info/10 px-2 py-0.5 text-[10px] font-medium text-info"
                         >
                             {btn.title}
                         </span>
@@ -133,14 +137,8 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
             <Handle
                 type="source"
                 position={Position.Bottom}
-                style={{
-                    backgroundColor:
-                        nodeType === 'welcome'
-                            ? '#22c55e'
-                            : nodeType === 'help'
-                              ? '#eab308'
-                              : '#00f0ff',
-                }}
+                className="!-bottom-3 !h-4 !w-4 !border-2 !border-white/30"
+                style={{ backgroundColor: nodeColor.hex }}
             />
         </div>
     );

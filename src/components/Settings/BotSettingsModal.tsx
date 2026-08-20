@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
 import { t } from '../../i18n';
-import type { ActionBlock } from '../../types/flow';
+import type { ActionBlock, DatabaseType, BotMode } from '../../types/flow';
 import { TextArea } from '../ui/TextArea';
+import HelpButton from '../ui/HelpButton';
+import { NodeIcon } from '../ui/NodeIcons';
 
 /** Информация о переменной */
 interface VariableInfo {
@@ -91,18 +93,19 @@ function collectVariables(nodes: { data: Record<string, unknown> }[]): VariableI
     return Array.from(varMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-const TYPE_LABELS: Record<string, string> = {
-    command: 'Команда',
-    step: 'Шаг',
-    condition: 'Условие',
-    action: 'Действие',
-    response: 'Ответ',
-    end: 'Конец',
+/** Метки типов блоков для вывода в списке использования переменных. */
+const TYPE_LABEL_KEYS: Record<string, string> = {
+    command: 'sidebar.command.label',
+    step: 'sidebar.step.label',
+    condition: 'sidebar.condition.label',
+    action: 'sidebar.custom.label',
+    response: 'sidebar.response.label',
+    end: 'sidebar.end.label',
 };
 
-/** Модальное окно настроек бота: приветствие, fallback, переменные, БД */
 export default function BotSettingsModal() {
-    const { toggleBotSettings, selectNode } = useUiStore();
+    const toggleBotSettings = useUiStore((s) => s.toggleBotSettings);
+    const selectNode = useUiStore((s) => s.selectNode);
     const metadata = useFlowStore((s) => s.metadata);
     const setMetadata = useFlowStore((s) => s.setMetadata);
     const nodes = useFlowStore((s) => s.nodes);
@@ -182,9 +185,9 @@ export default function BotSettingsModal() {
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-6 py-4">
-                    <h2 className="text-lg font-bold text-white/90">{t('db.title')}</h2>
+                    <h2 className="text-lg font-bold text-white/90">{t('settings.title')}</h2>
                     <button onClick={handleClose} className="text-white/30 hover:text-white/60">
-                        ✕
+                        <NodeIcon name="close" size={14} />
                     </button>
                 </div>
 
@@ -249,21 +252,24 @@ export default function BotSettingsModal() {
 
                     {/* Тип БД */}
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-white/40">
-                            {t('db.type')}
-                        </label>
+                        <div className="mb-1 flex items-center gap-1">
+                            <label className="text-xs font-medium text-white/40">
+                                {t('db.type')}
+                            </label>
+                            <HelpButton content={t('settings.dbTypeHelp')} />
+                        </div>
                         <div className="flex gap-2">
                             {['file', 'mongo', 'none'].map((type) => (
                                 <button
                                     key={type}
                                     onClick={() =>
                                         setMetadata({
-                                            database: { ...metadata.database, type: type as any },
+                                            database: { ...metadata.database, type: type as DatabaseType },
                                         })
                                     }
                                     className={`flex-1 rounded-lg px-3 py-2 text-xs transition-colors ${
                                         metadata.database.type === type
-                                            ? 'bg-[rgba(0,240,255,0.15)] text-[#00f0ff] border border-[rgba(0,240,255,0.3)]'
+                                            ? 'bg-[rgba(0,240,255,0.15)] text-info border border-[rgba(0,240,255,0.3)]'
                                             : 'bg-[rgba(255,255,255,0.05)] text-white/50 border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.1)]'
                                     }`}
                                 >
@@ -275,22 +281,25 @@ export default function BotSettingsModal() {
 
                     {/* Сохранение данных */}
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-white/40">
-                            {t('db.localStorage')}
-                        </label>
+                        <div className="mb-1 flex items-center gap-1">
+                            <label className="text-xs font-medium text-white/40">
+                                {t('db.localStorage')}
+                            </label>
+                            <HelpButton content={t('settings.localStorageHelp')} />
+                        </div>
                         <button
                             onClick={() =>
                                 setMetadata({ isLocalStorage: !metadata.isLocalStorage })
                             }
                             className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-xs transition-colors ${
                                 metadata.isLocalStorage
-                                    ? 'border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.1)] text-[#00f0ff]'
+                                    ? 'border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.1)] text-info'
                                     : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] text-white/50'
                             }`}
                         >
                             <div
                                 className={`flex h-4 w-7 items-center rounded-full transition-colors ${
-                                    metadata.isLocalStorage ? 'bg-[#00f0ff]' : 'bg-white/20'
+                                    metadata.isLocalStorage ? 'bg-info' : 'bg-white/20'
                                 }`}
                             >
                                 <div
@@ -307,17 +316,20 @@ export default function BotSettingsModal() {
 
                     {/* Режим бота */}
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-white/40">
-                            {t('db.mode')}
-                        </label>
+                        <div className="mb-1 flex items-center gap-1">
+                            <label className="text-xs font-medium text-white/40">
+                                {t('db.mode')}
+                            </label>
+                            <HelpButton content={t('settings.modeHelp')} />
+                        </div>
                         <div className="flex gap-2">
                             {['dev', 'prod', 'strict_prod'].map((mode) => (
                                 <button
                                     key={mode}
-                                    onClick={() => setMetadata({ mode: mode as any })}
+                                    onClick={() => setMetadata({ mode: mode as BotMode })}
                                     className={`flex-1 rounded-lg px-3 py-2 text-xs transition-colors ${
                                         metadata.mode === mode
-                                            ? 'bg-[rgba(0,240,255,0.15)] text-[#00f0ff] border border-[rgba(0,240,255,0.3)]'
+                                            ? 'bg-[rgba(0,240,255,0.15)] text-info border border-[rgba(0,240,255,0.3)]'
                                             : 'bg-[rgba(255,255,255,0.05)] text-white/50 border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.1)]'
                                     }`}
                                 >
@@ -364,7 +376,7 @@ export default function BotSettingsModal() {
                                                     })
                                                 }
                                                 placeholder={t('db.tokenPlaceholder')}
-                                                className="w-full rounded border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-[11px] text-white/80 placeholder-white/20 focus:border-[#00f0ff] focus:ring-0"
+                                                className="w-full rounded border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-[11px] text-white/80 placeholder-white/20 focus:border-info focus:ring-0"
                                             />
                                         </div>
                                     ))
@@ -392,7 +404,7 @@ export default function BotSettingsModal() {
                                             onClick={() => toggleExpand(v.name)}
                                             className="flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors hover:bg-[rgba(255,255,255,0.05)] rounded"
                                         >
-                                            <span className="font-mono text-xs text-[#00f0ff]">
+                                            <span className="font-mono text-xs text-info">
                                                 {v.name}
                                             </span>
                                             {v.comment && (
@@ -412,7 +424,7 @@ export default function BotSettingsModal() {
                                                 {/* Поле комментария */}
                                                 <div>
                                                     <label className="mb-0.5 block text-[10px] font-medium text-white/40">
-                                                        Комментарий
+                                                        {t('userData.comment')}
                                                     </label>
                                                     <input
                                                         type="text"
@@ -420,15 +432,15 @@ export default function BotSettingsModal() {
                                                         onChange={(e) =>
                                                             updateComment(v.name, e.target.value)
                                                         }
-                                                        placeholder="Описание переменной"
-                                                        className="w-full rounded border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-[11px] text-white/80 placeholder-white/20 focus:border-[#00f0ff] focus:ring-0"
+                                                        placeholder={t('userData.commentPlaceholder')}
+                                                        className="w-full rounded border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-[11px] text-white/80 placeholder-white/20 focus:border-info focus:ring-0"
                                                     />
                                                 </div>
 
                                                 {v.definedIn.length > 0 && (
                                                     <div>
                                                         <p className="text-[10px] font-medium text-white/40 mb-0.5">
-                                                            Определена в:
+                                                            {t('userData.definedIn')}
                                                         </p>
                                                         <div className="flex flex-wrap gap-1">
                                                             {v.definedIn.map((ref, i) => (
@@ -438,10 +450,10 @@ export default function BotSettingsModal() {
                                                                         e.stopPropagation();
                                                                         goToNode(ref.nodeId);
                                                                     }}
-                                                                    className="cursor-pointer rounded bg-[rgba(0,255,157,0.1)] px-1.5 py-0.5 text-[10px] text-[#00ff9d] border border-[rgba(0,255,157,0.15)] transition-colors hover:bg-[rgba(0,255,157,0.25)] hover:border-[rgba(0,255,157,0.3)]"
+                                                                    className="cursor-pointer rounded bg-[rgba(0,255,157,0.1)] px-1.5 py-0.5 text-[10px] text-success border border-[rgba(0,255,157,0.15)] transition-colors hover:bg-[rgba(0,255,157,0.25)] hover:border-[rgba(0,255,157,0.3)]"
                                                                     title={`Перейти к ${ref.nodeName}`}
                                                                 >
-                                                                    {TYPE_LABELS[ref.type] ||
+                                                                    {t(TYPE_LABEL_KEYS[ref.type] ?? 'sidebar.command.label') ||
                                                                         ref.type}
                                                                     : {ref.nodeName}
                                                                 </button>
@@ -452,7 +464,7 @@ export default function BotSettingsModal() {
                                                 {v.usedIn.length > 0 && (
                                                     <div>
                                                         <p className="text-[10px] font-medium text-white/40 mb-0.5">
-                                                            Используется в:
+                                                            {t('userData.usedIn')}
                                                         </p>
                                                         <div className="flex flex-wrap gap-1">
                                                             {v.usedIn.map((ref, i) => (
@@ -462,10 +474,10 @@ export default function BotSettingsModal() {
                                                                         e.stopPropagation();
                                                                         goToNode(ref.nodeId);
                                                                     }}
-                                                                    className="cursor-pointer rounded bg-[rgba(0,240,255,0.1)] px-1.5 py-0.5 text-[10px] text-[#00f0ff] border border-[rgba(0,240,255,0.15)] transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:border-[rgba(0,240,255,0.3)]"
+                                                                    className="cursor-pointer rounded bg-[rgba(0,240,255,0.1)] px-1.5 py-0.5 text-[10px] text-info border border-[rgba(0,240,255,0.15)] transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:border-[rgba(0,240,255,0.3)]"
                                                                     title={`Перейти к ${ref.nodeName}`}
                                                                 >
-                                                                    {TYPE_LABELS[ref.type] ||
+                                                                    {t(TYPE_LABEL_KEYS[ref.type] ?? 'sidebar.command.label') ||
                                                                         ref.type}
                                                                     : {ref.nodeName}
                                                                 </button>
@@ -476,7 +488,7 @@ export default function BotSettingsModal() {
                                                 {v.definedIn.length === 0 &&
                                                     v.usedIn.length === 0 && (
                                                         <p className="text-[10px] text-white/30">
-                                                            Не найдена в блоках
+                                                            {t('userData.notFound')}
                                                         </p>
                                                     )}
                                             </div>

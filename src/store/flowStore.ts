@@ -21,13 +21,15 @@ interface FlowStore {
 
     /** Add a new node to the canvas. */
     addNode: (
-        type: NodeData['type'] | 'welcome' | 'help',
+        type: NodeData['type'] | 'welcome' | 'help' | 'fallback',
         position: { x: number; y: number },
     ) => string;
     /** Update data of a specific node. */
     updateNodeData: (id: string, data: Partial<NodeData>) => void;
     /** Remove a node and all connected edges. */
     removeNode: (id: string) => void;
+    /** Remove multiple nodes and edges in a single undo step (group delete). */
+    removeSelection: (nodeIds: string[], edgeIds: string[]) => void;
     /** Duplicate a node with offset position. */
     duplicateNode: (id: string) => string | null;
     /** Paste a node from clipboard data, preserving original properties. */
@@ -42,6 +44,10 @@ interface FlowStore {
     setEdges: (edges: Edge[]) => void;
     /** Update metadata. */
     setMetadata: (meta: Partial<FlowMetadata>) => void;
+    /** Push current state to undo history manually (used for drag operations). */
+    pushHistory: () => void;
+    /** Push a specific snapshot to undo history (used for drag operations to push PRE-drag state). */
+    pushHistorySnapshot: (snapshot: HistoryEntry) => void;
     /** Undo last change. */
     undo: () => void;
     /** Redo last undone change. */
@@ -60,35 +66,62 @@ interface FlowStore {
 
 const STORAGE_KEY = 'umbot-flow-editor';
 
+/** Текущая поддерживаемая версия схемы. При изменении — добавить миграцию. */
+export const CURRENT_SCHEMA_VERSION = '1.0';
+
 let idCounter = 0;
 function generateNodeId(): string {
     idCounter += 1;
     return `node_${Date.now()}_${idCounter}`;
 }
 
-const useFlowStore = create<FlowStore>((set, get) => ({
+const useFlowStore = create<FlowStore>((set, get) => {
+    /** Пушит текущее состояние в undo-историю и очищает redo. */
+    const pushHistoryEntry = () => {
+        const { nodes, edges } = get();
+        const history = getHistory();
+        history.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
+        setHistory(history);
+        setRedoStack([]);
+    };
+
+    /** Применяет частичное обновление data ноды. */
+    const applyNodeData = (id: string, data: Partial<NodeData>) => {
+        const { nodes } = get();
+        set({
+            nodes: nodes.map((n) =>
+                n.id === id ? { ...n, data: { ...n.data, ...data } as NodeData } : n,
+            ),
+        });
+        get().autoSave();
+    };
+
+    return {
     nodes: [],
     edges: [],
     metadata: { ...DEFAULT_METADATA },
 
-    addNode: (type: NodeData['type'] | 'welcome' | 'help', position) => {
+    addNode: (type: NodeData['type'] | 'welcome' | 'help' | 'fallback', position) => {
         const id = generateNodeId();
         const { nodes, metadata } = get();
 
         // Push current state to history before mutation
-        const history = getHistory();
-        history.push({ nodes: structuredClone(nodes), edges: structuredClone(get().edges) });
-        setHistory(history);
+        pushHistoryEntry();
 
         const defaultData = getDefaultNodeData(type, id, nodes);
-        // Welcome/Help ноды — это command с role
-        const nodeType = type === 'welcome' || type === 'help' ? 'command' : type;
+        // Welcome/Help/Fallback ноды — это command с role
+        const isRoleNode = type === 'welcome' || type === 'help' || type === 'fallback';
+        const nodeType = isRoleNode ? 'command' : type;
 
         // Копируем текст из настроек бота в ноду
-        if (type === 'welcome' || type === 'help') {
+        if (isRoleNode) {
             const cmdData = defaultData as CommandNodeData;
             const sourceText =
-                type === 'welcome' ? metadata.welcome.text : (metadata.helpText?.text ?? '');
+                type === 'welcome'
+                    ? metadata.welcome.text
+                    : type === 'help'
+                      ? (metadata.helpText?.text ?? '')
+                      : (metadata.fallback?.text ?? '');
             cmdData.response = { ...cmdData.response, text: sourceText };
         }
 
@@ -104,28 +137,44 @@ const useFlowStore = create<FlowStore>((set, get) => ({
     },
 
     updateNodeData: (id, data) => {
-        const { nodes } = get();
-        const history = getHistory();
-        history.push({ nodes: structuredClone(nodes), edges: structuredClone(get().edges) });
-        setHistory(history);
-
-        set({
-            nodes: nodes.map((n) =>
-                n.id === id ? { ...n, data: { ...n.data, ...data } as NodeData } : n,
-            ),
-        });
-        get().autoSave();
+        // Коалесцинг быстрых правок: ввод текста в одно поле генерирует
+        // обновление на каждый символ; правки одной ноды с одинаковой формой
+        // патча в пределах окна схлопываются в один шаг undo.
+        const now = Date.now();
+        const coalesceKey = `${id}:${Object.keys(data).sort().join(',')}`;
+        const shouldCoalesce =
+            lastCoalesceKey === coalesceKey && now - lastCoalesceTime < COALESCE_WINDOW_MS;
+        lastCoalesceKey = coalesceKey;
+        lastCoalesceTime = now;
+        if (!shouldCoalesce) {
+            pushHistoryEntry();
+        }
+        applyNodeData(id, data);
     },
 
     removeNode: (id) => {
         const { nodes, edges } = get();
-        const history = getHistory();
-        history.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
-        setHistory(history);
+        pushHistoryEntry();
 
         set({
             nodes: nodes.filter((n) => n.id !== id),
             edges: edges.filter((e) => e.source !== id && e.target !== id),
+        });
+        get().autoSave();
+    },
+
+    removeSelection: (nodeIds, edgeIds) => {
+        if (nodeIds.length === 0 && edgeIds.length === 0) return;
+        const { nodes, edges } = get();
+        pushHistoryEntry();
+
+        const nodeSet = new Set(nodeIds);
+        const edgeSet = new Set(edgeIds);
+        set({
+            nodes: nodes.filter((n) => !nodeSet.has(n.id)),
+            edges: edges.filter(
+                (e) => !edgeSet.has(e.id) && !nodeSet.has(e.source) && !nodeSet.has(e.target),
+            ),
         });
         get().autoSave();
     },
@@ -135,9 +184,7 @@ const useFlowStore = create<FlowStore>((set, get) => ({
         const sourceNode = nodes.find((n) => n.id === id);
         if (!sourceNode) return null;
 
-        const history = getHistory();
-        history.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
-        setHistory(history);
+        pushHistoryEntry();
 
         const newId = generateNodeId();
         const newNode: Node = {
@@ -175,9 +222,7 @@ const useFlowStore = create<FlowStore>((set, get) => ({
     pasteNode: (data, position) => {
         const { nodes } = get();
 
-        const history = getHistory();
-        history.push({ nodes: structuredClone(nodes), edges: structuredClone(get().edges) });
-        setHistory(history);
+        pushHistoryEntry();
 
         const newId = generateNodeId();
         const newNode: Node = {
@@ -197,9 +242,7 @@ const useFlowStore = create<FlowStore>((set, get) => ({
 
     addEdge: (edge) => {
         const { edges } = get();
-        const history = getHistory();
-        history.push({ nodes: structuredClone(get().nodes), edges: structuredClone(edges) });
-        setHistory(history);
+        pushHistoryEntry();
 
         // Prevent duplicate edges
         const exists = edges.some(
@@ -213,9 +256,7 @@ const useFlowStore = create<FlowStore>((set, get) => ({
 
     removeEdge: (id) => {
         const { edges } = get();
-        const history = getHistory();
-        history.push({ nodes: structuredClone(get().nodes), edges: structuredClone(edges) });
-        setHistory(history);
+        pushHistoryEntry();
 
         set({ edges: edges.filter((e) => e.id !== id) });
         get().autoSave();
@@ -236,9 +277,27 @@ const useFlowStore = create<FlowStore>((set, get) => ({
         get().autoSave();
     },
 
+    pushHistory: () => {
+        pushHistoryEntry();
+    },
+
+    pushHistorySnapshot: (snapshot) => {
+        const history = getHistory();
+        history.push({
+            nodes: structuredClone(snapshot.nodes),
+            edges: structuredClone(snapshot.edges),
+        });
+        setHistory(history);
+        setRedoStack([]);
+    },
+
     undo: () => {
         const history = getHistory();
         if (history.length === 0) return;
+
+        // Сбрасываем коалесцинг — следующая правка должна начать новый шаг
+        lastCoalesceKey = null;
+        lastCoalesceTime = 0;
 
         const { nodes, edges } = get();
         const redoStack = getRedoStack();
@@ -253,6 +312,10 @@ const useFlowStore = create<FlowStore>((set, get) => ({
     redo: () => {
         const redoStack = getRedoStack();
         if (redoStack.length === 0) return;
+
+        // Сбрасываем коалесцинг — следующая правка должна начать новый шаг
+        lastCoalesceKey = null;
+        lastCoalesceTime = 0;
 
         const { nodes, edges } = get();
         const history = getHistory();
@@ -276,12 +339,15 @@ const useFlowStore = create<FlowStore>((set, get) => ({
     fromJSON: (doc) => {
         const flowNodes: Node[] = doc.nodes.map((n) => {
             // Определяем role для команд с базовыми именами
+            const name = (n as { name?: string }).name;
             const role =
-                n.type === 'command' && (n as { name?: string }).name === 'welcome'
+                n.type === 'command' && name === 'welcome'
                     ? 'welcome'
-                    : n.type === 'command' && (n as { name?: string }).name === 'help'
+                    : n.type === 'command' && name === 'help'
                       ? 'help'
-                      : (n as { role?: string }).role;
+                      : n.type === 'command' && name === 'fallback'
+                        ? 'fallback'
+                        : (n as { role?: string }).role;
             return {
                 id: n.id,
                 type: n.type,
@@ -366,6 +432,9 @@ const useFlowStore = create<FlowStore>((set, get) => ({
             }
         }
 
+        // Сохраняем предыдущее состояние в историю — чтобы можно было отменить импорт/переключение
+        pushHistoryEntry();
+
         set({
             nodes: flowNodes,
             edges: flowEdges,
@@ -385,10 +454,7 @@ const useFlowStore = create<FlowStore>((set, get) => ({
                 tokens: doc.tokens ?? {},
             },
         });
-
-        // Очищаем историю после импорта нового документа
-        undoStack = [];
-        redoStackRef = [];
+        get().autoSave();
     },
 
     autoSave: () => {
@@ -415,6 +481,15 @@ const useFlowStore = create<FlowStore>((set, get) => ({
             if (!raw) return;
             const data = JSON.parse(raw);
             if (data.nodes && data.edges && data.metadata) {
+                // Проверка schemaVersion — если версия не поддерживается, сбрасываем
+                const savedVersion = data.metadata.schemaVersion;
+                if (savedVersion && savedVersion !== CURRENT_SCHEMA_VERSION) {
+                    console.warn(
+                        `[umbot-flow] localStorage содержит schemaVersion=${savedVersion}, ожидается ${CURRENT_SCHEMA_VERSION}. Сбрасываем состояние.`,
+                    );
+                    localStorage.removeItem(STORAGE_KEY);
+                    return;
+                }
                 set({
                     nodes: data.nodes,
                     edges: data.edges,
@@ -429,13 +504,22 @@ const useFlowStore = create<FlowStore>((set, get) => ({
     clearHistory: () => {
         undoStack = [];
         redoStackRef = [];
+        lastCoalesceKey = null;
+        lastCoalesceTime = 0;
     },
-}));
+    };
+});
 
 // History management (outside store to avoid re-renders)
 const MAX_HISTORY = 50;
 let undoStack: HistoryEntry[] = [];
 let redoStackRef: HistoryEntry[] = [];
+
+// Коалесцинг быстрых правок (ввод текста): окно, в котором правки
+// одной ноды с одной формой патча считаются одним шагом undo
+const COALESCE_WINDOW_MS = 1000;
+let lastCoalesceKey: string | null = null;
+let lastCoalesceTime = 0;
 
 // Debounce для autoSave
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -462,7 +546,7 @@ function setRedoStack(stack: HistoryEntry[]) {
 }
 
 function getDefaultNodeData(
-    type: NodeData['type'] | 'welcome' | 'help',
+    type: NodeData['type'] | 'welcome' | 'help' | 'fallback',
     id: string,
     existingNodes: Node[],
 ): NodeData {
@@ -515,6 +599,16 @@ function getDefaultNodeData(
                 isPattern: false,
                 response: { text: '', buttons: [], sounds: [] },
                 role: 'help',
+            };
+        case 'fallback':
+            return {
+                type: 'command',
+                id,
+                name: 'fallback',
+                slots: [],
+                isPattern: false,
+                response: { text: '', buttons: [], sounds: [] },
+                role: 'fallback',
             };
         case 'step':
             return {

@@ -1,5 +1,4 @@
 export default {
-    // Sidebar
     'sidebar.nodes': 'БЛОКИ',
     'sidebar.command.label': 'Команда',
     'sidebar.command.desc': 'Реакция на слова-триггеры',
@@ -7,12 +6,14 @@ export default {
     'sidebar.welcome.desc': 'Приветствие при запуске бота',
     'sidebar.help.label': 'Помощь',
     'sidebar.help.desc': 'Ответ на команду помощи',
+    'sidebar.fallback.label': 'Ответ по умолчанию',
+    'sidebar.fallback.desc': 'Ответ, когда бот не распознал команду пользователя',
     'help.welcomeDesc':
         'Блок "Старт" определяет приветственное сообщение, которое бот отправляет при первом обращении пользователя. Текст берётся из настроек бота.',
     'help.helpNodeDesc':
         'Блок "Помощь" определяет ответ на команду помощи. Текст берётся из настроек бота.',
     'sidebar.step.label': 'Шаг',
-    'sidebar.step.desc': 'Запрос ввода \u2192 сохранение в поле',
+    'sidebar.step.desc': 'Запрос ввода → сохранение в поле',
     'sidebar.condition.label': 'Условие',
     'sidebar.condition.desc': 'Ветвление по переменной',
     'sidebar.end.label': 'Завершение',
@@ -23,16 +24,19 @@ export default {
     'sidebar.response.desc': 'Показать текст с переменными, без ввода',
     'sidebar.howToUse': 'Как пользоваться',
     'sidebar.added': 'Добавлен',
+    'sidebar.alreadyAdded': 'Уже на холсте',
+    'sidebar.searchPlaceholder': 'Поиск блоков...',
+    'sidebar.noResults': 'Блоки не найдены',
     'sidebar.tip1': 'Перетащите блок на холст',
     'sidebar.tip2': 'Нажмите на блок для редактирования',
     'sidebar.tip3': 'Соединяйте блоки перетаскиванием',
     'sidebar.tip4': 'Нажмите Delete для удаления',
-
-    // Properties panel
     'props.name': 'Название',
+    'props.nameHelp':
+        'Название блока на холсте. Подойдёт любой текст — при экспорте он будет преобразован в системный идентификатор.',
     'props.slots': 'Слова-триггеры',
     'slots.tooltip':
-        'Слова, при вводе которых бот реагирует на эту команду.\n\nКак использовать:\n• Введите слово и нажмите Enter\n• Бот распознаёт без учёта регистра (привет = Привет = ПРИВЕТ)\n• Можно добавить несколько слов',
+        'Слова, при вводе которых бот реагирует на эту команду.\n\nКак использовать:\n• Введите слово и нажмите Enter\n• Бот распознаёт без учёта регистра (привет = Привет = ПРИВЕТ)\n• Можно добавить несколько слов\n\nВнимание: команда срабатывает, если слово ВСТРЕЧАЕТСЯ в сообщении. Короткие слова вроде «да» или «мой» могут срабатывать случайно — выбирайте однозначные.',
     'props.slots.placeholder': 'Введите слово и нажмите Enter',
     'props.patternMode': 'Режим шаблона',
     'props.patternHelp':
@@ -47,9 +51,6 @@ export default {
     'props.patternWarning':
         'Регулярные выражения — это способ задать сложное правило распознавания. Если вы не уверены, лучше не включать.',
     'props.emotion': 'Эмоция',
-    'props.emotion.good': 'Хорошая',
-    'props.emotion.neutral': 'Нейтральная',
-    'props.emotion.bad': 'Плохая',
     'props.endDialog': 'Завершить диалог',
     'props.endDialogHelp':
         'После этого ответа бот перестанет отвечать, пока пользователь не начнёт новый разговор.',
@@ -79,6 +80,8 @@ export default {
     'tooltip.operator':
         'Как сравнивать:\nРавно (=)\nНе равно (≠)\nБольше (>)\nБольше или равно (≥)\nМеньше (<)\nМеньше или равно (≤)\nСодержит\nПусто / Не пусто\nПользователь сказал «да» / «нет»\nЭто ссылка',
     'tooltip.variable': 'Имя переменной, значение которой проверяется.',
+    'tooltip.variableIsUserInput':
+        'Этот оператор проверяет последний ответ пользователя — поле переменной можно оставить пустым.',
     'tooltip.comparisonValue':
         'Значение для сравнения. Можно указать:\n• Число: 18, 100\n• Текст: привет\n• Имя другой переменной: age',
     'tooltip.field': 'Имя переменной, куда сохранится результат.',
@@ -92,8 +95,6 @@ export default {
     'props.httpMethod': 'Метод',
     'props.httpBody': 'Тело запроса (JSON)',
     'props.httpSaveTo': 'Сохранить ответ в поле',
-
-    // Quick presets
     'preset.userName': 'Имя',
     'preset.email': 'Email',
     'preset.phone': 'Телефон',
@@ -101,12 +102,6 @@ export default {
     'preset.num1': 'num1',
     'preset.num2': 'num2',
     'preset.rand': 'rand',
-
-    // Validation presets
-
-    // Utility buttons
-
-    // Toolbar
     'toolbar.botName': 'Имя бота',
     'toolbar.undo': 'Отменить (Ctrl+Z)',
     'toolbar.redo': 'Повторить (Ctrl+Shift+Z)',
@@ -117,12 +112,13 @@ export default {
     'toolbar.validate': 'Проверить и экспортировать',
     'toolbar.help': 'Справка',
     'toolbar.newProject': 'Новый проект (Ctrl+N)',
+    'toolbar.recentProjects': 'Недавние проекты',
+    'toolbar.noProjects': 'Других проектов пока нет',
+    'toolbar.removeProject': 'Удалить из истории',
     'toolbar.platforms': 'Платформы',
     'toolbar.platformsAll': 'Все платформы',
     'toolbar.platformsVoice': 'Голосовые',
     'toolbar.platformsChat': 'Чат-боты',
-
-    // Export dialog
     'export.title': 'Проверка и экспорт',
     'export.validation': 'Проверка',
     'export.valid': 'Флоу валиден. Готов к экспорту.',
@@ -131,6 +127,9 @@ export default {
     'export.download': 'Скачать flow.json',
     'export.copied': 'Скопировано в буфер обмена',
     'export.nodes': 'узлов',
+    'statusbar.ok': 'Готов к экспорту',
+    'statusbar.errors': 'Есть ошибки',
+    'statusbar.more': 'ещё',
     'export.edges': 'связей',
     'export.platforms': 'платформ',
     'export.nextSteps': 'Что делать дальше?',
@@ -147,23 +146,20 @@ export default {
     'export.cloudTitle': 'Для Yandex Cloud Functions:',
     'export.cloudDesc':
         'Yandex Cloud — облачная платформа Яндекса для серверless-приложений. Документация: cloud.yandex.ru/docs/functions',
-
-    // Preview
     'preview.title': 'Предпросмотр чата',
     'preview.placeholder': 'Введите сообщение...',
     'preview.send': 'Отправить',
     'preview.empty': 'Введите сообщение для тестирования бота',
     'preview.debug': 'Режим отладки',
+    'preview.reset': 'Сбросить превью (очистить сообщения и переменные)',
     'preview.debugVars': 'Данные пользователя',
     'preview.waiting': 'Ожидание ввода',
-
-    // General
-
-    // Errors
     'error.parseFailed': 'Не удалось распарсить JSON файл',
     'error.exportFailed': 'Не удалось экспортировать PNG',
-
-    // Help modal
+    'error.crashTitle': 'Что-то пошло не так',
+    'error.crashDesc':
+        'В редакторе произошла непредвиденная ошибка. Ваш проект сохранён в браузере — перезагрузите страницу, чтобы продолжить.',
+    'error.reload': 'Перезагрузить страницу',
     'help.title': 'Руководство пользователя',
     'help.whatIs': 'Что это?',
     'help.whatIsDesc':
@@ -180,7 +176,7 @@ export default {
     'help.flowTs': 'TS-проект',
     'help.nodeTypes': 'Типы блоков',
     'help.cmdDesc':
-        'Реагирует на определённые слова. Пользователь вводит слово \u2192 бот отвечает настроенным текстом и кнопками.',
+        'Реагирует на определённые слова. Пользователь вводит слово → бот отвечает настроенным текстом и кнопками.',
     'help.stepDesc':
         'Запрашивает ввод у пользователя и сохраняет его в поле. Пример: спросить имя, сохранить в поле "Имя пользователя".',
     'help.condDesc':
@@ -193,7 +189,7 @@ export default {
         'Показывает текст пользователю. Используйте для переиспользования сообщений или как простой блок ответа.',
     'help.slotsTitle': 'Что такое слоты?',
     'help.slotsDesc':
-        'Слоты \u2014 это слова-триггеры. Когда пользователь вводит одно из них, бот активирует эту команду.\n\n\u2022 Введите слово и нажмите Enter для добавления\n\u2022 Бот распознаёт без учёта регистра (привет = Привет = ПРИВЕТ)\n\u2022 В режиме шаблона можно использовать регулярные выражения',
+        'Слоты — это слова-триггеры. Когда пользователь вводит одно из них, бот активирует эту команду.\n\n• Введите слово и нажмите Enter для добавления\n• Бот распознаёт без учёта регистра (привет = Привет = ПРИВЕТ)\n• В режиме шаблона можно использовать регулярные выражения',
     'help.userDataTitle': 'Как сохранять данные пользователя?',
     'help.userDataDesc':
         'Используйте блок "Шаг" с настройкой "Сохранить в поле".\n\nПример: создайте блок Шаг, установите "Сохранить в" = "userName", и ответ пользователя сохранится в поле "userName". Затем можно ссылаться на него в других блоках через {{userName}}.',
@@ -202,13 +198,26 @@ export default {
         'Нажмите "Проверить и экспортировать" для скачивания flow.json. Затем выполните:\n\nnpx umbot create from-flow flow.json --output ./my-bot\n\nЭто сгенерирует готовый проект umbot со всем необходимым кодом.',
     'help.customTitle': 'Свой код',
     'help.customDesc':
-        'Используйте блоки "Действие" для HTTP-запросов и кастомной логики. Действия выполняются в безопасном режиме \u2014 можно обращаться к данным пользователя и использовать встроенные утилиты, но нельзя напрямую обращаться к файловой системе или сети.',
+        'Используйте блоки "Действие" для HTTP-запросов и кастомной логики. Действия выполняются в безопасном режиме — можно обращаться к данным пользователя и использовать встроенные утилиты, но нельзя напрямую обращаться к файловой системе или сети.',
+    'help.sysVarsTitle': 'Системные переменные',
+    'help.sysVarsDesc':
+        'Эти переменные заполняются ботом автоматически — их не нужно создавать:\n\n• {{__currentTime}} — текущее время\n• {{__currentDate}} — текущая дата\n• {{__currentTimestamp}} — Unix-время в секундах\n• {{__randomNumber}} — случайное число от 0 до 100\n• {{__userName}} — имя пользователя (если платформа его передаёт)',
+    'help.shortcutsTitle': 'Горячие клавиши',
+    'help.shortcutSearch': 'Поиск блоков',
+    'help.shortcutNew': 'Новый проект',
+    'help.shortcutExport': 'Экспорт JSON',
+    'help.shortcutPreview': 'Превью чата',
+    'help.shortcutUndo': 'Отменить',
+    'help.shortcutRedo': 'Повторить',
+    'help.shortcutCopy': 'Копировать блок',
+    'help.shortcutPaste': 'Вставить блок',
+    'help.shortcutDuplicate': 'Дублировать блок',
+    'help.shortcutDelete': 'Удалить блок или связь',
     'help.close': 'Понятно',
-
-    // Node badges
     'node.badge.cmd': 'КОМАНДА',
     'node.badge.welcome': 'СТАРТ',
     'node.badge.help': 'ПОМОЩЬ',
+    'node.badge.fallback': 'ПО УМОЛЧАНИЮ',
     'node.badge.step': 'ШАГ',
     'node.badge.if': 'УСЛОВИЕ',
     'node.badge.end': 'КОНЕЦ',
@@ -218,8 +227,6 @@ export default {
     'node.preview.noSlots': '(нет триггеров)',
     'node.preview.noPrompt': '(нет вопроса)',
     'node.preview.patternMode': 'Режим шаблона',
-
-    // Action node
     'action.set_variable': 'Установить переменную',
     'action.random_number': 'Случайное число',
     'action.http_request': 'HTTP-запрос',
@@ -227,10 +234,13 @@ export default {
     'action.value': 'Значение',
     'action.valueHelp': 'Выражения: num1 + num2, поле * 2 и т.д.',
     'action.saveResponseTo': 'Сохранить ответ в поле',
-
-    // UserData panel
     'userData.title': 'Данные пользователя',
     'userData.empty': 'Данные ещё не сохранены',
+    'userData.comment': 'Комментарий',
+    'userData.commentPlaceholder': 'Описание переменной',
+    'userData.definedIn': 'Определена в:',
+    'userData.usedIn': 'Используется в:',
+    'userData.notFound': 'Не найдена в блоках',
     'variable.insertVar': 'Вставить переменную',
     'variable.system': 'Системные',
     'variable.currentTime': 'Текущее время (ЧЧ:ММ)',
@@ -238,6 +248,10 @@ export default {
     'variable.currentTimestamp': 'Unix-таймстамп',
     'variable.randomNumber': 'Случайное число (0-100)',
     'variable.userName': 'Имя пользователя',
+    'variable.thisBlock': 'Переменные этого блока',
+    'variable.global': 'Глобальные переменные',
+    'palette.placeholder': 'Поиск блоков... (Ctrl+K)',
+    'palette.noResults': 'Ничего не найдено',
     'props.cardHelp':
         'Визуальный блок с изображениями. Показывается вместо текста или вместе с ним.\n\nТипы:\n• Одно изображение — одна картинка\n• Список — изображения сверху вниз\n• Галерея — изображения горизонтально',
     'props.addCard': 'Добавить карточку',
@@ -253,8 +267,6 @@ export default {
     'props.conditions': 'Условия (ветвление логики)',
     'props.addCondition': 'Добавить условие',
     'props.condition': 'Условие',
-
-    // Database settings
     'db.title': 'НАСТРОЙКИ БД И РЕЖИМА',
     'db.texts': 'Тексты бота',
     'db.welcome': 'Текст приветствия',
@@ -272,13 +284,9 @@ export default {
     'db.tokenPlaceholder': 'Вставьте токен...',
     'db.tokensHint':
         'Токены используются при генерации файла с настройками. Не публикуйте JSON с токенами!',
-
-    // Validation messages
     'validation.emptyName': 'Имя блока не может быть пустым',
     'validation.invalidVarName': 'Некорректное имя переменной (используйте буквы, цифры, _)',
     'validation.duplicateName': 'Имя уже используется другим блоком',
-
-    // Operator labels
     'operator.eq': '=',
     'operator.neq': '≠',
     'operator.gt': '>',
@@ -291,18 +299,13 @@ export default {
     'operator.isSayTrue': 'пользователь согласился',
     'operator.isSayFalse': 'пользователь не согласился',
     'operator.isUrl': 'является ссылкой',
-
-    // Node labels
     'node.noActions': '(нет действий)',
     'node.saveTo': 'Сохранить в:',
-
-    // Condition labels
+    'node.hasErrors': 'Есть ошибки валидации. Нажмите, чтобы открыть этот блок.',
     'condition.true': 'Да',
     'condition.false': 'Нет',
     'condition.trueText': 'Текст при да',
     'condition.falseText': 'Текст при нет',
-
-    // Condition presets
     'condition.preset.isEmpty': 'Поле пустое',
     'condition.preset.isNotEmpty': 'Поле заполнено',
     'condition.preset.isYes': 'Пользователь сказал "да"',
@@ -310,18 +313,10 @@ export default {
     'condition.preset.isUrl': 'Пользователь отправил ссылку',
     'condition.preset.numberGt10': 'Число больше 10',
     'condition.preset.numberLt100': 'Число меньше 100',
-
-    // Action placeholders
     'action.min': 'Мин',
     'action.max': 'Макс',
     'action.imageUrl': 'URL изображения',
-
-    // User data tooltips
-
-    // System variables
     'system.userName': 'Пользователь',
-
-    // Toolbar tooltips
     'toolbar.localeRu': 'Переключить на русский',
     'toolbar.localeEn': 'Switch to English',
     'toolbar.hideMinimap': 'Скрыть миниатюру',
@@ -344,8 +339,6 @@ export default {
     'platform.max': 'Max',
     'platform.viber': 'Viber',
     'platform.smartApp': 'SmartApp',
-
-    // Context menu
     'contextMenu.command': 'Команда',
     'contextMenu.step': 'Шаг',
     'contextMenu.response': 'Ответ',
@@ -353,11 +346,104 @@ export default {
     'contextMenu.condition': 'Условие',
     'contextMenu.end': 'Завершение',
     'contextMenu.duplicate': 'Дублировать',
-
-    // Canvas
+    'contextMenu.previewFrom': 'Запустить превью отсюда',
+    'contextMenu.delete': 'Удалить',
     'canvas.edgeDelete': 'Удалить связь (или нажмите Delete)',
-
-    // Chat preview
-
-    // Save indicator
+    'canvas.dropHere': 'Отпустите, чтобы добавить блок',
+    'props.emotion.good': 'Радостная',
+    'props.emotion.neutral': 'Нейтральная',
+    'props.emotion.bad': 'Грустная',
+    'statusbar.saved': 'Сохранено',
+    'statusbar.saving': 'Сохранение…',
+    'statusbar.clickToExport': 'Проверить и экспортировать',
+    'projects.openConfirm':
+        'Открыть проект "{name}"? Текущий проект останется в списке недавних, но открытый сейчас проект будет заменён.',
+    'export.note':
+        'Этот файл содержит всего вашего бота. Он запускается на вашем сервере через umbot и не зависит от этого сайта.',
+    'preview.waitingPlaceholder': 'Ваш ответ (сохранится в "{var}")…',
+    'preview.httpMock': '[имитация HTTP {method} → {url}]',
+    'preview.httpMockData': 'тестовый ответ HTTP',
+    'preview.varsTitle': 'Переменные',
+    'preview.warning': 'Превью — это симуляция: HTTP-запросы и озвучка не выполняются.',
+    'error.importTitle': 'Ошибка импорта',
+    'error.parseFailedDetail': 'Не удалось обработать JSON-файл. Подробности: {details}',
+    'error.validationFailed':
+        'Файл не прошёл проверку. Исправьте ошибки в JSON и попробуйте снова:',
+    'condition.ifLabel': 'Если',
+    'condition.userInput': 'последний ввод пользователя',
+    'validation.v.unknownType':
+        'Неизвестный тип блока "{type}". Допустимые типы: command, step, condition, action, response, end',
+    'validation.v.badType': 'Блок #{idx}: недопустимый тип "{type}"',
+    'validation.v.badTypeNoName': 'Блок #{idx}: недопустимый тип',
+    'validation.v.unknownOperator': 'Неизвестный оператор в условии',
+    'validation.v.badValue': 'Недопустимое значение в поле "{field}"',
+    'validation.v.required': 'Отсутствует обязательное поле "{field}"',
+    'validation.v.mustBeString': 'В поле "{field}" ожидается текст',
+    'validation.v.mustBeArray': 'В поле "{field}" ожидается список',
+    'validation.v.mustBeObject': 'В поле "{field}" ожидается объект',
+    'validation.v.invalidJson':
+        'Блок не соответствует ни одному известному типу. Проверьте его поле "type"',
+    'validation.v.duplicateId': 'Дублирующийся ID узла "{id}"',
+    'validation.v.emptyNodeName': 'У блока нет имени (ID: {id}). Заполните поле "Название" справа.',
+    'validation.v.duplicateNames':
+        'Имя блока "{name}" используется дважды: блоки "{a}" и "{b}". Имена должны быть уникальными.',
+    'validation.v.invalidVarName':
+        'Имя переменной "{name}" недопустимо. Используйте буквы, цифры и подчёркивание (не начинайте с цифры).',
+    'validation.v.emptyVarName':
+        'Блок "{name}": имя переменной пустое. Заполните поле или удалите его.',
+    'validation.v.actionVarEmpty':
+        'Действие в блоке "{name}": имя переменной пустое. Заполните его или удалите действие.',
+    'validation.v.randomNoField':
+        'Блок "{name}": у действия "Случайное число" нет имени переменной. Заполните "Поле".',
+    'validation.v.randomMinGtMax':
+        'Блок "{name}": в "Случайном числе" min ({min}) больше max ({max}). Поменяйте их местами.',
+    'validation.v.setNoField':
+        'Блок "{name}": у действия "Установить переменную" нет имени переменной. Заполните "Поле".',
+    'validation.v.setNoValue':
+        'Блок "{name}": у действия "Установить переменную" нет значения. Введите выражение.',
+    'validation.v.httpNoUrl': 'Блок "{name}": у HTTP-запроса нет URL. Укажите его.',
+    'validation.v.httpBadJson':
+        'Блок "{name}": тело HTTP-запроса не является корректным JSON и не содержит {{переменных}}. Проверьте синтаксис.',
+    'validation.v.dupSlot':
+        'Слово-триггер "{slot}" используется в блоках "{a}" и "{b}". Триггеры должны быть уникальными.',
+    'validation.v.condNoVar':
+        'Блок "{name}": в условии #{idx} нет переменной. Выберите её или удалите условие.',
+    'validation.v.condNoVal':
+        'Блок "{name}": в условии #{idx} нет значения для сравнения. Введите его или удалите условие.',
+    'validation.v.edgeFromMissing': 'Связь из несуществующего блока "{id}".',
+    'validation.v.edgeToMissing': 'Связь в несуществующий блок "{id}".',
+    'validation.v.buttonTargetMissing': 'Кнопка указывает на несуществующий блок "{id}".',
+    'validation.v.stepTargetMissing': 'Шаг указывает на несуществующий блок "{id}".',
+    'validation.v.stepNoNext':
+        'Шаг "{name}" никуда не подключён и не имеет заданного "Следующего блока".',
+    'validation.v.condMissingBranches':
+        'Условие "{name}": отсутствуют ветки {missing}. Подключите оба выхода "Да" и "Нет" к блокам.',
+    'validation.v.condMissingVar':
+        'Условие "{name}": не выбрана переменная. Откройте блок и выберите переменную.',
+    'validation.v.condMissingVal':
+        'Условие "{name}": нет значения для сравнения. Введите значение или удалите условие.',
+    'validation.v.orphan':
+        'Блок "{name}" не подключён ни к одному другому блоку. Подключите его или удалите.',
+    'vars.comment': 'Комментарий',
+    'vars.commentPlaceholder': 'Для чего эта переменная',
+    'vars.definedIn': 'Определена в:',
+    'vars.usedIn': 'Используется в:',
+    'vars.notFound': 'Не найдена в блоках',
+    'settings.title': 'Настройки бота',
+    'settings.dbTypeHelp':
+        'Где бот хранит данные пользователя между сессиями.\n\n• File — самый простой вариант, сохраняется рядом с ботом. Хорошо для старта.\n• MongoDB — внешняя база данных. Нужна при большом числе пользователей. Требует установленной MongoDB.\n• None — данные не сохраняются между перезапусками.',
+    'settings.modeHelp':
+        'dev — режим разработки с подробными логами.\nprod — продакшен-режим.\nstrict_prod — как prod, но строго: приложение завершится при любой ошибке. Для старта оставьте "prod".',
+    'settings.localStorageHelp':
+        'Сохранять ответы пользователя в локальное хранилище. Если выключено — переменные теряются между запусками.',
+    'condition.preview': 'Условие',
+    'condition.compareWith': 'Сравнить с:',
+    'condition.thisAnswer': 'последний ввод пользователя',
+    'node.endAutoName': 'Конец {n}',
+    'detail.botName': 'Имя бота',
+    'detail.botNameHelp':
+        'Используется как имя файла (BotName.json) и в команде генерации. Лучше ASCII, без пробелов.',
+    'ui.done': 'Готово',
+    'ui.up': 'Вверх',
+    'ui.down': 'Вниз',
 } as const;

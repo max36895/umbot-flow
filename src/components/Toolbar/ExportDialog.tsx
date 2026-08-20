@@ -4,16 +4,21 @@ import useUiStore from '../../store/uiStore';
 import { validate } from '../../utils/validator';
 import type { ValidationError } from '../../utils/validator';
 import { t } from '../../i18n';
+import { NodeIcon } from '../ui/NodeIcons';
 
 export default function ExportDialog() {
-    const { toggleExportDialog, selectNode } = useUiStore();
+    const toggleExportDialog = useUiStore((s) => s.toggleExportDialog);
+    const selectNode = useUiStore((s) => s.selectNode);
     const toJSON = useFlowStore((s) => s.toJSON);
     const doc = toJSON();
     const errors = validate(doc);
     const [animate, setAnimate] = useState(false);
     const [commandCopied, setCommandCopied] = useState(false);
+    const [jsonCopied, setJsonCopied] = useState(false);
 
-    const command = `npx umbot create from-flow ${doc.name || 'flow'}.json --output ./my-bot`;
+    // Безопасное имя файла: пробелы/спецсимволы ломают shell-команду — подменяем на _
+    const safeFileName = (doc.name || 'flow').replace(/[^a-zA-Z0-9_-]+/g, '_');
+    const command = `npx umbot create from-flow ${safeFileName}.json --output ./my-bot`;
 
     useEffect(() => {
         requestAnimationFrame(() => setAnimate(true));
@@ -29,14 +34,15 @@ export default function ExportDialog() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${doc.name || 'flow'}.json`;
+        a.download = `${(doc.name || 'flow').replace(/[^a-zA-Z0-9_-]+/g, '_')}.json`;
         a.click();
         URL.revokeObjectURL(url);
     };
 
     const handleCopy = () => {
         navigator.clipboard.writeText(JSON.stringify(doc, null, 2)).then(() => {
-            alert(t('export.copied'));
+            setJsonCopied(true);
+            setTimeout(() => setJsonCopied(false), 2000);
         });
     };
 
@@ -64,7 +70,7 @@ export default function ExportDialog() {
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-lg font-bold text-white/90">{t('export.title')}</h2>
                     <button onClick={handleClose} className="text-white/30 hover:text-white/60">
-                        ✕
+                        <NodeIcon name="close" size={14} />
                     </button>
                 </div>
 
@@ -73,12 +79,12 @@ export default function ExportDialog() {
                         {t('export.validation')}
                     </h3>
                     {errors.length === 0 ? (
-                        <div className="rounded-lg bg-[rgba(0,255,157,0.1)] p-3 text-sm text-[#00ff9d] border border-[rgba(0,255,157,0.2)]">
+                        <div className="rounded-lg bg-[rgba(0,255,157,0.1)] p-3 text-sm text-success border border-[rgba(0,255,157,0.2)]">
                             {t('export.valid')}
                         </div>
                     ) : (
                         <div className="max-h-48 overflow-y-auto rounded-lg bg-[rgba(255,0,85,0.1)] p-3 border border-[rgba(255,0,85,0.2)]">
-                            <p className="mb-2 text-sm font-medium text-[#ff0055]">
+                            <p className="mb-2 text-sm font-medium text-error">
                                 {errors.length} {t('export.errors')}
                             </p>
                             <ul className="space-y-1.5">
@@ -88,7 +94,7 @@ export default function ExportDialog() {
                                         className={`text-xs text-white/70 flex items-start gap-2 ${err.nodeId ? 'cursor-pointer hover:text-white transition-colors' : ''}`}
                                         onClick={() => err.nodeId && handleErrorClick(err.nodeId)}
                                     >
-                                        <span className="text-[#ff0055] mt-0.5">•</span>
+                                        <span className="text-error mt-0.5">•</span>
                                         <span>{err.message}</span>
                                         {err.nodeId && (
                                             <span className="text-[10px] text-white/30 ml-auto">
@@ -113,9 +119,20 @@ export default function ExportDialog() {
                 <div className="flex gap-2">
                     <button
                         onClick={handleCopy}
-                        className="rounded-lg border border-[rgba(255,255,255,0.15)] px-4 py-2 text-sm text-white/70 hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                        className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
+                            jsonCopied
+                                ? 'border-[rgba(0,255,157,0.4)] bg-[rgba(0,255,157,0.1)] text-success'
+                                : 'border-[rgba(255,255,255,0.15)] text-white/70 hover:bg-[rgba(255,255,255,0.1)]'
+                        }`}
                     >
-                        {t('export.copyJson')}
+                        {jsonCopied ? (
+                            <span className="inline-flex items-center gap-1.5">
+                                <NodeIcon name="check" size={12} strokeWidth={2} />
+                                {t('export.copied')}
+                            </span>
+                        ) : (
+                            t('export.copyJson')
+                        )}
                     </button>
                     <button
                         onClick={handleExport}
@@ -128,13 +145,13 @@ export default function ExportDialog() {
 
                 {errors.length === 0 && (
                     <div className="mt-5 rounded-lg border border-[rgba(0,240,255,0.2)] bg-[rgba(0,240,255,0.05)] p-4">
-                        <h3 className="mb-3 text-sm font-bold text-[#00f0ff]">
+                        <h3 className="mb-3 text-sm font-bold text-info">
                             {t('export.readyTitle')}
                         </h3>
 
                         <div className="space-y-3 text-xs text-white/60">
                             <div className="flex items-start gap-3">
-                                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(0,240,255,0.15)] text-[10px] font-bold text-[#00f0ff]">
+                                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(0,240,255,0.15)] text-[10px] font-bold text-info">
                                     1
                                 </span>
                                 <div>
@@ -143,7 +160,7 @@ export default function ExportDialog() {
                                         href="https://nodejs.org"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="mt-1 inline-block rounded bg-[rgba(0,255,157,0.1)] px-2 py-0.5 font-mono text-[10px] text-[#00ff9d] border border-[rgba(0,255,157,0.2)] hover:bg-[rgba(0,255,157,0.2)] transition-colors"
+                                        className="mt-1 inline-block rounded bg-[rgba(0,255,157,0.1)] px-2 py-0.5 font-mono text-[10px] text-success border border-[rgba(0,255,157,0.2)] hover:bg-[rgba(0,255,157,0.2)] transition-colors"
                                     >
                                         nodejs.org
                                     </a>
@@ -151,7 +168,7 @@ export default function ExportDialog() {
                             </div>
 
                             <div className="flex items-start gap-3">
-                                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(0,240,255,0.15)] text-[10px] font-bold text-[#00f0ff]">
+                                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(0,240,255,0.15)] text-[10px] font-bold text-info">
                                     2
                                 </span>
                                 <div>
@@ -160,19 +177,19 @@ export default function ExportDialog() {
                             </div>
 
                             <div className="flex items-start gap-3">
-                                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(0,240,255,0.15)] text-[10px] font-bold text-[#00f0ff]">
+                                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(0,240,255,0.15)] text-[10px] font-bold text-info">
                                     3
                                 </span>
                                 <div className="flex-1">
                                     <p>{t('export.step3')}</p>
                                     <div className="mt-1 flex items-center gap-2">
-                                        <code className="flex-1 rounded-lg bg-[rgba(0,240,255,0.1)] px-3 py-2 font-mono text-[11px] text-[#00f0ff] border border-[rgba(0,240,255,0.2)] break-all">
+                                        <code className="flex-1 rounded-lg bg-[rgba(0,240,255,0.1)] px-3 py-2 font-mono text-[11px] text-info border border-[rgba(0,240,255,0.2)] break-all">
                                             {command}
                                         </code>
                                         <button
                                             onClick={handleCopyCommand}
                                             title={t('export.copyCommand')}
-                                            className="flex-shrink-0 rounded-lg border border-[rgba(0,255,157,0.3)] bg-[rgba(0,255,157,0.1)] p-2 text-[#00ff9d] transition-colors hover:bg-[rgba(0,255,157,0.2)]"
+                                            className="flex-shrink-0 rounded-lg border border-[rgba(0,255,157,0.3)] bg-[rgba(0,255,157,0.1)] p-2 text-success transition-colors hover:bg-[rgba(0,255,157,0.2)]"
                                         >
                                             {commandCopied ? (
                                                 <svg
@@ -209,18 +226,18 @@ export default function ExportDialog() {
                                             {t('export.cloudTitle')}
                                         </p>
                                         <div className="mt-1 flex items-center gap-2">
-                                            <code className="flex-1 rounded bg-[rgba(0,240,255,0.05)] px-2 py-1 font-mono text-[10px] text-[#00f0ff]/70 break-all">
-                                                npx umbot create from-flow {doc.name || 'flow'}.json
+                                            <code className="flex-1 rounded bg-[rgba(0,240,255,0.05)] px-2 py-1 font-mono text-[10px] text-info/70 break-all">
+                                                npx umbot create from-flow {safeFileName}.json
                                                 --output ./my-bot --usecloud
                                             </code>
                                             <button
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(
-                                                        `npx umbot create from-flow ${doc.name || 'flow'}.json --output ./my-bot --usecloud`,
+                                                        `npx umbot create from-flow ${safeFileName}.json --output ./my-bot --usecloud`,
                                                     );
                                                 }}
                                                 title={t('export.copyCommand')}
-                                                className="flex-shrink-0 rounded border border-[rgba(0,255,157,0.3)] bg-[rgba(0,255,157,0.1)] p-1 text-[#00ff9d] transition-colors hover:bg-[rgba(0,255,157,0.2)]"
+                                                className="flex-shrink-0 rounded border border-[rgba(0,255,157,0.3)] bg-[rgba(0,255,157,0.1)] p-1 text-success transition-colors hover:bg-[rgba(0,255,157,0.2)]"
                                             >
                                                 <svg
                                                     width="12"
@@ -247,17 +264,17 @@ export default function ExportDialog() {
 
                         <p className="mt-3 text-[11px] text-white/50">{t('export.afterCommand')}</p>
 
-                        <p className="mt-2 text-[11px] text-[#00f0ff]/60 italic">
+                        <p className="mt-2 text-[11px] text-info/60 italic">
                             {t('export.tip')}
                         </p>
 
-                        <p className="mt-2 text-[11px] text-[#00f0ff]/40">
+                        <p className="mt-2 text-[11px] text-info/40">
                             {t('export.jsonFormatHint')}{' '}
                             <a
                                 href="https://github.com/max36895/universal_bot-ts/blob/main/repos/umbot-flow-editor/src/docs/json-format.md"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="underline hover:text-[#00f0ff]/70 transition-colors"
+                                className="underline hover:text-info/70 transition-colors"
                             >
                                 src/docs/json-format.md
                             </a>

@@ -7,11 +7,8 @@ import { ConditionProps } from './ConditionProps';
 import { ActionProps } from './ActionProps';
 import { ResponseProps } from './ResponseProps';
 import { t } from '../../i18n';
-
-/** Проверка валидности JS-идентификатора */
-function isValidJSIdentifier(name: string): boolean {
-    return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name);
-}
+import { isValidJSIdentifier } from '../../utils/identifiers';
+import { NodeIcon } from '../ui/NodeIcons';
 
 /** Валидация выбранного узла */
 function useNodeValidation(
@@ -68,6 +65,7 @@ function useNodeValidation(
 export default function PropertiesPanel() {
     const selectedNodeId = useUiStore((s) => s.selectedNodeId);
     const nodes = useFlowStore((s) => s.nodes);
+    const edges = useFlowStore((s) => s.edges);
     const removeNode = useFlowStore((s) => s.removeNode);
     const panelMode = useUiStore((s) => s.propertiesPanelMode);
     const panelPosition = useUiStore((s) => s.propertiesPanelPosition);
@@ -79,6 +77,9 @@ export default function PropertiesPanel() {
     const [contentKey, setContentKey] = useState(0);
     const dragOffset = useRef({ x: 0, y: 0 });
     const prevSelectedNodeId = useRef<string | null>(null);
+    // Save indicator — показываем "✓ Сохранено" на 1 сек после каждого изменения
+    const [justSaved, setJustSaved] = useState(false);
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const selectedNode = nodes.find((n) => n.id === selectedNodeId);
     const validationErrors = useNodeValidation(selectedNodeId, nodes);
@@ -106,6 +107,23 @@ export default function PropertiesPanel() {
     useEffect(() => {
         setCollapsed(false);
     }, [selectedNodeId]);
+
+    // Пока нода меняется — скрываем индикатор
+    useEffect(() => {
+        setJustSaved(false);
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    }, [selectedNodeId]);
+
+    // При изменении нод или edges — показываем "Сохранено"
+    useEffect(() => {
+        if (!selectedNodeId) return;
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => setJustSaved(true), 300);
+        return () => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        };
+    }, [nodes, edges, selectedNodeId]);
+
 
     const typeLabel: Record<string, string> = {
         command: t('sidebar.command.label'),
@@ -184,18 +202,7 @@ export default function PropertiesPanel() {
                             className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
                             title={t('props.dockedMode')}
                         >
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                            >
-                                <rect x="1" y="3" width="14" height="10" rx="1" />
-                                <path d="M10 3v10" />
-                            </svg>
+                            <NodeIcon name="panelDocked" size={16} />
                         </button>
                     </div>
                 </div>
@@ -209,19 +216,7 @@ export default function PropertiesPanel() {
                         className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
                         title={t('props.floatingMode')}
                     >
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <rect x="2" y="3" width="8" height="10" rx="1" />
-                            <path d="M10 6l4-2v8l-4-2" />
-                        </svg>
+                        <NodeIcon name="panelFloating" size={16} />
                     </button>
                 </div>
             </div>
@@ -237,18 +232,7 @@ export default function PropertiesPanel() {
                     className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
                     title={t('props.expand')}
                 >
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="M6 4l4 4-4 4" />
-                    </svg>
+                    <NodeIcon name="chevronLeft" size={16} />
                 </button>
                 <button
                     onClick={() => {
@@ -256,57 +240,20 @@ export default function PropertiesPanel() {
                             removeNode(selectedNode.id);
                         }
                     }}
-                    className="rounded-lg p-2 text-[#ff0055] transition-colors hover:bg-[rgba(255,0,85,0.15)]"
+                    className="rounded-lg p-2 text-error transition-colors hover:bg-[rgba(255,0,85,0.15)]"
                     title={t('props.delete')}
                 >
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334Z" />
-                        <path d="M6.667 7.333v4M10 7.333v4" />
-                    </svg>
+                    <NodeIcon name="trash" size={16} />
                 </button>
                 <button
                     onClick={togglePanelMode}
                     className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
                     title={panelMode === 'docked' ? t('props.floatingMode') : t('props.dockedMode')}
                 >
-                    {panelMode === 'docked' ? (
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <rect x="2" y="3" width="8" height="10" rx="1" />
-                            <path d="M10 6l4-2v8l-4-2" />
-                        </svg>
-                    ) : (
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <rect x="1" y="3" width="10" height="10" rx="1" />
-                            <path d="M11 6h3v7a1 1 0 0 1-1 1H5" />
-                        </svg>
-                    )}
+                    <NodeIcon
+                        name={panelMode === 'docked' ? 'panelFloating' : 'panelDocked'}
+                        size={16}
+                    />
                 </button>
             </div>
         );
@@ -344,22 +291,28 @@ export default function PropertiesPanel() {
                         className="flex-shrink-0 rounded-lg p-1.5 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
                         title={t('props.collapse')}
                     >
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M10 4l-4 4 4 4" />
-                        </svg>
+                        <NodeIcon name="chevronRight" size={16} />
                     </button>
                     <div className="min-w-0">
-                        <h2 className="truncate text-sm font-bold text-white/90">
+                        <h2 className="truncate text-sm font-bold text-white/90 flex items-center gap-1.5">
                             {typeLabel[selectedNode.type ?? ''] ?? selectedNode.type?.toUpperCase()}
+                            {justSaved && (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-success font-normal">
+                                    <svg
+                                        width="10"
+                                        height="10"
+                                        viewBox="0 0 16 16"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="M3 8l3 3 7-7" />
+                                    </svg>
+                                    {t('statusbar.saved')}
+                                </span>
+                            )}
                         </h2>
                         <p className="truncate text-xs text-white/40">
                             {selectedNode.data?.name as string}
@@ -374,35 +327,10 @@ export default function PropertiesPanel() {
                             panelMode === 'docked' ? t('props.floatingMode') : t('props.dockedMode')
                         }
                     >
-                        {panelMode === 'docked' ? (
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <rect x="2" y="3" width="8" height="10" rx="1" />
-                                <path d="M10 6l4-2v8l-4-2" />
-                            </svg>
-                        ) : (
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <rect x="1" y="3" width="10" height="10" rx="1" />
-                                <path d="M11 6h3v7a1 1 0 0 1-1 1H5" />
-                            </svg>
-                        )}
+                        <NodeIcon
+                            name={panelMode === 'docked' ? 'panelFloating' : 'panelDocked'}
+                            size={16}
+                        />
                     </button>
                     <button
                         onClick={() => {
@@ -410,7 +338,7 @@ export default function PropertiesPanel() {
                                 removeNode(selectedNode.id);
                             }
                         }}
-                        className="flex-shrink-0 rounded-lg bg-[rgba(255,0,85,0.15)] px-2 py-1 text-xs text-[#ff0055] transition-colors hover:bg-[rgba(255,0,85,0.25)]"
+                        className="flex-shrink-0 rounded-lg bg-[rgba(255,0,85,0.15)] px-2 py-1 text-xs text-error transition-colors hover:bg-[rgba(255,0,85,0.25)]"
                     >
                         {t('props.delete')}
                     </button>
@@ -421,8 +349,9 @@ export default function PropertiesPanel() {
             {validationErrors.length > 0 && (
                 <div className="mx-4 mt-3 rounded-lg border border-[rgba(255,0,85,0.3)] bg-[rgba(255,0,85,0.1)] p-3">
                     {validationErrors.map((err, i) => (
-                        <p key={i} className="text-xs text-[#ff0055]">
-                            ⚠️ {err}
+                        <p key={i} className="flex items-start gap-1.5 text-xs text-error">
+                            <NodeIcon name="warning" size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>{err}</span>
                         </p>
                     ))}
                 </div>

@@ -11,9 +11,9 @@ export const OPERATORS: { value: ConditionOperator; labelKey: string; symbol: st
     { value: 'contains', labelKey: 'operator.contains', symbol: '∈' },
     { value: 'isEmpty', labelKey: 'operator.isEmpty', symbol: '∅' },
     { value: 'isNotEmpty', labelKey: 'operator.isNotEmpty', symbol: '≠∅' },
-    { value: 'isSayTrue', labelKey: 'operator.isSayTrue', symbol: '👍' },
-    { value: 'isSayFalse', labelKey: 'operator.isSayFalse', symbol: '👎' },
-    { value: 'isUrl', labelKey: 'operator.isUrl', symbol: '🔗' },
+    { value: 'isSayTrue', labelKey: 'operator.isSayTrue', symbol: '✓' },
+    { value: 'isSayFalse', labelKey: 'operator.isSayFalse', symbol: '✗' },
+    { value: 'isUrl', labelKey: 'operator.isUrl', symbol: '↗' },
 ];
 
 /** Маппинг оператор → символ для отображения на Canvas нодах. */

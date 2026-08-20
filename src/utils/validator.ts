@@ -1,13 +1,18 @@
 import Ajv, { type ErrorObject } from 'ajv';
 import addFormats from 'ajv-formats';
 import type { FlowDocument, CommandNodeData, StepNodeData, ConditionNodeData } from '../types/flow';
-import { JS_IDENTIFIER_REGEX } from './regex';
+import { isValidJSIdentifier } from './identifiers';
+import { t, tf } from '../i18n';
 
 /** Validation error. */
 export interface ValidationError {
     code: string;
     message: string;
     nodeId?: string;
+    /** Какое поле ноды сломано ('name' | 'saveTo' | 'slots' | 'actions' | etc.) — для подсветки в UI. */
+    field?: string;
+    /** Индекс действия в массиве actions — для точечной подсветки конкретного блока. */
+    actionIndex?: number;
 }
 import flowSchema from '../schemas/flow.schema.json';
 
@@ -15,11 +20,6 @@ const ajv = new Ajv({ allErrors: true, verbose: true });
 addFormats(ajv);
 
 const validateSchema = ajv.compile(flowSchema);
-
-/** Проверка, является ли строка валидным JS-идентификатором */
-function isValidJSIdentifier(name: string): boolean {
-    return JS_IDENTIFIER_REGEX.test(name);
-}
 
 /** Validate flow document against JSON schema. */
 export function validateSchemaLevel(doc: unknown): ValidationError[] {
@@ -37,48 +37,48 @@ export function validateSchemaLevel(doc: unknown): ValidationError[] {
 
     return (validateSchema.errors ?? []).map((err: ErrorObject) => {
         const path = err.instancePath || '/';
-        let message = err.message ?? 'некорректное значение';
+        let message = err.message ?? t('validation.v.badValue');
+
+        const parts = path.split('/').filter(Boolean);
+        const lastPart = parts[parts.length - 1] ?? '';
 
         // Упрощаем сообщения AJV
         if (message.includes('must be equal to constant')) {
-            const parts = path.split('/');
-            const lastPart = parts[parts.length - 1];
             if (lastPart === 'type') {
                 // Пытаемся найти тип ноды
                 const nodes = (doc as Record<string, unknown>)?.nodes as unknown[];
                 const nodeIdx = parseInt(parts[1] || '0');
                 const typeName = (nodes?.[nodeIdx] as Record<string, unknown>)?.type as
-                    | string
-                    | undefined;
+                    string | undefined;
                 if (typeName && !typeMessages[typeName]) {
-                    message = `Неизвестный тип блока "${typeName}". Допустимые: command, step, condition, action, response, end`;
+                    message = tf('validation.v.unknownType', { type: typeName });
+                } else if (typeName) {
+                    message = tf('validation.v.badType', { idx: nodeIdx + 1, type: typeName });
                 } else {
-                    message = `Блок${nodeIdx >= 0 ? ' #' + (nodeIdx + 1) : ''}: некорректный тип${typeName ? ' "' + typeName + '"' : ''}`;
+                    message = tf('validation.v.badTypeNoName', { idx: nodeIdx + 1 });
                 }
             } else if (lastPart === 'operator') {
-                message = `Неизвестный оператор. Допустимы: =, ≠, >, ≥, <, ≤, содержит, пусто, согласие, несогласие, ссылка`;
+                message = t('validation.v.unknownOperator');
             } else {
-                message = `Некорректное значение в поле "${lastPart}"`;
+                message = tf('validation.v.badValue', { field: lastPart });
             }
         } else if (message.includes('must match exactly one schema in oneOf')) {
-            message = `Блок не соответствует ни одному из известных типов. Проверьте поле "type"`;
+            message = t('validation.v.invalidJson');
         } else if (message.includes('must be equal to one of the allowed values')) {
-            const parts = path.split('/');
-            const lastPart = parts[parts.length - 1];
             if (lastPart === 'operator') {
-                message = `Неизвестный оператор. Допустимы: =, ≠, >, ≥, <, ≤, содержит, пусто, согласие, несогласие, ссылка`;
+                message = t('validation.v.unknownOperator');
             } else {
-                message = `Некорректное значение в поле "${lastPart}"`;
+                message = tf('validation.v.badValue', { field: lastPart });
             }
         } else if (message.includes('required')) {
-            const field = path.split('/').pop() || 'поле';
-            message = `Обязательное поле "${field}" отсутствует`;
+            const field = path.split('/').pop() || t('validation.v.requiredField');
+            message = tf('validation.v.required', { field });
         } else if (message.includes('must be string')) {
-            message = `Ожидался текст в поле "${path.split('/').pop() || '?'}"`;
+            message = tf('validation.v.mustBeString', { field: path.split('/').pop() || '?' });
         } else if (message.includes('must be array')) {
-            message = `Ожидался список в поле "${path.split('/').pop() || '?'}"`;
+            message = tf('validation.v.mustBeArray', { field: path.split('/').pop() || '?' });
         } else if (message.includes('must be object')) {
-            message = `Ожидался объект в поле "${path.split('/').pop() || '?'}"`;
+            message = tf('validation.v.mustBeObject', { field: path.split('/').pop() || '?' });
         }
 
         return {
@@ -99,7 +99,7 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
         if (seenIds.has(node.id)) {
             errors.push({
                 code: 'DUPLICATE_ID',
-                message: `Дублирующийся ID узла: "${node.id}"`,
+                message: tf('validation.v.duplicateId', { id: node.id }),
                 nodeId: node.id,
             });
         }
@@ -112,20 +112,30 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
         // End ноды не имеют имени — пропускаем
         if (node.type === 'end') continue;
 
+        // Role-ноды (welcome/help/fallback) имеют зарезервированные уникальные имена
+        const role = (node as { role?: string }).role;
+        if (role === 'welcome' || role === 'help' || role === 'fallback') continue;
+
         const name = (node as { name?: string }).name;
         if (!name) {
             errors.push({
                 code: 'EMPTY_NAME',
-                message: `Блок "${node.id}" не имеет имени. Заполните поле «Название».`,
+                message: tf('validation.v.emptyNodeName', { id: node.id }),
                 nodeId: node.id,
+                field: 'name',
             });
             continue;
         }
         if (seenNames.has(name)) {
             errors.push({
                 code: 'DUPLICATE_NAMES',
-                message: `Имя блока «${name}» используется одновременно в «${seenNames.get(name)}» и «${node.id}». Имена должны быть уникальными.`,
+                message: tf('validation.v.duplicateNames', {
+                    name,
+                    a: seenNames.get(name)!,
+                    b: node.id,
+                }),
                 nodeId: node.id,
+                field: 'name',
             });
         } else {
             seenNames.set(name, node.id);
@@ -139,15 +149,19 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             if (saveTo !== undefined && saveTo !== '' && !isValidJSIdentifier(saveTo)) {
                 errors.push({
                     code: 'INVALID_VAR_NAME',
-                    message: `Имя переменной «${saveTo}» некорректно. Используйте буквы, цифры и знак подчёркивания (не начинайте с цифры).`,
+                    message: tf('validation.v.invalidVarName', { name: saveTo }),
                     nodeId: node.id,
+                    field: 'saveTo',
                 });
             }
             if (saveTo !== undefined && saveTo === '') {
                 errors.push({
                     code: 'EMPTY_SAVE_TO',
-                    message: `Блок «${(node as { name?: string }).name || node.id}»: имя переменной пустое. Заполните поле или удалите его.`,
+                    message: tf('validation.v.emptyVarName', {
+                        name: (node as { name?: string }).name || node.id,
+                    }),
                     nodeId: node.id,
+                    field: 'saveTo',
                 });
             }
         }
@@ -161,15 +175,19 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
                 ) {
                     errors.push({
                         code: 'INVALID_VAR_NAME',
-                        message: `Имя переменной «${action.field}» некорректно. Используйте буквы, цифры и знак подчёркивания.`,
+                        message: tf('validation.v.invalidVarName', { name: action.field }),
                         nodeId: node.id,
+                        field: 'actions',
                     });
                 }
                 if (action.field !== undefined && action.field === '') {
                     errors.push({
                         code: 'EMPTY_ACTION_FIELD',
-                        message: `Действие в блоке «${(node as { name?: string }).name || node.id}»: имя переменной пустое. Заполните поле или удалите его.`,
+                        message: tf('validation.v.actionVarEmpty', {
+                            name: (node as { name?: string }).name || node.id,
+                        }),
                         nodeId: node.id,
+                        field: 'actions',
                     });
                 }
             }
@@ -178,8 +196,15 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
 
     // ACTION_MISSING_FIELDS — проверка обязательных полей в action-блоках
     for (const node of doc.nodes) {
-        const allActions: Array<{ type?: string; field?: string; value?: string; url?: string }> =
-            [];
+        const allActions: Array<{
+            type?: string;
+            field?: string;
+            value?: string;
+            url?: string;
+            min?: number;
+            max?: number;
+            body?: string;
+        }> = [];
         if (node.type === 'action') {
             allActions.push(...((node as { actions?: typeof allActions }).actions ?? []));
         }
@@ -187,36 +212,81 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             allActions.push(...((node as CommandNodeData | StepNodeData).actions ?? []));
         }
         for (const action of allActions) {
+            const actionIndex = allActions.indexOf(action);
             const nodeName = (node as { name?: string }).name || node.id;
             if (action.type === 'random_number' && !action.field) {
                 errors.push({
                     code: 'ACTION_MISSING_FIELD',
-                    message: `Блок «${nodeName}»: действие «Случайное число» не имеет имени переменной. Заполните поле «Поле».`,
+                    message: tf('validation.v.randomNoField', { name: nodeName }),
                     nodeId: node.id,
+                    field: 'actions',
+                    actionIndex,
+                });
+            }
+            // random_number: min должен быть <= max
+            if (
+                action.type === 'random_number' &&
+                action.min !== undefined &&
+                action.max !== undefined &&
+                action.min > action.max
+            ) {
+                errors.push({
+                    code: 'RANDOM_MIN_GT_MAX',
+                    message: tf('validation.v.randomMinGtMax', {
+                        name: nodeName,
+                        min: action.min,
+                        max: action.max,
+                    }),
+                    nodeId: node.id,
+                    field: 'actions',
+                    actionIndex,
                 });
             }
             if (action.type === 'set_variable') {
                 if (!action.field) {
                     errors.push({
                         code: 'ACTION_MISSING_FIELD',
-                        message: `Блок «${nodeName}»: действие «Установить переменную» не имеет имени переменной. Заполните поле «Поле».`,
+                        message: tf('validation.v.setNoField', { name: nodeName }),
                         nodeId: node.id,
+                        field: 'actions',
+                        actionIndex,
                     });
                 }
-                if (action.value === undefined || action.value === '') {
+                if (
+                    action.value === undefined ||
+                    (typeof action.value === 'string' && action.value.trim() === '')
+                ) {
                     errors.push({
                         code: 'ACTION_MISSING_VALUE',
-                        message: `Блок «${nodeName}»: действие «Установить переменную» не имеет значения. Введите выражение.`,
+                        message: tf('validation.v.setNoValue', { name: nodeName }),
                         nodeId: node.id,
+                        field: 'actions',
+                        actionIndex,
                     });
                 }
             }
             if (action.type === 'http_request' && !action.url) {
                 errors.push({
                     code: 'ACTION_MISSING_URL',
-                    message: `Блок «${nodeName}»: HTTP-запрос не имеет URL. Укажите адрес.`,
+                    message: tf('validation.v.httpNoUrl', { name: nodeName }),
                     nodeId: node.id,
+                    field: 'actions',
+                    actionIndex,
                 });
+            }
+            // http_request: body без {{vars}} должен быть валидным JSON
+            if (action.type === 'http_request' && action.body && !action.body.includes('{{')) {
+                try {
+                    JSON.parse(action.body);
+                } catch {
+                    errors.push({
+                        code: 'INVALID_JSON_BODY',
+                        message: tf('validation.v.httpBadJson', { name: nodeName }),
+                        nodeId: node.id,
+                        field: 'actions',
+                        actionIndex,
+                    });
+                }
             }
         }
     }
@@ -230,8 +300,13 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             if (slotMap.has(slot)) {
                 errors.push({
                     code: 'DUPLICATE_SLOTS',
-                    message: `Слово-триггер «${slot}» используется одновременно в «${slotMap.get(slot)}» и «${cmd.id}». Триггеры должны быть уникальными.`,
+                    message: tf('validation.v.dupSlot', {
+                        slot,
+                        a: slotMap.get(slot)!,
+                        b: cmd.id,
+                    }),
                     nodeId: cmd.id,
+                    field: 'slots',
                 });
             } else {
                 slotMap.set(slot, cmd.id);
@@ -256,8 +331,12 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
                 if (!cond.variable) {
                     errors.push({
                         code: 'CONDITION_EMPTY_VARIABLE',
-                        message: `Блок «${(node as { name?: string }).name || node.id}»: условие #${i + 1} не имеет переменной. Выберите переменную или удалите условие.`,
+                        message: tf('validation.v.condNoVar', {
+                            name: (node as { name?: string }).name || node.id,
+                            idx: i + 1,
+                        }),
                         nodeId: node.id,
+                        field: 'conditions',
                     });
                 }
                 if (
@@ -266,8 +345,12 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
                 ) {
                     errors.push({
                         code: 'CONDITION_EMPTY_VALUE',
-                        message: `Блок «${(node as { name?: string }).name || node.id}»: условие #${i + 1} не имеет значения для сравнения. Введите значение или удалите условие.`,
+                        message: tf('validation.v.condNoVal', {
+                            name: (node as { name?: string }).name || node.id,
+                            idx: i + 1,
+                        }),
                         nodeId: node.id,
+                        field: 'conditions',
                     });
                 }
             }
@@ -287,14 +370,14 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
         if (!nodeIds.has(edge.from)) {
             errors.push({
                 code: 'INVALID_TARGET',
-                message: `Связь от несуществующего узла: «${edge.from}»`,
+                message: tf('validation.v.edgeFromMissing', { id: edge.from }),
                 nodeId: edge.from,
             });
         }
         if (!nodeIds.has(edge.to)) {
             errors.push({
                 code: 'INVALID_TARGET',
-                message: `Связь к несуществующему узлу: «${edge.to}»`,
+                message: tf('validation.v.edgeToMissing', { id: edge.to }),
                 nodeId: edge.to,
             });
         }
@@ -310,7 +393,7 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
                 if (btn.targetNodeId && !nodeIds.has(btn.targetNodeId)) {
                     errors.push({
                         code: 'INVALID_TARGET',
-                        message: `Кнопка ссылается на несуществующий блок: «${btn.targetNodeId}»`,
+                        message: tf('validation.v.buttonTargetMissing', { id: btn.targetNodeId }),
                         nodeId: cmd.id,
                     });
                 }
@@ -321,7 +404,7 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             if (step.next && !nodeIds.has(step.next)) {
                 errors.push({
                     code: 'INVALID_TARGET',
-                    message: `Шаг ссылается на несуществующий блок: «${step.next}»`,
+                    message: tf('validation.v.stepTargetMissing', { id: step.next }),
                     nodeId: step.id,
                 });
             }
@@ -340,7 +423,7 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
                 if (doc.nodes.length > 1) {
                     errors.push({
                         code: 'MISSING_NEXT',
-                        message: `Шаг «${step.name || step.id}» не имеет следующего блока и не соединён с другими блоками.`,
+                        message: tf('validation.v.stepNoNext', { name: step.name || step.id }),
                         nodeId: step.id,
                     });
                 }
@@ -364,11 +447,14 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             );
             if (!hasTrue || !hasFalse) {
                 const missing = [];
-                if (!hasTrue) missing.push('True (верная)');
-                if (!hasFalse) missing.push('False (неверная)');
+                if (!hasTrue) missing.push(`«${t('condition.true')}»`);
+                if (!hasFalse) missing.push(`«${t('condition.false')}»`);
                 errors.push({
                     code: 'CONDITION_MISSING_BRANCHES',
-                    message: `Условие "${node.id}": не подключены ветки ${missing.join(' и ')}. Соедините выходы True и False с другими блоками.`,
+                    message: tf('validation.v.condMissingBranches', {
+                        name: (node as { name?: string }).name || node.id,
+                        missing: missing.join(' и '),
+                    }),
                     nodeId: node.id,
                 });
             }
@@ -379,11 +465,13 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
     for (const node of doc.nodes) {
         if (node.type === 'condition') {
             const cond = node as ConditionNodeData;
+            const condName = cond.name || cond.id;
             if (!cond.variable) {
                 errors.push({
                     code: 'CONDITION_MISSING_VARIABLE',
-                    message: `Условие "${cond.id}": не указана переменная. Откройте блок и выберите переменную из списка.`,
+                    message: tf('validation.v.condMissingVar', { name: condName }),
                     nodeId: cond.id,
+                    field: 'variable',
                 });
             }
             if (
@@ -392,8 +480,9 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             ) {
                 errors.push({
                     code: 'CONDITION_EMPTY_VALUE',
-                    message: `Условие "${cond.id}": не указано значение для сравнения. Введите значение или удалите условие.`,
+                    message: tf('validation.v.condMissingVal', { name: condName }),
                     nodeId: cond.id,
+                    field: 'value',
                 });
             }
         }
@@ -402,10 +491,11 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
     // ORPHAN_NODE (node not connected to anything except end nodes which are allowed)
     for (const node of doc.nodes) {
         if (node.type === 'end') continue;
-        // Welcome и Help команды могут быть standalone (приветствие и справка не требуют связей)
+        // Welcome, Help и Fallback команды могут быть standalone (не требуют связей)
         if (node.type === 'command') {
             const cmd = node as CommandNodeData;
-            if (cmd.role === 'welcome' || cmd.role === 'help') continue;
+            if (cmd.role === 'welcome' || cmd.role === 'help' || cmd.role === 'fallback')
+                continue;
         }
         const hasIncoming = (adjIn.get(node.id) ?? []).length > 0;
         const hasOutgoing = (adjOut.get(node.id) ?? []).length > 0;
@@ -420,11 +510,10 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             }
         }
         if (!hasIncoming && !hasOutgoing && !hasButtonRef && doc.nodes.length > 1) {
-            // Получаем имя ноды если есть
             const nodeName = (node as { name?: string }).name || node.id;
             errors.push({
                 code: 'ORPHAN_NODE',
-                message: `Блок "${nodeName}" не соединён ни с одним другим блоком. Соедините его с другими блоками или удалите.`,
+                message: tf('validation.v.orphan', { name: nodeName }),
                 nodeId: node.id,
             });
         }

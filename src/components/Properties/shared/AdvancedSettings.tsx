@@ -1,8 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { t } from '../../../i18n';
 import { Field } from './Field';
+import useUiStore from '../../../store/uiStore';
+import { NodeIcon } from '../../ui/NodeIcons';
 
 interface AdvancedSettingsProps {
+    /** ID ноды — для сохранения состояния раскрытия */
+    nodeId: string;
     /** Regex-режим (только для Command) */
     isPattern?: boolean;
     onPatternChange?: (val: boolean) => void;
@@ -28,8 +32,10 @@ interface AdvancedSettingsProps {
 /**
  * Общий компонент для расширенных настроек.
  * Порядок всегда одинаковый: regex → действия → условия → эмоция → завершение → перемешивание.
+ * Состояние раскрытия сохраняется в uiStore.advancedExpanded per nodeId.
  */
 export function AdvancedSettings({
+    nodeId,
     isPattern,
     onPatternChange,
     actions,
@@ -43,26 +49,38 @@ export function AdvancedSettings({
     actionsCount = 0,
     conditionsCount = 0,
 }: AdvancedSettingsProps) {
-    // Определяем, есть ли настроенные расширенные настройки
-    const hasAdvancedValues = useMemo(
-        () =>
-            !!isPattern ||
-            !!emotion ||
-            !!isEnd ||
-            !!shuffleButtons ||
-            actionsCount > 0 ||
-            conditionsCount > 0,
-        [isPattern, emotion, isEnd, shuffleButtons, actionsCount, conditionsCount],
-    );
+    // Читаем persisted состояние из uiStore
+    const persistedExpanded = useUiStore((s) => s.advancedExpanded[nodeId]);
+    const setAdvancedExpanded = useUiStore((s) => s.setAdvancedExpanded);
 
-    const [showAdvanced, setShowAdvanced] = useState(hasAdvancedValues);
+    // Счётчики активных расширенных опций
+    const activeCount = useMemo(() => {
+        let count = 0;
+        if (isPattern) count++;
+        if (emotion) count++;
+        if (isEnd) count++;
+        if (shuffleButtons) count++;
+        return count + actionsCount + conditionsCount;
+    }, [isPattern, emotion, isEnd, shuffleButtons, actionsCount, conditionsCount]);
+
+    const hasAdvancedValues = activeCount > 0;
+
+    // Если never set и есть активные значения — авто-раскрываем при первом визите
+    useEffect(() => {
+        if (persistedExpanded === undefined && hasAdvancedValues) {
+            setAdvancedExpanded(nodeId, true);
+        }
+    }, [persistedExpanded, hasAdvancedValues, nodeId, setAdvancedExpanded]);
+
+    const showAdvanced = persistedExpanded ?? hasAdvancedValues;
+    const toggle = () => setAdvancedExpanded(nodeId, !showAdvanced);
 
     return (
         <>
             <button
                 type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex w-full items-center gap-2 rounded-xl border border-[rgba(255,255,255,0.1)] px-4 py-3 text-xs text-white/40 transition-all hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-[#00f0ff]"
+                onClick={toggle}
+                className="flex w-full items-center gap-2 rounded-xl border border-[rgba(255,255,255,0.1)] px-4 py-3 text-xs text-white/40 transition-all hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-info"
             >
                 <svg
                     width="16"
@@ -79,7 +97,9 @@ export function AdvancedSettings({
                 </svg>
                 <span>{showAdvanced ? t('props.advancedHide') : t('props.advancedSettings')}</span>
                 {hasAdvancedValues && !showAdvanced && (
-                    <span className="ml-1 h-2 w-2 rounded-full bg-[#00f0ff]" />
+                    <span className="ml-1 inline-flex items-center gap-1 rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-1.5 py-0.5 text-[9px] font-bold text-info">
+                        {activeCount}
+                    </span>
                 )}
                 <span
                     className="ml-auto text-[10px] text-white/30 transition-transform duration-200"
@@ -99,13 +119,18 @@ export function AdvancedSettings({
                                     type="checkbox"
                                     checked={isPattern ?? false}
                                     onChange={(e) => onPatternChange(e.target.checked)}
-                                    className="h-4 w-4 rounded accent-[#00f0ff]"
+                                    className="h-4 w-4 rounded accent-info"
                                 />
                                 {t('props.patternHelp')}
                             </label>
                             {isPattern && (
-                                <p className="mt-1 text-[10px] text-[#ff9d00]">
-                                    ⚠️ {t('props.patternWarning')}
+                                <p className="mt-1 flex items-start gap-1 text-[10px] text-warning">
+                                    <NodeIcon
+                                        name="warning"
+                                        size={11}
+                                        className="mt-0.5 flex-shrink-0"
+                                    />
+                                    <span>{t('props.patternWarning')}</span>
                                 </p>
                             )}
                         </Field>
@@ -123,7 +148,7 @@ export function AdvancedSettings({
                             <select
                                 value={emotion ?? ''}
                                 onChange={(e) => onEmotionChange(e.target.value || undefined)}
-                                className="w-full rounded-lg border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-white/80 focus:border-[#00f0ff] focus:outline-none"
+                                className="w-full rounded-lg border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-white/80 focus:border-info focus:outline-none"
                             >
                                 <option value="">—</option>
                                 <option value="good">{t('props.emotion.good')}</option>
@@ -141,7 +166,7 @@ export function AdvancedSettings({
                                     type="checkbox"
                                     checked={isEnd ?? false}
                                     onChange={(e) => onEndChange(e.target.checked)}
-                                    className="h-4 w-4 rounded accent-[#00f0ff]"
+                                    className="h-4 w-4 rounded accent-info"
                                 />
                                 {t('props.endDialogHelp')}
                             </label>
@@ -159,7 +184,7 @@ export function AdvancedSettings({
                                     type="checkbox"
                                     checked={shuffleButtons ?? false}
                                     onChange={(e) => onShuffleChange(e.target.checked)}
-                                    className="h-4 w-4 rounded accent-[#00f0ff]"
+                                    className="h-4 w-4 rounded accent-info"
                                 />
                                 {t('props.shuffleButtonsHelp')}
                             </label>

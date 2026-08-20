@@ -1,0 +1,29 @@
+/* Хелпер для увеличения hit-area Handles (точек крепления связей) без визуального изменения */
+.react-flow__handle {
+    position: relative;
+}
+
+/* Псевдоэлемент увеличивает область клика до 24x24 px */
+.react-flow__handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 9999px;
+    pointer-events: auto;
+}
+
+/* Визуальное увеличение самой точки для лучшей заметности */
+.react-flow__handle {
+    min-width: 12px;
+    min-height: 12px;
+}
+
+/*
+ * Подсветка ошибок валидации идёт через класс контейнера .input-error-container (index.css).
+ * НЕ используем .input-error напрямую на input — его добавление через cloneElement
+ * пересоздаёт DOM-элемент и сбрасывает фокус. Оставлено пустым для совместимости.
+ */

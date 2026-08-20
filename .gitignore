@@ -10,3 +10,5 @@
 /repos1/*
 /coverage/*
 /package-lock.json
+vite.log
+*.tsbuildinfo

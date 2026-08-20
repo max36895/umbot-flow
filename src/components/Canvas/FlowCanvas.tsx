@@ -12,6 +12,8 @@ import {
     type OnNodesChange,
     type OnEdgesChange,
     type ReactFlowInstance,
+    type Node,
+    type Edge,
     applyNodeChanges,
     applyEdgeChanges,
 } from '@xyflow/react';
@@ -28,6 +30,8 @@ import { StartNode } from './nodes/StartNode';
 import { EndNode } from './nodes/EndNode';
 import { FlowEdge } from './edges/FlowEdge';
 import ContextMenu from './ContextMenu';
+import { NODE_COLORS, type NodeTypeKey } from './nodes/nodeColors';
+import { t } from '../../i18n';
 
 const nodeTypes: NodeTypes = {
     command: CommandNode,
@@ -43,6 +47,12 @@ const edgeTypes: EdgeTypes = {
     flowEdge: FlowEdge,
 };
 
+/** Цвет ноды на MiniMap — вычисляется один раз на уровне модуля. */
+function minimapNodeColor(n: { type?: string }): string {
+    const key = (n.type ?? 'start') as NodeTypeKey;
+    return NODE_COLORS[key]?.hex ?? NODE_COLORS.start.hex;
+}
+
 export default function FlowCanvas() {
     const nodes = useFlowStore((s) => s.nodes);
     const edges = useFlowStore((s) => s.edges);
@@ -52,8 +62,6 @@ export default function FlowCanvas() {
     const addNode = useFlowStore((s) => s.addNode);
     const selectNode = useUiStore((s) => s.selectNode);
     const selectEdge = useUiStore((s) => s.selectEdge);
-    const removeNode = useFlowStore((s) => s.removeNode);
-    const removeEdge = useFlowStore((s) => s.removeEdge);
     const minimapVisible = useUiStore((s) => s.minimapVisible);
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
@@ -74,12 +82,48 @@ export default function FlowCanvas() {
         setContextMenu({ x: e.clientX, y: e.clientY, flowX: flowPos.x, flowY: flowPos.y });
     }, []);
 
+    // Правый клик по ноде — выбираем её и сразу показываем контекстное меню
+    const onNodeContextMenu = useCallback(
+        (e: React.MouseEvent, node: { id: string }) => {
+            e.preventDefault();
+            selectNode(node.id);
+            const flowPos = reactFlowInstance.current?.screenToFlowPosition({
+                x: e.clientX,
+                y: e.clientY,
+            }) ?? { x: e.clientX, y: e.clientY };
+            setContextMenu({ x: e.clientX, y: e.clientY, flowX: flowPos.x, flowY: flowPos.y });
+        },
+        [selectNode],
+    );
+
     const onNodesChange: OnNodesChange = useCallback(
         (changes) => {
+            // Для позиционных изменений при перетаскивании — не пушим в историю каждый фрейм,
+            // история пушится один раз в onNodeDragStop.
             setNodes(applyNodeChanges(changes, useFlowStore.getState().nodes));
         },
         [setNodes],
     );
+
+    // Запоминаем snapshot ДО drag, чтобы onNodeDragStop запушил его в историю
+    const dragSnapshotRef = useRef<{ nodes: Node[]; edges: Edge[] } | null>(null);
+
+    const onNodeDragStart = useCallback(() => {
+        const s = useFlowStore.getState();
+        dragSnapshotRef.current = {
+            nodes: structuredClone(s.nodes),
+            edges: structuredClone(s.edges),
+        };
+    }, []);
+
+    const onNodeDragStop = useCallback(() => {
+        const snapshot = dragSnapshotRef.current;
+        dragSnapshotRef.current = null;
+        if (snapshot) {
+            // Пушим PRE-drag состояние — undo вернёт туда
+            useFlowStore.getState().pushHistorySnapshot(snapshot);
+        }
+    }, []);
 
     const onEdgesChange: OnEdgesChange = useCallback(
         (changes) => {
@@ -138,13 +182,28 @@ export default function FlowCanvas() {
         e.dataTransfer.dropEffect = 'move';
     }, []);
 
+    // Подсветка канваса во время drag — чтобы пользователь видел зону дропа
+    const [isDraggingBlock, setIsDraggingBlock] = useState(false);
+
+    const onDragEnter = useCallback((e: React.DragEvent) => {
+        if (e.dataTransfer.types.includes('application/reactflow')) {
+            setIsDraggingBlock(true);
+        }
+    }, []);
+
+    const onDragLeave = useCallback((e: React.DragEvent) => {
+        // Отключаем подсветку только если покинули сам канвас-обёртку (а не дочерний элемент)
+        if (e.currentTarget === e.target) {
+            setIsDraggingBlock(false);
+        }
+    }, []);
+
     const onDrop = useCallback(
         (e: React.DragEvent) => {
             e.preventDefault();
+            setIsDraggingBlock(false);
             const type = e.dataTransfer.getData('application/reactflow') as
-                | FlowNodeData['type']
-                | 'welcome'
-                | 'help';
+                FlowNodeData['type'] | 'welcome' | 'help' | 'fallback';
             if (!type) return;
 
             const position = reactFlowInstance.current?.screenToFlowPosition({
@@ -169,33 +228,48 @@ export default function FlowCanvas() {
                 e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
             if (isInput) return;
 
-            // Delete — удаление ноды или ребра
+            // Delete — удаление выделенных нод и рёбер (поддерживается мультивыделение)
             if (e.key === 'Delete' || e.key === 'Backspace') {
-                const selectedNodeId = useUiStore.getState().selectedNodeId;
-                const selectedEdgeId = useUiStore.getState().selectedEdgeId;
+                const state = useFlowStore.getState();
+                const nodeIds = new Set(
+                    state.nodes.filter((n) => n.selected).map((n) => n.id),
+                );
+                const edgeIds = new Set(
+                    state.edges.filter((ed) => ed.selected).map((ed) => ed.id),
+                );
+                const uiNodeId = useUiStore.getState().selectedNodeId;
+                const uiEdgeId = useUiStore.getState().selectedEdgeId;
+                if (uiNodeId) nodeIds.add(uiNodeId);
+                if (uiEdgeId) edgeIds.add(uiEdgeId);
 
-                if (selectedNodeId) {
+                if (nodeIds.size > 0 || edgeIds.size > 0) {
                     e.preventDefault();
-                    removeNode(selectedNodeId);
+                    state.removeSelection([...nodeIds], [...edgeIds]);
                     selectNode(null);
-                } else if (selectedEdgeId) {
-                    e.preventDefault();
-                    removeEdge(selectedEdgeId);
                     selectEdge(null);
                 }
             }
         },
-        [removeNode, removeEdge, selectNode, selectEdge],
+        [selectNode, selectEdge],
     );
 
     return (
         <div
             ref={reactFlowWrapper}
-            className="h-full w-full"
+            className="h-full w-full transition-shadow"
             onKeyDown={onKeyDown}
             onContextMenu={onContextMenu}
             tabIndex={0}
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
         >
+            {isDraggingBlock && (
+                <div className="pointer-events-none absolute inset-0 z-overlay flex items-center justify-center">
+                    <div className="rounded-xl border-2 border-dashed border-info/60 bg-info/5 px-6 py-4 text-sm text-info shadow-[0_0_30px_rgba(0,240,255,0.2)] backdrop-blur-sm">
+                        {t('canvas.dropHere')}
+                    </div>
+                </div>
+            )}
             <ReactFlow
                 onInit={onInit}
                 nodes={nodes}
@@ -204,17 +278,22 @@ export default function FlowCanvas() {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
+                onNodeContextMenu={onNodeContextMenu}
                 onEdgeClick={onEdgeClick}
                 onPaneClick={onPaneClick}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
+                onDragEnter={onDragEnter}
+                onDragLeave={onDragLeave}
+                onNodeDragStart={onNodeDragStart}
+                onNodeDragStop={onNodeDragStop}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 fitView
                 snapToGrid
                 snapGrid={[15, 15]}
                 deleteKeyCode={null}
-                className="bg-[#0F0F14]"
+                className="bg-surface-dim"
             >
                 <Background
                     variant={BackgroundVariant.Dots}
@@ -223,31 +302,7 @@ export default function FlowCanvas() {
                     color="rgba(255, 255, 255, 0.05)"
                 />
                 <Controls />
-                {minimapVisible && (
-                    <MiniMap
-                        nodeStrokeWidth={3}
-                        nodeColor={(n) => {
-                            switch (n.type) {
-                                case 'command':
-                                    return '#00f0ff';
-                                case 'step':
-                                    return '#bc13fe';
-                                case 'condition':
-                                    return '#ff0055';
-                                case 'action':
-                                    return '#ff9d00';
-                                case 'response':
-                                    return '#00ff9d';
-                                case 'end':
-                                    return '#ef4444';
-                                default:
-                                    return '#22c55e';
-                            }
-                        }}
-                        className="!bg-[rgba(15,15,20,0.9)] !border-[rgba(255,255,255,0.1)]"
-                        maskColor="rgba(15, 15, 20, 0.7)"
-                    />
-                )}
+                {minimapVisible && <MiniMap nodeStrokeWidth={3} nodeColor={minimapNodeColor} />}
             </ReactFlow>
             {contextMenu && (
                 <ContextMenu

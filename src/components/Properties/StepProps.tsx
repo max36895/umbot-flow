@@ -11,6 +11,7 @@ import { TTSField } from './shared/TTSField';
 import { VariableConfig } from './shared/VariableConfig';
 import { AdvancedSettings } from './shared/AdvancedSettings';
 import { ButtonEditor } from './shared/ButtonEditor';
+import { useNodeFieldErrors, getFieldErrorList, getActionErrorsMap } from '../../hooks/useNodeFieldErrors';
 
 interface Props {
     nodeId: string;
@@ -20,6 +21,7 @@ export function StepProps({ nodeId }: Props) {
     const nodes = useFlowStore((s) => s.nodes);
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
     const node = nodes.find((n) => n.id === nodeId);
+    const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
     const data = node.data as StepNodeData;
@@ -30,13 +32,13 @@ export function StepProps({ nodeId }: Props) {
 
     return (
         <div className="min-w-0 space-y-4">
-            <Field label={t('props.name')}>
+            <Field label={t('props.name')} errors={getFieldErrorList(fieldErrors, 'name')}>
                 <input
                     type="text"
                     value={data.name}
                     onChange={(e) => update({ name: e.target.value })}
                     placeholder={t('props.namePlaceholder')}
-                    className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-[#00f0ff] focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                    className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
             </Field>
 
@@ -71,6 +73,7 @@ export function StepProps({ nodeId }: Props) {
             <VariableConfig
                 fieldName={data.saveTo}
                 onFieldNameChange={(val) => update({ saveTo: val })}
+                errors={getFieldErrorList(fieldErrors, 'saveTo')}
                 presets={[
                     { labelKey: 'preset.userName', value: 'userName' },
                     { labelKey: 'preset.email', value: 'email' },
@@ -91,16 +94,18 @@ export function StepProps({ nodeId }: Props) {
             </Field>
 
             <AdvancedSettings
+                nodeId={nodeId}
                 actions={
-                    <Field label={t('props.actions')}>
+                    <Field label={t('props.actions')} errors={getFieldErrorList(fieldErrors, 'actions')}>
                         <ActionEditor
                             actions={data.actions ?? []}
                             onChange={(actions) => update({ actions })}
+                            actionErrors={getActionErrorsMap(fieldErrors)}
                         />
                     </Field>
                 }
                 conditions={
-                    <Field label={t('props.conditions')}>
+                    <Field label={t('props.conditions')} errors={getFieldErrorList(fieldErrors, 'conditions')}>
                         <ConditionEditor
                             conditions={data.conditions ?? []}
                             onChange={(conditions) => update({ conditions })}

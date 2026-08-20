@@ -77,7 +77,7 @@
                 "response": { "$ref": "#/$defs/Response" },
                 "actions": { "type": "array", "items": { "$ref": "#/$defs/ActionBlock" } },
                 "conditions": { "type": "array", "items": { "$ref": "#/$defs/FlowCondition" } },
-                "role": { "type": "string", "enum": ["command", "welcome", "help"] }
+                "role": { "type": "string", "enum": ["command", "welcome", "help", "fallback"] }
             }
         },
         "StepNode": {

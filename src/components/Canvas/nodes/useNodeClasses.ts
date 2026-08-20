@@ -1,38 +1,37 @@
 import type { CSSProperties } from 'react';
+import { NODE_COLORS, type NodeTypeKey } from './nodeColors';
 
 /** Цветовые константы нод. */
-export const NODE_COLORS = {
-    command: { hex: '#00f0ff', rgb: '0,240,255' },
-    welcome: { hex: '#22c55e', rgb: '34,197,94' },
-    help: { hex: '#eab308', rgb: '234,179,8' },
-    step: { hex: '#bc13fe', rgb: '188,19,254' },
-    action: { hex: '#ff9d00', rgb: '255,157,0' },
-    condition: { hex: '#ff0055', rgb: '255,0,85' },
-    response: { hex: '#00ff9d', rgb: '0,255,157' },
-    end: { hex: '#ef4444', rgb: '239,68,68' },
-} as const;
+export { NODE_COLORS };
+export type { NodeTypeKey };
 
-export type NodeTypeKey = keyof typeof NODE_COLORS;
-
-/** Возвращает CSS-классы для ноды по состоянию. */
+/**
+ * Возвращает CSS-классы для ноды по состоянию.
+ * Цвет задаётся отдельно через `nodeColorVars()` — здесь только поведенческие классы.
+ */
 export function getNodeClasses(
     _nodeType: NodeTypeKey,
     isSelected: boolean,
     isDimmed: boolean,
     isActivePreview: boolean,
+    hasErrors = false,
 ): string {
     const dimmed = isDimmed ? ' node-dimmed' : '';
+    const errorClass = hasErrors ? ' node-error' : '';
 
     if (isActivePreview) {
-        return `node-hover rounded-xl px-4 py-3 transition-all duration-300 node-active-pulse border-l-4 border-t border-r border-b${dimmed}`;
+        return `node-hover rounded-xl px-4 py-3 transition-all duration-300 node-active-pulse border-l-4 border-t border-r border-b${dimmed}${errorClass}`;
     }
     if (isSelected) {
-        return `node-hover rounded-xl px-4 py-3 transition-all duration-300 node-spotlight-active border-l-4 border-t border-r border-b${dimmed}`;
+        return `node-hover rounded-xl px-4 py-3 transition-all duration-300 node-spotlight-active border-l-4 border-t border-r border-b${dimmed}${errorClass}`;
     }
-    return `node-hover rounded-xl px-4 py-3 transition-all duration-200${dimmed} border bg-[rgba(30,30,35,0.8)] backdrop-blur-xl border-l-4`;
+    return `node-hover rounded-xl px-4 py-3 transition-all duration-200${dimmed} border bg-surface backdrop-blur-xl border-l-4${errorClass}`;
 }
 
-/** Возвращает inline стили border/background для конкретного состояния ноды. */
+/**
+ * Возвращает inline стили для CSS-переменных цвета ноды.
+ * Применять ТОЛЬКО на корневой div ноды: переменные каскадируются вниз к handles/badges.
+ */
 export function getNodeStyles(
     nodeType: NodeTypeKey,
     isSelected: boolean,
@@ -45,8 +44,10 @@ export function getNodeStyles(
     return {
         '--node-color': `${hex}99`,
         '--node-ring': `${hex}4d`,
+        '--node-hex': hex,
+        '--node-rgb': rgb,
         borderColor: isSelected || isActivePreview ? `${hex}` : `rgba(${rgb},${borderOpacity})`,
         borderLeftColor: hex,
-        backgroundColor: bgOpacity > 0 ? `rgba(${rgb},${bgOpacity})` : 'rgba(30,30,35,0.8)',
+        backgroundColor: bgOpacity > 0 ? `rgba(${rgb},${bgOpacity})` : undefined,
     } as CSSProperties;
 }

@@ -14,6 +14,7 @@ import {
     MULTIPLE_HYPHENS,
     LEADING_TRAILING_HYPHENS,
 } from './regex';
+import { isValidJSIdentifier } from './identifiers';
 
 /** Генерируемый файл. */
 export interface GeneratedFile {
@@ -21,7 +22,7 @@ export interface GeneratedFile {
     content: string;
 }
 
-/** Экранирует строку для безопасной вставки в TypeScript-код (кавычки, обратные слеши, переносы). */
+/** Экранирует строку для безопасной вставки в TypeScript-код (кавычки, обратные слеши, переносы, Unicode line separators). */
 function escapeStr(s: string): string {
     return s
         .replace(/\r/g, '')
@@ -29,7 +30,11 @@ function escapeStr(s: string): string {
         .replace(/'/g, "\\'")
         .replace(/`/g, '\\`')
         .replace(/\$/g, '\\$')
-        .replace(/\n/g, '\\n');
+        .replace(/\n/g, '\\n')
+        .split(' ')
+        .join('\\u2028')
+        .split(' ')
+        .join('\\u2029');
 }
 
 /** Экранирует спецсимволы regex для безопасного создания RegExp из имени переменной. */
@@ -54,11 +59,6 @@ function getCachedRegex(pattern: string): RegExp {
 function sanitizeIdentifier(name: string): string {
     if (!name) return 'unnamed';
     return String(name).replace(NON_UNICODE_CHARS, '_').replace(LEADING_DIGIT_REGEX, '_$1');
-}
-
-/** Проверяет, является ли строка валидным JS-идентификатором. */
-function isValidJSIdentifier(name: string): boolean {
-    return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name);
 }
 
 /** Безопасное имя переменной — невалидные имена оборачиваем в скобки. */
@@ -268,6 +268,107 @@ function generateConditionCode(
     return lines;
 }
 
+/** Генерирует код инлайн-условия с ответами true/false веток. */
+function generateInlineCondition(
+    cond: FlowCondition,
+    varNames: string[],
+    indent = '    ',
+): string[] {
+    const lines: string[] = [];
+    lines.push(...generateConditionCode(cond, varNames, indent));
+    if (cond.responseTrue) {
+        lines.push(`${indent}if (result) {`);
+        if (cond.responseTrue.text)
+            lines.push(`${indent}    ${setTextExpr(cond.responseTrue.text)};`);
+        if (cond.responseTrue.buttons) {
+            for (const btn of cond.responseTrue.buttons) {
+                lines.push(`${indent}    ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
+            }
+        }
+        lines.push(`${indent}}`);
+    }
+    if (cond.responseFalse) {
+        lines.push(`${indent}if (!result) {`);
+        if (cond.responseFalse.text)
+            lines.push(`${indent}    ${setTextExpr(cond.responseFalse.text)};`);
+        if (cond.responseFalse.buttons) {
+            for (const btn of cond.responseFalse.buttons) {
+                lines.push(`${indent}    ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
+            }
+        }
+        lines.push(`${indent}}`);
+    }
+    return lines;
+}
+
+/** Генерирует код кнопок. supportLinks=false — только addBtn (шаги/действия). */
+function generateButtonsCode(
+    buttons: { title: string; type?: string; url?: string }[],
+    indent = '    ',
+    supportLinks = true,
+): string[] {
+    const lines: string[] = [];
+    for (const btn of buttons) {
+        if (supportLinks && btn.type === 'link') {
+            lines.push(
+                `${indent}ctrl.buttons.addLink(${textExpr(btn.title)}, '${escapeStr(btn.url || '')}');`,
+            );
+        } else {
+            lines.push(`${indent}ctrl.buttons.addBtn(${textExpr(btn.title)});`);
+        }
+    }
+    return lines;
+}
+
+/** Генерирует код карточки (addImage для каждого изображения). */
+function generateCardCode(
+    card: {
+        images: {
+            src: string;
+            title: string;
+            description: string;
+            button?: { title: string };
+        }[];
+    },
+    indent = '    ',
+): string[] {
+    const lines: string[] = [];
+    for (const img of card.images) {
+        const args = [
+            textExpr(img.src || ''),
+            textExpr(img.title || ''),
+            textExpr(img.description || ''),
+        ];
+        if (img.button) args.push(textExpr(img.button.title || ''));
+        lines.push(`${indent}ctrl.card.addImage(${args.join(', ')});`);
+    }
+    return lines;
+}
+
+/** Генерирует навигацию по next-ребру (ctrl.thisIntentName). */
+function generateNextNavigation(
+    nodeId: string,
+    doc: FlowDocument,
+    validNodes: FlowDocument['nodes'],
+    indent = '    ',
+    skipIds?: Set<string>,
+): string[] {
+    const lines: string[] = [];
+    const nextEdge = doc.edges.find((e) => e.from === nodeId && e.type === 'next');
+    if (nextEdge) {
+        const nextNode = validNodes.find((n) => n.id === nextEdge.to);
+        if (nextNode && (!skipIds || !skipIds.has(nextNode.id))) {
+            const nextName = (nextNode as Record<string, unknown>).name;
+            if (typeof nextName === 'string') {
+                lines.push(
+                    `${indent}ctrl.thisIntentName = '${escapeStr(sanitizeIdentifier(nextName))}';`,
+                );
+            }
+        }
+    }
+    return lines;
+}
+
 /** Проверяет есть ли TTS в document (включая standalone response блоки). */
 function hasTTSInDoc(nodes: FlowDocument['nodes']): boolean {
     return nodes.some((n) => {
@@ -447,29 +548,7 @@ function generateIndexTs(doc: FlowDocument): string {
         // Инлайн-условия
         if (cmd.conditions) {
             for (const cond of cmd.conditions) {
-                lines.push(...generateConditionCode(cond, varNames));
-                if (cond.responseTrue) {
-                    lines.push(`    if (result) {`);
-                    if (cond.responseTrue.text)
-                        lines.push(`        ${setTextExpr(cond.responseTrue.text)};`);
-                    if (cond.responseTrue.buttons) {
-                        for (const btn of cond.responseTrue.buttons) {
-                            lines.push(`        ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
-                        }
-                    }
-                    lines.push(`    }`);
-                }
-                if (cond.responseFalse) {
-                    lines.push(`    if (!result) {`);
-                    if (cond.responseFalse.text)
-                        lines.push(`        ${setTextExpr(cond.responseFalse.text)};`);
-                    if (cond.responseFalse.buttons) {
-                        for (const btn of cond.responseFalse.buttons) {
-                            lines.push(`        ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
-                        }
-                    }
-                    lines.push(`    }`);
-                }
+                lines.push(...generateInlineCondition(cond, varNames));
             }
         }
 
@@ -490,28 +569,12 @@ function generateIndexTs(doc: FlowDocument): string {
 
         // Кнопки
         if (cmd.response?.buttons) {
-            for (const btn of cmd.response.buttons) {
-                if (btn.type === 'link') {
-                    lines.push(
-                        `    ctrl.buttons.addLink(${textExpr(btn.title)}, '${escapeStr(btn.url || '')}');`,
-                    );
-                } else {
-                    lines.push(`    ctrl.buttons.addBtn(${textExpr(btn.title)});`);
-                }
-            }
+            lines.push(...generateButtonsCode(cmd.response.buttons));
         }
 
         // Карточки
         if (cmd.response?.card?.images) {
-            for (const img of cmd.response.card.images) {
-                const args = [
-                    textExpr(img.src || ''),
-                    textExpr(img.title || ''),
-                    textExpr(img.description || ''),
-                ];
-                if (img.button) args.push(textExpr(img.button.title || ''));
-                lines.push(`    ctrl.card.addImage(${args.join(', ')});`);
-            }
+            lines.push(...generateCardCode(cmd.response.card));
         }
 
         // saveTo
@@ -520,18 +583,7 @@ function generateIndexTs(doc: FlowDocument): string {
         }
 
         // Навигация
-        const nextEdge = doc.edges.find((e) => e.from === cmd.id && e.type === 'next');
-        if (nextEdge) {
-            const nextNode = validNodes.find((n) => n.id === nextEdge.to);
-            if (nextNode) {
-                const nextName = (nextNode as Record<string, unknown>).name;
-                if (typeof nextName === 'string') {
-                    lines.push(
-                        `    ctrl.thisIntentName = '${escapeStr(sanitizeIdentifier(nextName))}';`,
-                    );
-                }
-            }
-        }
+        lines.push(...generateNextNavigation(cmd.id, doc, validNodes));
 
         lines.push(`});`);
         lines.push(``);
@@ -560,9 +612,7 @@ function generateIndexTs(doc: FlowDocument): string {
 
         // 3. Buttons
         if (step.prompt?.buttons) {
-            for (const btn of step.prompt.buttons) {
-                lines.push(`    ctrl.buttons.addBtn(${textExpr(btn.title)});`);
-            }
+            lines.push(...generateButtonsCode(step.prompt.buttons, '    ', false));
         }
 
         // 4. saveTo
@@ -582,45 +632,12 @@ function generateIndexTs(doc: FlowDocument): string {
         // 6. Inline conditions
         if (step.conditions) {
             for (const cond of step.conditions) {
-                lines.push(...generateConditionCode(cond, varNames));
-                if (cond.responseTrue) {
-                    lines.push(`    if (result) {`);
-                    if (cond.responseTrue.text)
-                        lines.push(`        ${setTextExpr(cond.responseTrue.text)};`);
-                    if (cond.responseTrue.buttons) {
-                        for (const btn of cond.responseTrue.buttons) {
-                            lines.push(`        ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
-                        }
-                    }
-                    lines.push(`    }`);
-                }
-                if (cond.responseFalse) {
-                    lines.push(`    if (!result) {`);
-                    if (cond.responseFalse.text)
-                        lines.push(`        ${setTextExpr(cond.responseFalse.text)};`);
-                    if (cond.responseFalse.buttons) {
-                        for (const btn of cond.responseFalse.buttons) {
-                            lines.push(`        ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
-                        }
-                    }
-                    lines.push(`    }`);
-                }
+                lines.push(...generateInlineCondition(cond, varNames));
             }
         }
 
         // Навигация
-        const nextEdge = doc.edges.find((e) => e.from === step.id && e.type === 'next');
-        if (nextEdge) {
-            const nextNode = validNodes.find((n) => n.id === nextEdge.to);
-            if (nextNode) {
-                const nextName = (nextNode as Record<string, unknown>).name;
-                if (typeof nextName === 'string') {
-                    lines.push(
-                        `    ctrl.thisIntentName = '${escapeStr(sanitizeIdentifier(nextName))}';`,
-                    );
-                }
-            }
-        }
+        lines.push(...generateNextNavigation(step.id, doc, validNodes));
 
         lines.push(`});`);
         lines.push(``);
@@ -668,15 +685,7 @@ function generateIndexTs(doc: FlowDocument): string {
             if (resp?.tts) lines.push(`    ${setTTSExpr(resp.tts)};`);
             if (resp?.isEnd) lines.push(`    ctrl.isEnd = true;`);
             if (resp?.buttons) {
-                for (const btn of resp.buttons) {
-                    if (btn.type === 'link') {
-                        lines.push(
-                            `    ctrl.buttons.addLink(${textExpr(btn.title)}, '${escapeStr(btn.url || '')}');`,
-                        );
-                    } else {
-                        lines.push(`    ctrl.buttons.addBtn(${textExpr(btn.title)});`);
-                    }
-                }
+                lines.push(...generateButtonsCode(resp.buttons));
             }
         }
 
@@ -699,25 +708,19 @@ function generateIndexTs(doc: FlowDocument): string {
             }
             if (actionNode.text) lines.push(`    ${setTextExpr(actionNode.text)};`);
             if (actionNode.buttons) {
-                for (const btn of actionNode.buttons) {
-                    lines.push(`    ctrl.buttons.addBtn(${textExpr(btn.title)});`);
-                }
+                lines.push(...generateButtonsCode(actionNode.buttons, '    ', false));
             }
             if (actionNode.card?.images) {
-                for (const img of actionNode.card.images) {
-                    const args = [
-                        textExpr(img.src || ''),
-                        textExpr(img.title || ''),
-                        textExpr(img.description || ''),
-                    ];
-                    if (img.button) args.push(textExpr(img.button.title || ''));
-                    lines.push(`    ctrl.card.addImage(${args.join(', ')});`);
-                }
+                lines.push(...generateCardCode(actionNode.card));
             }
         }
 
         if (node.type === 'condition') {
-            const condNode = node as { variable: string; operator: string; value: string | number };
+            const condNode = node as {
+                variable: string;
+                operator: string;
+                value: string | number;
+            };
             const cond: FlowCondition = {
                 variable: condNode.variable,
                 operator: condNode.operator as FlowCondition['operator'],
@@ -755,18 +758,7 @@ function generateIndexTs(doc: FlowDocument): string {
         }
 
         // Навигация для next-ребра
-        const nextEdge = doc.edges.find((e) => e.from === node.id && e.type === 'next');
-        if (nextEdge) {
-            const nextNode = validNodes.find((n) => n.id === nextEdge.to);
-            if (nextNode && !generatedStandaloneIds.has(nextNode.id)) {
-                const nextName = (nextNode as Record<string, unknown>).name;
-                if (typeof nextName === 'string') {
-                    lines.push(
-                        `    ctrl.thisIntentName = '${escapeStr(sanitizeIdentifier(nextName))}';`,
-                    );
-                }
-            }
-        }
+        lines.push(...generateNextNavigation(node.id, doc, validNodes, '    ', generatedStandaloneIds));
 
         lines.push(`});`);
         lines.push(``);

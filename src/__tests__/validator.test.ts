@@ -263,3 +263,293 @@ describe('validate (full)', () => {
         expect(errors[0]?.code).toBe('SCHEMA_ERROR');
     });
 });
+
+describe('Action block validation (extended)', () => {
+    it('catches random_number min > max', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'action',
+                    id: 'act1',
+                    name: 'action1',
+                    actions: [{ type: 'random_number', field: 'rand', min: 100, max: 1 }],
+                    text: '',
+                    buttons: [],
+                },
+            ],
+            edges: [],
+        };
+        const errors = validateGraph(doc);
+        expect(errors.some((e) => e.code === 'RANDOM_MIN_GT_MAX')).toBe(true);
+    });
+
+    it('passes random_number with valid min/max', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'action',
+                    id: 'act1',
+                    name: 'action1',
+                    actions: [{ type: 'random_number', field: 'rand', min: 1, max: 100 }],
+                    text: 'ok',
+                    buttons: [],
+                },
+            ],
+            edges: [],
+        };
+        const errors = validateGraph(doc);
+        expect(errors.some((e) => e.code === 'RANDOM_MIN_GT_MAX')).toBe(false);
+    });
+
+    it('catches http_request with invalid JSON body (no vars)', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'action',
+                    id: 'act1',
+                    name: 'action1',
+                    actions: [
+                        {
+                            type: 'http_request',
+                            url: 'https://api.example.com',
+                            method: 'POST',
+                            body: '{"key": }',
+                        },
+                    ],
+                    text: '',
+                    buttons: [],
+                },
+            ],
+            edges: [],
+        };
+        const errors = validateGraph(doc);
+        expect(errors.some((e) => e.code === 'INVALID_JSON_BODY')).toBe(true);
+    });
+
+    it('passes http_request with template variables in body', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'action',
+                    id: 'act1',
+                    name: 'action1',
+                    actions: [
+                        {
+                            type: 'http_request',
+                            url: 'https://api.example.com',
+                            method: 'POST',
+                            body: '{"name": "{{userName}}"}',
+                        },
+                    ],
+                    text: '',
+                    buttons: [],
+                },
+            ],
+            edges: [],
+        };
+        const errors = validateGraph(doc);
+        expect(errors.some((e) => e.code === 'INVALID_JSON_BODY')).toBe(false);
+    });
+
+    it('catches set_variable with whitespace-only value', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'action',
+                    id: 'act1',
+                    name: 'action1',
+                    actions: [{ type: 'set_variable', field: 'x', value: '   ' }],
+                    text: '',
+                    buttons: [],
+                },
+            ],
+            edges: [],
+        };
+        const errors = validateGraph(doc);
+        expect(errors.some((e) => e.code === 'ACTION_MISSING_VALUE')).toBe(true);
+    });
+
+    it('catches set_variable in inline command actions with whitespace', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'cmd1',
+                    name: 'cmd1',
+                    slots: ['go'],
+                    isPattern: false,
+                    response: { text: 'ok', buttons: [], sounds: [] },
+                    actions: [{ type: 'set_variable', field: 'x', value: '  ' }],
+                },
+            ],
+            edges: [],
+        };
+        const errors = validateGraph(doc);
+        expect(errors.some((e) => e.code === 'ACTION_MISSING_VALUE')).toBe(true);
+    });
+});
+
+describe('ValidationError.field — для подсветки полей в UI', () => {
+    it('EMPTY_NAME помечает field=name', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'c1',
+                    name: '',
+                    slots: ['go'],
+                    isPattern: false,
+                    response: { text: 'ok', buttons: [], sounds: [] },
+                },
+            ],
+            edges: [],
+        };
+        const err = validateGraph(doc).find((e) => e.code === 'EMPTY_NAME');
+        expect(err).toBeDefined();
+        expect(err?.field).toBe('name');
+        expect(err?.nodeId).toBe('c1');
+    });
+
+    it('DUPLICATE_NAMES помечает field=name', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'c1',
+                    name: 'same',
+                    slots: ['a'],
+                    isPattern: false,
+                    response: { text: 'x', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'step',
+                    id: 's1',
+                    name: 'same',
+                    prompt: { text: 'q', buttons: [] },
+                    saveTo: 'x',
+                    saveAs: 'original',
+                },
+            ],
+            edges: [{ from: 'c1', to: 's1', type: 'next' }],
+        };
+        const err = validateGraph(doc).find((e) => e.code === 'DUPLICATE_NAMES');
+        expect(err?.field).toBe('name');
+    });
+
+    it('INVALID_VAR_NAME для saveTo помечает field=saveTo', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'step',
+                    id: 's1',
+                    name: 's1',
+                    prompt: { text: 'q', buttons: [] },
+                    saveTo: '123invalid',
+                    saveAs: 'original',
+                },
+            ],
+            edges: [],
+        };
+        const err = validateGraph(doc).find((e) => e.code === 'INVALID_VAR_NAME');
+        expect(err?.field).toBe('saveTo');
+    });
+
+    it('ACTION_MISSING_VALUE помечает field=actions', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'c1',
+                    name: 'c1',
+                    slots: ['go'],
+                    isPattern: false,
+                    response: { text: 'ok', buttons: [], sounds: [] },
+                    actions: [{ type: 'set_variable', field: 'x', value: '' }],
+                },
+            ],
+            edges: [],
+        };
+        const err = validateGraph(doc).find((e) => e.code === 'ACTION_MISSING_VALUE');
+        expect(err?.field).toBe('actions');
+    });
+
+    it('RANDOM_MIN_GT_MAX помечает field=actions', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'action',
+                    id: 'a1',
+                    name: 'a1',
+                    actions: [{ type: 'random_number', field: 'r', min: 100, max: 1 }],
+                    text: '',
+                    buttons: [],
+                },
+            ],
+            edges: [],
+        };
+        const err = validateGraph(doc).find((e) => e.code === 'RANDOM_MIN_GT_MAX');
+        expect(err?.field).toBe('actions');
+    });
+
+    it('CONDITION_MISSING_VARIABLE для standalone condition помечает field=variable', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'condition',
+                    id: 'cond',
+                    name: 'cond',
+                    variable: '',
+                    operator: 'eq',
+                    value: 1,
+                },
+                { type: 'end', id: 'e1' },
+                { type: 'end', id: 'e2' },
+            ],
+            edges: [
+                { from: 'cond', to: 'e1', type: 'branch_true' },
+                { from: 'cond', to: 'e2', type: 'branch_false' },
+            ],
+        };
+        const err = validateGraph(doc).find((e) => e.code === 'CONDITION_MISSING_VARIABLE');
+        expect(err?.field).toBe('variable');
+    });
+
+    it('DUPLICATE_SLOTS помечает field=slots', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'c1',
+                    name: 'c1',
+                    slots: ['hi'],
+                    isPattern: false,
+                    response: { text: 'a', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'command',
+                    id: 'c2',
+                    name: 'c2',
+                    slots: ['hi'],
+                    isPattern: false,
+                    response: { text: 'b', buttons: [], sounds: [] },
+                },
+            ],
+            edges: [],
+        };
+        const err = validateGraph(doc).find((e) => e.code === 'DUPLICATE_SLOTS');
+        expect(err?.field).toBe('slots');
+    });
+});

@@ -50,7 +50,7 @@ export default function HelpButton({ content, className = '' }: HelpButtonProps)
                                 if (line.startsWith('•') || line.startsWith('-')) {
                                     return (
                                         <div key={i} className="flex gap-2 pl-2">
-                                            <span className="text-[#00f0ff]">•</span>
+                                            <span className="text-info">•</span>
                                             <span>{line.replace(/^[\s•-]+/, '')}</span>
                                         </div>
                                     );

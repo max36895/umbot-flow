@@ -7,6 +7,7 @@ import { ResponseText } from './shared/ResponseText';
 import { TTSField } from './shared/TTSField';
 import { AdvancedSettings } from './shared/AdvancedSettings';
 import { ButtonEditor } from './shared/ButtonEditor';
+import { useNodeFieldErrors, getFieldErrorList } from '../../hooks/useNodeFieldErrors';
 
 interface Props {
     nodeId: string;
@@ -16,6 +17,7 @@ export function ResponseProps({ nodeId }: Props) {
     const nodes = useFlowStore((s) => s.nodes);
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
     const node = nodes.find((n) => n.id === nodeId);
+    const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
     const data = node.data as ResponseNodeData;
@@ -26,13 +28,13 @@ export function ResponseProps({ nodeId }: Props) {
 
     return (
         <div className="min-w-0 space-y-4">
-            <Field label={t('props.name')}>
+            <Field label={t('props.name')} errors={getFieldErrorList(fieldErrors, 'name')}>
                 <input
                     type="text"
                     value={data.name}
                     onChange={(e) => update({ name: e.target.value })}
                     placeholder={t('props.namePlaceholder')}
-                    className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-[#00f0ff] focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                    className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
             </Field>
 
@@ -61,6 +63,7 @@ export function ResponseProps({ nodeId }: Props) {
             <CardEditor card={data.response.card} onChange={(card) => updateResponse({ card })} />
 
             <AdvancedSettings
+                nodeId={nodeId}
                 emotion={data.response.emotion}
                 onEmotionChange={(val) => updateResponse({ emotion: val })}
                 isEnd={data.response.isEnd}

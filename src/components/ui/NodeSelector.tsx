@@ -25,22 +25,25 @@ export default function NodeSelector({
         <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className={`rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-[#00f0ff] focus:outline-none ${className}`}
+            className={`rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-info focus:outline-none ${className}`}
         >
             <option value="">—</option>
             {availableNodes.map((n) => {
                 const data = n.data as { name?: string; type?: string };
                 const label = data.name || n.id;
+                // Нативный <option> не рендерит SVG — используем короткие текстовые маркеры
                 const typeLabel =
                     n.type === 'command'
-                        ? '💬'
+                        ? '[cmd]'
                         : n.type === 'step'
-                          ? '📝'
+                          ? '[step]'
                           : n.type === 'condition'
-                            ? '🔀'
+                            ? '[if]'
                             : n.type === 'action'
-                              ? '⚡'
-                              : '';
+                              ? '[act]'
+                              : n.type === 'response'
+                                ? '[resp]'
+                                : '';
                 return (
                     <option key={n.id} value={n.id}>
                         {typeLabel} {label}

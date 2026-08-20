@@ -6,18 +6,20 @@ import { ResponseText } from './shared/ResponseText';
 import { ActionBlockEditor } from './shared/ActionBlockEditor';
 import { ButtonEditor } from './shared/ButtonEditor';
 import CardEditor from './CardEditor';
+import { useNodeFieldErrors, getFieldErrorList } from '../../hooks/useNodeFieldErrors';
 
 interface Props {
     nodeId: string;
 }
 
 const INPUT_CLASS =
-    'w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-[#00f0ff] focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
+    'w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
 
 export function ActionProps({ nodeId }: Props) {
     const nodes = useFlowStore((s) => s.nodes);
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
     const node = nodes.find((n) => n.id === nodeId);
+    const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
     const data = node.data as ActionNodeData;
@@ -28,7 +30,7 @@ export function ActionProps({ nodeId }: Props) {
 
     return (
         <div className="min-w-0 space-y-4">
-            <Field label={t('props.name')}>
+            <Field label={t('props.name')} errors={getFieldErrorList(fieldErrors, 'name')}>
                 <input
                     type="text"
                     value={data.name}
@@ -40,7 +42,13 @@ export function ActionProps({ nodeId }: Props) {
 
             <hr className="border-[rgba(255,255,255,0.08)]" />
 
-            <ActionBlockEditor actions={data.actions ?? []} onChange={updateActions} />
+            <Field label={t('props.actions')} errors={getFieldErrorList(fieldErrors, 'actions')}>
+                <ActionBlockEditor
+                    actions={data.actions ?? []}
+                    onChange={updateActions}
+                    actionErrors={getFieldErrorList(fieldErrors, 'actions')}
+                />
+            </Field>
 
             <hr className="border-[rgba(255,255,255,0.08)]" />
 

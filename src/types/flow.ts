@@ -156,8 +156,8 @@ export interface CommandNodeData {
     actions?: ActionBlock[];
     /** Inline condition blocks. */
     conditions?: FlowCondition[];
-    /** Role: 'command' (default), 'welcome' (startup), 'help' (help intent). */
-    role?: 'command' | 'welcome' | 'help';
+    /** Role: 'command' (default), 'welcome' (startup), 'help' (help intent), 'fallback' (unrecognized input). */
+    role?: 'command' | 'welcome' | 'help' | 'fallback';
     [key: string]: unknown;
 }
 
@@ -287,6 +287,8 @@ export interface ValidationError {
     code: string;
     message: string;
     nodeId?: string;
+    /** Какое поле ноды сломано (для подсветки в панели свойств): 'name' | 'saveTo' | 'slots' | 'actions' | 'conditions' | 'variable' | 'value' | 'text' | и т.д. */
+    field?: string;
 }
 
 /** Default metadata values. */

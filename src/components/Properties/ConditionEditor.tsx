@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FlowCondition, ConditionResponse } from '../../types/flow';
 import { t } from '../../i18n';
 import { OPERATORS, CONDITION_PRESETS, NO_VALUE_OPERATORS } from '../../types/operators';
+import { NodeIcon } from '../ui/NodeIcons';
 
 interface Props {
     conditions: FlowCondition[];
@@ -70,7 +71,7 @@ export function ConditionEditor({ conditions, onChange }: Props) {
                         <button
                             key={i}
                             onClick={() => addFromPreset(preset)}
-                            className="rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2.5 py-0.5 text-[10px] text-[#00f0ff] transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
+                            className="rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2.5 py-0.5 text-[10px] text-info transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
                         >
                             +{t(preset.labelKey)}
                         </button>
@@ -89,7 +90,7 @@ export function ConditionEditor({ conditions, onChange }: Props) {
             {/* Кнопка добавления пустого условия */}
             <button
                 onClick={addCondition}
-                className="rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2.5 py-0.5 text-[10px] text-[#00f0ff] transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
+                className="rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2.5 py-0.5 text-[10px] text-info transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
             >
                 +{t('props.addCondition')}
             </button>
@@ -100,14 +101,15 @@ export function ConditionEditor({ conditions, onChange }: Props) {
                     className="rounded border border-[rgba(188,19,254,0.2)] bg-[rgba(188,19,254,0.08)] p-2"
                 >
                     <div className="mb-2 flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#bc13fe]">
-                            🔀 {t('props.condition')}
+                        <span className="flex items-center gap-1 text-xs font-bold text-accent">
+                            <NodeIcon name="condition" size={12} />
+                            {t('props.condition')}
                         </span>
                         <button
                             onClick={() => removeCondition(i)}
-                            className="text-xs text-[#ff0055]/50 hover:text-[#ff0055]"
+                            className="text-xs text-error/50 hover:text-error"
                         >
-                            ✕
+                            <NodeIcon name="close" size={10} />
                         </button>
                     </div>
 
@@ -124,7 +126,7 @@ export function ConditionEditor({ conditions, onChange }: Props) {
                                 updateCondition(i, { variable: val });
                             }}
                             placeholder={t('props.variable')}
-                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-[#00f0ff] focus:outline-none"
+                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-info focus:outline-none"
                         />
 
                         <select
@@ -134,7 +136,7 @@ export function ConditionEditor({ conditions, onChange }: Props) {
                                     operator: e.target.value as FlowCondition['operator'],
                                 })
                             }
-                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-[#00f0ff] focus:outline-none"
+                            className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-info focus:outline-none"
                         >
                             {OPERATORS.map((op) => (
                                 <option key={op.value} value={op.value}>
@@ -149,13 +151,13 @@ export function ConditionEditor({ conditions, onChange }: Props) {
                                 value={String(cond.value ?? '')}
                                 onChange={(e) => updateCondition(i, { value: e.target.value })}
                                 placeholder={t('props.comparisonValue')}
-                                className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-[#00f0ff] focus:outline-none"
+                                className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-info focus:outline-none"
                             />
                         )}
 
                         <div className="grid grid-cols-2 gap-1">
                             <div>
-                                <label className="text-[10px] text-[#00ff9d]">
+                                <label className="text-[10px] text-success">
                                     {t('condition.true')}:
                                 </label>
                                 <input
@@ -165,11 +167,11 @@ export function ConditionEditor({ conditions, onChange }: Props) {
                                         updateResponse(i, 'responseTrue', { text: e.target.value })
                                     }
                                     placeholder={t('condition.trueText')}
-                                    className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-[#00f0ff] focus:outline-none"
+                                    className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-info focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] text-[#ff0055]">
+                                <label className="text-[10px] text-error">
                                     {t('condition.false')}:
                                 </label>
                                 <input
@@ -179,7 +181,7 @@ export function ConditionEditor({ conditions, onChange }: Props) {
                                         updateResponse(i, 'responseFalse', { text: e.target.value })
                                     }
                                     placeholder={t('condition.falseText')}
-                                    className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-[#00f0ff] focus:outline-none"
+                                    className="w-full rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white placeholder-white/35 focus:border-info focus:outline-none"
                                 />
                             </div>
                         </div>

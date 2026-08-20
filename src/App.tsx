@@ -7,15 +7,44 @@ import ChatPreview from './components/Preview/ChatPreview';
 import ExportDialog from './components/Toolbar/ExportDialog';
 import HelpModal from './components/Help/HelpModal';
 import BotSettingsModal from './components/Settings/BotSettingsModal';
+import StatusBar from './components/StatusBar/StatusBar';
+import CommandPalette from './components/Palette/CommandPalette';
 import useUiStore from './store/uiStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocale } from './i18n/hook';
 import useFlowStore from './store/flowStore';
+import { buildStarterDocument } from './utils/starterDoc';
 
 export default function App() {
-    const { previewOpen, exportDialogOpen, helpOpen, botSettingsOpen } = useUiStore();
+    const previewOpen = useUiStore((s) => s.previewOpen);
+    const exportDialogOpen = useUiStore((s) => s.exportDialogOpen);
+    const helpOpen = useUiStore((s) => s.helpOpen);
+    const botSettingsOpen = useUiStore((s) => s.botSettingsOpen);
+    const [paletteOpen, setPaletteOpen] = useState(false);
+    // Подписка на locale — триггерит перерендер всего дерева при переключении языка
+    useLocale();
 
     useEffect(() => {
-        useFlowStore.getState().autoLoad();
+        const store = useFlowStore.getState();
+        store.autoLoad();
+        // Если после загрузки холст пуст и localStorage не содержит данных — засеем starter-пример
+        const state = useFlowStore.getState();
+        const hasSavedData = localStorage.getItem('umbot-flow-editor') !== null;
+        if (!hasSavedData && state.nodes.length === 0) {
+            state.fromJSON(buildStarterDocument());
+        }
+    }, []);
+
+    // Ctrl+K — палитра команд
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                setPaletteOpen((v) => !v);
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
     }, []);
 
     // Глобальные клавиши — работают всегда
@@ -79,11 +108,30 @@ export default function App() {
                     try {
                         const data = JSON.parse(text);
                         if (data && data.type) {
-                            const pos = {
-                                x: 100 + Math.random() * 200,
-                                y: 100 + Math.random() * 200,
-                            };
-                            const newId = useFlowStore.getState().pasteNode(data, pos);
+                            const state = useFlowStore.getState();
+                            // Вставляем рядом с оригиналом, если он ещё на холсте;
+                            // иначе — у центра масс существующих нод
+                            let pos: { x: number; y: number };
+                            const source = state.nodes.find(
+                                (n) => n.id === (data as { id?: string }).id,
+                            );
+                            if (source) {
+                                pos = {
+                                    x: source.position.x + 60,
+                                    y: source.position.y + 60,
+                                };
+                            } else if (state.nodes.length > 0) {
+                                const avgX =
+                                    state.nodes.reduce((s, n) => s + n.position.x, 0) /
+                                    state.nodes.length;
+                                const avgY =
+                                    state.nodes.reduce((s, n) => s + n.position.y, 0) /
+                                    state.nodes.length;
+                                pos = { x: avgX + 60, y: avgY + 60 };
+                            } else {
+                                pos = { x: 100, y: 100 };
+                            }
+                            const newId = state.pasteNode(data, pos);
                             setTimeout(() => useUiStore.getState().selectNode(newId), 50);
                         }
                     } catch {
@@ -108,19 +156,21 @@ export default function App() {
 
     return (
         <ReactFlowProvider>
-            <div className="flex h-screen w-screen overflow-hidden bg-[#0F0F14]">
+            <div className="flex h-screen w-screen overflow-hidden bg-surface-dim">
                 <Sidebar />
                 <div className="relative min-w-0 flex-1 overflow-hidden">
                     <Toolbar />
-                    <div className="relative h-full">
+                    <div className="relative h-full pb-7">
                         <FlowCanvas />
                         {previewOpen && <ChatPreview />}
                     </div>
+                    <StatusBar />
                 </div>
                 <PropertiesPanel />
                 {exportDialogOpen && <ExportDialog />}
                 {helpOpen && <HelpModal />}
                 {botSettingsOpen && <BotSettingsModal />}
+                {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
             </div>
         </ReactFlowProvider>
     );

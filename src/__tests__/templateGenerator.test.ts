@@ -1027,6 +1027,29 @@ describe('templateGenerator', () => {
             const idx = generateProject(simpleDoc).find((f) => f.path === 'src/index.ts');
             expect(idx?.content).not.toContain('import { rand }');
         });
+
+        it('escapes U+2028 and U+2029 line separators to prevent parse errors', () => {
+            const inputText = 'Before After End';
+            const doc: FlowDocument = {
+                ...simpleDoc,
+                nodes: [
+                    {
+                        type: 'command',
+                        id: 'c',
+                        name: 'c',
+                        slots: ['t'],
+                        isPattern: false,
+                        response: { text: inputText, buttons: [], sounds: [] },
+                    },
+                ],
+            };
+            const idx = generateProject(doc).find((f) => f.path === 'src/index.ts');
+            // После escapeStr сырые символы U+2028/U+2029 не должны попадать в output
+            // (они ломали бы парсинг в старых JS-движках)
+            expect(idx?.content).not.toContain(inputText);
+            expect(idx?.content).toContain('\\u2028');
+            expect(idx?.content).toContain('\\u2029');
+        });
     });
 
     describe('simple scenarios', () => {
