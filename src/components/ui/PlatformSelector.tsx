@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { t } from '../../i18n';
 import type { Platform } from '../../types/flow';
 import { NodeIcon } from './NodeIcons';
@@ -40,18 +41,50 @@ const PLATFORM_GROUPS: { labelKey: string; platforms: Platform[] }[] = [
 /**
  * Мульти-селектор платформ сгруппированный по типам.
  * Позволяет выбрать одну, несколько или все платформы.
+ *
+ * Меню рендерится через портал в body с position: fixed — тулбар имеет
+ * overflow-x-auto, который по спецификации CSS делает overflow-y != visible
+ * и обрезал бы выпадающее вниз меню.
  */
 export default function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number } | null>(null);
+
+    // Позиция меню привязана к кнопке; пересчитываем при скролле/ресайзе,
+    // чтобы меню не «отрывалось» от кнопки при горизонтальном скролле тулбара
+    useEffect(() => {
+        if (!isOpen) return;
+        const update = () => {
+            const rect = ref.current?.getBoundingClientRect();
+            if (!rect) return;
+            const width = 224; // w-56
+            // Меню выровнено по правому краю кнопки
+            const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8));
+            const top = rect.bottom + 4;
+            // Ограничиваем высоту, чтобы меню не вылезало за нижний край экрана
+            const maxHeight = Math.max(120, window.innerHeight - top - 8);
+            setPos({ top, left, maxHeight });
+        };
+        update();
+        window.addEventListener('resize', update);
+        document.addEventListener('scroll', update, true);
+        return () => {
+            window.removeEventListener('resize', update);
+            document.removeEventListener('scroll', update, true);
+        };
+    }, [isOpen]);
 
     // Закрытие при клике вне — только когда меню открыто
     useEffect(() => {
         if (!isOpen) return;
         const handleClickOutside = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setIsOpen(false);
-            }
+            const target = e.target as Node;
+            if (ref.current?.contains(target)) return;
+            // Меню в портале вне ref, поэтому проверяем его отдельно
+            if (menuRef.current?.contains(target)) return;
+            setIsOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -86,7 +119,7 @@ export default function PlatformSelector({ value, onChange }: PlatformSelectorPr
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-1 rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/60 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/90"
+                className="flex items-center gap-1 rounded-lg border border-glass-border bg-fg/5 px-2 py-1 text-xs text-fg/60 transition-colors hover:bg-fg/10 hover:text-fg/90"
                 title={t('toolbar.platforms')}
             >
                 <NodeIcon name="link" size={12} />
@@ -94,10 +127,16 @@ export default function PlatformSelector({ value, onChange }: PlatformSelectorPr
                 <NodeIcon name={isOpen ? 'chevronDown' : 'chevronRight'} size={8} strokeWidth={2} />
             </button>
 
-            {isOpen && (
-                <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(30,30,35,0.98)] shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            {isOpen &&
+                pos &&
+                createPortal(
+                    <div
+                        ref={menuRef}
+                        style={{ top: pos.top, left: pos.left, maxHeight: pos.maxHeight }}
+                        className="fixed z-menu w-56 overflow-y-auto rounded-lg border border-glass-border bg-surface-modal shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                    >
                     {/* Группы */}
-                    <div className="border-b border-[rgba(255,255,255,0.08)] p-2">
+                    <div className="border-b border-outline-variant p-2">
                         {PLATFORM_GROUPS.map((group) => {
                             const allSelected = group.platforms.every((p) => value.includes(p));
                             return (
@@ -106,8 +145,8 @@ export default function PlatformSelector({ value, onChange }: PlatformSelectorPr
                                     onClick={() => selectGroup(group.platforms)}
                                     className={`block w-full rounded px-2 py-1 text-left text-xs ${
                                         allSelected
-                                            ? 'bg-[rgba(0,240,255,0.1)] text-info'
-                                            : 'text-white/50 hover:bg-[rgba(255,255,255,0.05)]'
+                                            ? 'bg-info/10 text-info'
+                                            : 'text-fg/50 hover:bg-fg/5'
                                     }`}
                                 >
                                     {t(group.labelKey)}
@@ -121,7 +160,7 @@ export default function PlatformSelector({ value, onChange }: PlatformSelectorPr
                         {ALL_PLATFORMS.map((platform) => (
                             <label
                                 key={platform}
-                                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
+                                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs text-fg/70 hover:bg-fg/5"
                             >
                                 <input
                                     type="checkbox"
@@ -133,8 +172,9 @@ export default function PlatformSelector({ value, onChange }: PlatformSelectorPr
                             </label>
                         ))}
                     </div>
-                </div>
-            )}
+                    </div>,
+                    document.body,
+                )}
         </div>
     );
 }

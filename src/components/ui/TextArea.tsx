@@ -1,12 +1,12 @@
 import type { TextareaHTMLAttributes } from 'react';
 
 const UNDERLINED_BASE =
-    'w-full border-0 border-b border-white/20 bg-transparent py-2 text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none resize-none';
+    'w-full border-0 border-b border-fg/20 bg-transparent py-2 text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none resize-none';
 
 const SIZE_CLASS = {
     md: 'px-0 text-sm',
     sm: 'px-2 text-xs',
-    xs: 'px-2 text-[10px]',
+    xs: 'px-2 text-[11px]',
 } as const;
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {

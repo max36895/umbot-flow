@@ -29,10 +29,10 @@ export function PresetPill({
     ...props
 }: PresetPillProps) {
     const cls = ghost
-        ? 'rounded-full border border-outline bg-transparent px-2.5 py-0.5 text-[10px] text-white/40 transition-colors hover:border-white/30 hover:text-white/60'
+        ? 'rounded-full border border-outline bg-transparent px-2.5 py-0.5 text-[11px] text-fg/55 transition-colors hover:border-fg/30 hover:text-fg/60'
         : selected
-          ? 'rounded-full border border-info/30 bg-info/15 px-2.5 py-0.5 text-[10px] text-info transition-colors hover:bg-info/25 hover:shadow-glow-cyan'
-          : 'rounded-full border border-transparent bg-white/5 px-2.5 py-0.5 text-[10px] text-white/40 transition-colors hover:bg-white/10 hover:text-white/60';
+          ? 'rounded-full border border-info/30 bg-info/15 px-2.5 py-0.5 text-[11px] text-info transition-colors hover:bg-info/25 hover:shadow-glow-cyan'
+          : 'rounded-full border border-transparent bg-fg/5 px-2.5 py-0.5 text-[11px] text-fg/55 transition-colors hover:bg-fg/10 hover:text-fg/60';
     return (
         <button className={`${cls} ${className}`} {...props}>
             {children}
@@ -49,7 +49,7 @@ interface DashedAddButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function DashedAddButton({ label, className = '', ...props }: DashedAddButtonProps) {
     return (
         <button
-            className={`w-full rounded-xl border-2 border-dashed border-outline py-2 text-xs text-white/40 transition-colors hover:border-info/30 hover:bg-info/5 hover:text-info ${className}`}
+            className={`w-full rounded-xl border-2 border-dashed border-outline py-2 text-xs text-fg/55 transition-colors hover:border-info/30 hover:bg-info/5 hover:text-info ${className}`}
             {...props}
         >
             {label}
@@ -82,7 +82,7 @@ export function IconButton({
             className={`rounded-lg ${size === 'md' ? 'p-2' : 'p-1.5'} transition-colors ${
                 active
                     ? 'bg-info/15 text-info'
-                    : 'text-white/40 hover:bg-white/10 hover:text-white/70'
+                    : 'text-fg/55 hover:bg-fg/10 hover:text-fg/70'
             } ${className}`}
             {...props}
         >

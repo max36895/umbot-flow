@@ -17,10 +17,18 @@ interface Props {
     nodeId: string;
 }
 
+/** Пресеты переменных для saveTo — вынесены на уровень модуля,
+ * чтобы не пересоздавать массив на каждый рендер. */
+const SAVE_TO_PRESETS = [
+    { labelKey: 'preset.userName', value: 'userName' },
+    { labelKey: 'preset.email', value: 'email' },
+    { labelKey: 'preset.phone', value: 'phone' },
+    { labelKey: 'preset.date', value: 'date' },
+];
+
 export function StepProps({ nodeId }: Props) {
-    const nodes = useFlowStore((s) => s.nodes);
+    const node = useFlowStore((s) => s.nodes.find((n) => n.id === nodeId));
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
-    const node = nodes.find((n) => n.id === nodeId);
     const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
@@ -38,7 +46,7 @@ export function StepProps({ nodeId }: Props) {
                     value={data.name}
                     onChange={(e) => update({ name: e.target.value })}
                     placeholder={t('props.namePlaceholder')}
-                    className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                    className="w-full border-b border-outline bg-transparent px-3 py-2 text-sm text-fg placeholder-fg/35 focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
             </Field>
 
@@ -54,7 +62,7 @@ export function StepProps({ nodeId }: Props) {
                 onChange={(val) => updatePrompt({ tts: val || undefined })}
             />
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <Field label={t('props.buttons')} help={t('props.buttonsHelp')}>
                 <ButtonEditor
@@ -64,25 +72,20 @@ export function StepProps({ nodeId }: Props) {
                 />
             </Field>
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <CardEditor card={data.prompt.card} onChange={(card) => updatePrompt({ card })} />
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <VariableConfig
                 fieldName={data.saveTo}
                 onFieldNameChange={(val) => update({ saveTo: val })}
                 errors={getFieldErrorList(fieldErrors, 'saveTo')}
-                presets={[
-                    { labelKey: 'preset.userName', value: 'userName' },
-                    { labelKey: 'preset.email', value: 'email' },
-                    { labelKey: 'preset.phone', value: 'phone' },
-                    { labelKey: 'preset.date', value: 'date' },
-                ]}
+                presets={SAVE_TO_PRESETS}
             />
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <Field label={t('props.nextStep')} help={t('props.nextStepHelp')}>
                 <NodeSelector

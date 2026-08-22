@@ -1,6 +1,29 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import { getLocale, setLocale, type Locale } from '../i18n';
+
+export type Theme = 'dark' | 'light';
+
+/** Выставляет/снимает data-theme на <html> — CSS-переменные переключаются сами. */
+function applyTheme(theme: Theme) {
+    if (typeof document === 'undefined') return;
+    if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+}
+
+/**
+ * Обёртка над localStorage: пропускает запись, если сериализованное значение
+ * не изменилось. Без этого persist пишет в localStorage на каждый set(),
+ * включая изменения исключённых полей (selectedNodeId, activePreviewNodeId).
+ */
+const skipUnchangedStorage: StateStorage = {
+    getItem: (name) => localStorage.getItem(name),
+    setItem: (name, value) => {
+        if (localStorage.getItem(name) === value) return;
+        localStorage.setItem(name, value);
+    },
+    removeItem: (name) => localStorage.removeItem(name),
+};
 
 interface UIStore {
     selectedNodeId: string | null;
@@ -10,6 +33,8 @@ interface UIStore {
     exportDialogOpen: boolean;
     helpOpen: boolean;
     locale: Locale;
+    /** Тема оформления */
+    theme: Theme;
     /** Режим панели свойств: docked (справа) или floating (плавающая) */
     propertiesPanelMode: 'docked' | 'floating';
     /** Позиция плавающей панели */
@@ -30,6 +55,7 @@ interface UIStore {
     toggleExportDialog: () => void;
     toggleHelp: () => void;
     toggleLocale: () => void;
+    toggleTheme: () => void;
     togglePropertiesPanelMode: () => void;
     setPropertiesPanelPosition: (pos: { x: number; y: number }) => void;
     toggleMinimap: () => void;
@@ -49,6 +75,7 @@ const useUiStore = create<UIStore>()(
             exportDialogOpen: false,
             helpOpen: false,
             locale: getLocale(),
+            theme: 'dark',
             propertiesPanelMode: 'docked',
             propertiesPanelPosition: {
                 x: typeof window !== 'undefined' ? window.innerWidth - 350 : 1000,
@@ -70,6 +97,12 @@ const useUiStore = create<UIStore>()(
                     const newLocale: Locale = s.locale === 'ru' ? 'en' : 'ru';
                     setLocale(newLocale);
                     return { locale: newLocale };
+                }),
+            toggleTheme: () =>
+                set((s) => {
+                    const theme: Theme = s.theme === 'dark' ? 'light' : 'dark';
+                    applyTheme(theme);
+                    return { theme };
                 }),
             togglePropertiesPanelMode: () =>
                 set((s) => ({
@@ -101,16 +134,20 @@ const useUiStore = create<UIStore>()(
         }),
         {
             name: 'umbot-flow-editor-ui',
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => skipUnchangedStorage),
             // Сохраняем только UI-настройки, не сессионное состояние
             partialize: (state) => ({
                 locale: state.locale,
+                theme: state.theme,
                 propertiesPanelMode: state.propertiesPanelMode,
                 propertiesPanelPosition: state.propertiesPanelPosition,
                 minimapVisible: state.minimapVisible,
                 advancedExpanded: state.advancedExpanded,
                 sidebarOpen: state.sidebarOpen,
             }),
+            onRehydrateStorage: () => (state) => {
+                if (state) applyTheme(state.theme);
+            },
         },
     ),
 );

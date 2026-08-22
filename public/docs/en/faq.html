@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FAQ — Umbot Flow Editor</title>
+        <meta
+            name="description"
+            content="Answers to frequently asked questions about Umbot Flow Editor: pricing, platforms, launching a bot, configuration format."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/faq" />
+        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq" />
+        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq" />
+        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq" />
+        <meta property="og:title" content="FAQ — Umbot Flow Editor" />
+        <meta
+            property="og:description"
+            content="Answers to frequently asked questions about Umbot Flow Editor: pricing, platforms, launching a bot, configuration format."
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/faq" />
+        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Is it free?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes, Umbot Flow Editor is completely free and open-source. The editor runs in the browser, and the project generator is available via npm. No hidden fees or subscriptions."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Do I need my own server?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "The editor runs in the browser — no server needed. To run the generated bot you need a computer with Node.js 18+. The bot runs on your server, and data is stored locally."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Which platforms are supported?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Supported platforms: Alisa (Yandex), Telegram, VK, Marusia (Sber), Max (VK), Viber, SmartApp (Sber). You can choose one or several platforms at once."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is it hard to launch the bot after downloading?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "No. You download the configuration file, install Node.js and run a single command. A ready-to-run project with code appears automatically. If you don't know what to do with the code — send it to a developer."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What is umbot?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Umbot is a framework for building multi-platform chatbots. It supports Alisa, Telegram, VK, Marusia and other platforms. The visual editor creates the configuration, and a special program generates a ready-to-run project."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I edit the configuration manually?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes, the format is fully documented. You can edit it in any text editor and load it back into the visual editor. The format is stable — updates don't break previously created configurations."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I use it without writing code?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "The visual editor lets you build the bot logic without code. However, launching the bot requires Node.js and basic terminal skills. If you are not a programmer — send the generated project to your developer."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What data formats are supported?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Bots can work with text, buttons, images, cards, voice (TTS) and HTTP requests. Variables, conditions and branching are supported."
+                        }
+                    }
+                ]
+            }
+        </script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #0f0f14;
+                color: #e0e0e0;
+                line-height: 1.7;
+            }
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 8px;
+                color: #fff;
+            }
+            .subtitle {
+                color: #888;
+                margin-bottom: 32px;
+            }
+            .topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 24px;
+            }
+            .back {
+                color: #00f0ff;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            .back:hover {
+                text-decoration: underline;
+            }
+            .lang {
+                color: #888;
+                text-decoration: none;
+                font-size: 0.85rem;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 8px;
+                padding: 4px 10px;
+            }
+            .lang:hover {
+                color: #00f0ff;
+                border-color: rgba(0, 240, 255, 0.3);
+            }
+            .faq-item {
+                margin-bottom: 24px;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+            }
+            .faq-item h2 {
+                font-size: 1.1rem;
+                color: #00f0ff;
+                margin-bottom: 8px;
+            }
+            .faq-item p {
+                font-size: 0.9rem;
+                color: #888;
+            }
+            a {
+                color: #00f0ff;
+            }
+            code {
+                background: rgba(0, 240, 255, 0.1);
+                color: #00f0ff;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: 'SF Mono', 'Fira Code', monospace;
+                font-size: 0.85em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="topbar">
+                <a class="back" href="/docs/en">← Documentation</a>
+                <a class="lang" href="/docs/faq">RU</a>
+            </div>
+            <h1>Frequently Asked Questions</h1>
+            <p class="subtitle">Answers to popular questions about Umbot Flow Editor</p>
+
+            <div class="faq-item">
+                <h2>Is it free?</h2>
+                <p>
+                    Yes, Umbot Flow Editor is completely free and open-source. The editor runs in
+                    the browser, and the project generator is available via npm. No hidden fees or
+                    subscriptions.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Do I need my own server?</h2>
+                <p>
+                    The editor runs in the browser — no server needed. To run the generated bot you
+                    need a computer with Node.js 18+. The bot runs on your server, and data is
+                    stored locally.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Which platforms are supported?</h2>
+                <p>
+                    Supported platforms: Alisa (Yandex), Telegram, VK, Marusia (Sber), Max (VK),
+                    Viber, SmartApp (Sber). You can choose one or several platforms at once.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Is it hard to launch the bot after downloading?</h2>
+                <p>
+                    No. You download the configuration file, install Node.js and run a single
+                    command. A ready-to-run project with code appears automatically. If you don't
+                    know what to do with the code — send it to a developer.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>What is umbot?</h2>
+                <p>
+                    Umbot is a framework for building multi-platform chatbots. It supports Alisa,
+                    Telegram, VK, Marusia and other platforms. The visual editor creates the
+                    configuration, and a special program generates a ready-to-run project.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Can I edit the configuration manually?</h2>
+                <p>
+                    Yes, the format is fully documented. You can edit it in any text editor and load
+                    it back into the visual editor. The format is stable — updates don't break
+                    previously created configurations.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>Can I use it without writing code?</h2>
+                <p>
+                    The visual editor lets you build the bot logic without code. However, launching
+                    the bot requires Node.js and basic terminal skills. If you are not a programmer
+                    — send the generated project to your developer.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h2>What data formats are supported?</h2>
+                <p>
+                    Bots can work with text, buttons, images, cards, voice (TTS) and HTTP requests.
+                    Variables, conditions and branching are supported.
+                </p>
+            </div>
+        </div>
+    </body>
+</html>

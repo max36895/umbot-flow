@@ -14,9 +14,8 @@ interface Props {
 }
 
 export function ResponseProps({ nodeId }: Props) {
-    const nodes = useFlowStore((s) => s.nodes);
+    const node = useFlowStore((s) => s.nodes.find((n) => n.id === nodeId));
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
-    const node = nodes.find((n) => n.id === nodeId);
     const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
@@ -34,7 +33,7 @@ export function ResponseProps({ nodeId }: Props) {
                     value={data.name}
                     onChange={(e) => update({ name: e.target.value })}
                     placeholder={t('props.namePlaceholder')}
-                    className="w-full border-b border-[rgba(255,255,255,0.2)] bg-transparent px-3 py-2 text-sm text-white placeholder-white/35 focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                    className="w-full border-b border-outline bg-transparent px-3 py-2 text-sm text-fg placeholder-fg/35 focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
             </Field>
 
@@ -48,7 +47,7 @@ export function ResponseProps({ nodeId }: Props) {
                 onChange={(val) => updateResponse({ tts: val || undefined })}
             />
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <Field label={t('props.buttons')} help={t('props.buttonsHelp')}>
                 <ButtonEditor
@@ -58,7 +57,7 @@ export function ResponseProps({ nodeId }: Props) {
                 />
             </Field>
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <CardEditor card={data.response.card} onChange={(card) => updateResponse({ card })} />
 

@@ -24,13 +24,13 @@ export function Field({ label, children, help, errors, errorVisibility = true }:
         <div className={`mb-5 ${hasError ? 'input-error-container' : ''}`}>
             <div className="mb-1.5 flex items-center gap-1">
                 <label
-                    className={`text-xs font-medium ${hasError ? 'text-error' : 'text-white/75'}`}
+                    className={`text-xs font-medium ${hasError ? 'text-error' : 'text-fg/75'}`}
                 >
                     {label}
                 </label>
                 {hasError && (
                     <span
-                        className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white"
+                        className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-error text-[11px] font-bold text-white"
                         title={correctError!.join('\n')}
                     >
                         !
@@ -41,7 +41,7 @@ export function Field({ label, children, help, errors, errorVisibility = true }:
             {/* Добавляем класс-цель только для содержимого (не лейбла) */}
             <div className="field-content">{children}</div>
             <div
-                className={`mt-1.5 space-y-0.5 text-[10px] leading-snug text-error/90 transition-opacity ${
+                className={`mt-1.5 space-y-0.5 text-[11px] leading-snug text-error/90 transition-opacity ${
                     hasError ? 'opacity-100' : 'opacity-0 max-h-0 overflow-hidden mt-0'
                 }`}
                 aria-hidden={!hasError}

@@ -154,10 +154,10 @@ export default function ContextMenu({ x, y, flowX, flowY, onClose }: ContextMenu
                         <button
                             key={i}
                             onClick={() => handleAddNode(item.nodeType)}
-                            className="flex w-full items-center gap-3 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10"
+                            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-fg/80 transition-colors hover:bg-fg/10"
                         >
-                            <NodeIcon name={item.icon} size={15} />
-                            {item.label}
+                            <NodeIcon name={item.icon} size={15} className="flex-shrink-0" />
+                            <span className="min-w-0">{item.label}</span>
                         </button>
                     );
                 }
@@ -166,10 +166,10 @@ export default function ContextMenu({ x, y, flowX, flowY, onClose }: ContextMenu
                         key={i}
                         onClick={item.action}
                         disabled={item.disabled}
-                        className="flex w-full items-center gap-3 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:opacity-40"
+                        className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-fg/80 transition-colors hover:bg-fg/10 disabled:opacity-40"
                     >
-                        <NodeIcon name={item.icon} size={15} />
-                        {item.label}
+                        <NodeIcon name={item.icon} size={15} className="flex-shrink-0" />
+                        <span className="min-w-0">{item.label}</span>
                     </button>
                 );
             })}

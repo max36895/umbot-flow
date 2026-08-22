@@ -30,6 +30,7 @@ import { StartNode } from './nodes/StartNode';
 import { EndNode } from './nodes/EndNode';
 import { FlowEdge } from './edges/FlowEdge';
 import ContextMenu from './ContextMenu';
+import ValidationSync from './ValidationSync';
 import { NODE_COLORS, type NodeTypeKey } from './nodes/nodeColors';
 import { t } from '../../i18n';
 
@@ -47,10 +48,13 @@ const edgeTypes: EdgeTypes = {
     flowEdge: FlowEdge,
 };
 
-/** Цвет ноды на MiniMap — вычисляется один раз на уровне модуля. */
+/** Шаг сетки — константа на уровне модуля, чтобы не создавать новый массив каждый рендер. */
+const SNAP_GRID: [number, number] = [15, 15];
+
+/** Цвет ноды на MiniMap — через CSS-переменную (адаптируется к теме). */
 function minimapNodeColor(n: { type?: string }): string {
     const key = (n.type ?? 'start') as NodeTypeKey;
-    return NODE_COLORS[key]?.hex ?? NODE_COLORS.start.hex;
+    return NODE_COLORS[key]?.cssVar ?? NODE_COLORS.start.cssVar;
 }
 
 export default function FlowCanvas() {
@@ -110,9 +114,12 @@ export default function FlowCanvas() {
 
     const onNodeDragStart = useCallback(() => {
         const s = useFlowStore.getState();
+        // Shallow-копия массивов достаточна: store полностью иммутабелен
+        // (applyNodeChanges создаёт новые объекты нод), а глубокое клонирование
+        // всё равно выполняется в pushHistorySnapshot при записи в историю.
         dragSnapshotRef.current = {
-            nodes: structuredClone(s.nodes),
-            edges: structuredClone(s.edges),
+            nodes: [...s.nodes],
+            edges: [...s.edges],
         };
     }, []);
 
@@ -231,6 +238,7 @@ export default function FlowCanvas() {
             onDragEnter={onDragEnter}
             onDragLeave={onDragLeave}
         >
+            <ValidationSync />
             {isDraggingBlock && (
                 <div className="pointer-events-none absolute inset-0 z-overlay flex items-center justify-center">
                     <div className="rounded-xl border-2 border-dashed border-info/60 bg-info/5 px-6 py-4 text-sm text-info shadow-[0_0_30px_rgba(0,240,255,0.2)] backdrop-blur-sm">
@@ -259,7 +267,7 @@ export default function FlowCanvas() {
                 edgeTypes={edgeTypes}
                 fitView
                 snapToGrid
-                snapGrid={[15, 15]}
+                snapGrid={SNAP_GRID}
                 deleteKeyCode={null}
                 className="bg-surface-dim"
             >
@@ -267,7 +275,7 @@ export default function FlowCanvas() {
                     variant={BackgroundVariant.Dots}
                     gap={24}
                     size={1.5}
-                    color="rgba(255, 255, 255, 0.05)"
+                    color="var(--canvas-dot)"
                 />
                 <Controls />
                 {minimapVisible && <MiniMap nodeStrokeWidth={3} nodeColor={minimapNodeColor} />}

@@ -80,7 +80,7 @@ export function AdvancedSettings({
             <button
                 type="button"
                 onClick={toggle}
-                className="flex w-full items-center gap-2 rounded-xl border border-[rgba(255,255,255,0.1)] px-4 py-3 text-xs text-white/40 transition-all hover:border-[rgba(0,240,255,0.3)] hover:bg-[rgba(0,240,255,0.05)] hover:text-info"
+                className="flex w-full items-center gap-2 rounded-xl border border-glass-border px-4 py-3 text-xs text-fg/55 transition-all hover:border-info/30 hover:bg-info/5 hover:text-info"
             >
                 <svg
                     width="16"
@@ -97,12 +97,12 @@ export function AdvancedSettings({
                 </svg>
                 <span>{showAdvanced ? t('props.advancedHide') : t('props.advancedSettings')}</span>
                 {hasAdvancedValues && !showAdvanced && (
-                    <span className="ml-1 inline-flex items-center gap-1 rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-1.5 py-0.5 text-[9px] font-bold text-info">
+                    <span className="ml-1 inline-flex items-center gap-1 rounded-full border border-info/30 bg-info/15 px-1.5 py-0.5 text-[11px] font-bold text-info">
                         {activeCount}
                     </span>
                 )}
                 <span
-                    className="ml-auto text-[10px] text-white/30 transition-transform duration-200"
+                    className="ml-auto text-[11px] text-fg/50 transition-transform duration-200"
                     style={{ transform: showAdvanced ? 'rotate(180deg)' : 'rotate(0deg)' }}
                 >
                     ▼
@@ -110,11 +110,11 @@ export function AdvancedSettings({
             </button>
 
             {showAdvanced && (
-                <div className="space-y-4 rounded-xl border border-[rgba(99,102,241,0.15)] bg-gradient-to-br from-[rgba(99,102,241,0.08)] to-[rgba(188,19,254,0.05)] p-4">
+                <div className="space-y-4 rounded-xl border border-accent/15 bg-gradient-to-br from-accent/[0.08] to-accent/5 p-4">
                     {/* 1. Regex-режим (только для Command) */}
                     {onPatternChange !== undefined && (
                         <Field label={t('props.patternMode')} help={t('props.patternHelp')}>
-                            <label className="flex items-center gap-3 text-sm text-white/70">
+                            <label className="flex items-center gap-3 text-sm text-fg/70">
                                 <input
                                     type="checkbox"
                                     checked={isPattern ?? false}
@@ -124,7 +124,7 @@ export function AdvancedSettings({
                                 {t('props.patternHelp')}
                             </label>
                             {isPattern && (
-                                <p className="mt-1 flex items-start gap-1 text-[10px] text-warning">
+                                <p className="mt-1 flex items-start gap-1 text-[11px] text-warning">
                                     <NodeIcon
                                         name="warning"
                                         size={11}
@@ -148,7 +148,7 @@ export function AdvancedSettings({
                             <select
                                 value={emotion ?? ''}
                                 onChange={(e) => onEmotionChange(e.target.value || undefined)}
-                                className="w-full rounded-lg border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-white/80 focus:border-info focus:outline-none"
+                                className="w-full rounded-lg border border-outline bg-fg/5 px-3 py-2 text-sm text-fg/80 focus:border-info focus:outline-none"
                             >
                                 <option value="">—</option>
                                 <option value="good">{t('props.emotion.good')}</option>
@@ -161,7 +161,7 @@ export function AdvancedSettings({
                     {/* 5. Завершение диалога */}
                     {onEndChange !== undefined && (
                         <Field label={t('props.endDialog')} help={t('props.endDialogHelp')}>
-                            <label className="flex items-center gap-3 text-sm text-white/70">
+                            <label className="flex items-center gap-3 text-sm text-fg/70">
                                 <input
                                     type="checkbox"
                                     checked={isEnd ?? false}
@@ -179,7 +179,7 @@ export function AdvancedSettings({
                             label={t('props.shuffleButtons')}
                             help={t('props.shuffleButtonsHelp')}
                         >
-                            <label className="flex items-center gap-3 text-sm text-white/70">
+                            <label className="flex items-center gap-3 text-sm text-fg/70">
                                 <input
                                     type="checkbox"
                                     checked={shuffleButtons ?? false}

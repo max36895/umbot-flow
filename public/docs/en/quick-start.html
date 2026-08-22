@@ -1,24 +1,24 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Быстрый старт — Umbot Flow Editor</title>
+        <title>Quick Start — Umbot Flow Editor</title>
         <meta
             name="description"
-            content="Пошаговая инструкция по запуску бота с помощью Umbot Flow Editor. От открытия редактора до запуска бота за 15 минут."
+            content="Step-by-step guide to launching a bot with Umbot Flow Editor. From opening the editor to a running bot in 15 minutes."
         />
-        <link rel="canonical" href="https://flow.maxim-m.ru/docs/quick-start" />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/quick-start" />
         <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start" />
         <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start" />
         <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start" />
-        <meta property="og:title" content="Быстрый старт — Umbot Flow Editor" />
+        <meta property="og:title" content="Quick Start — Umbot Flow Editor" />
         <meta
             property="og:description"
-            content="Пошаговая инструкция по запуску бота с помощью Umbot Flow Editor. От открытия редактора до запуска бота за 15 минут."
+            content="Step-by-step guide to launching a bot with Umbot Flow Editor. From opening the editor to a running bot in 15 minutes."
         />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/docs/quick-start" />
+        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/quick-start" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
         <style>
             * {
@@ -51,24 +51,19 @@
                 color: #888;
                 margin-bottom: 32px;
             }
-            .back {
-                display: inline-block;
-                margin-bottom: 24px;
-                color: #00f0ff;
-                text-decoration: none;
-                font-size: 0.9rem;
-            }
-            .back:hover {
-                text-decoration: underline;
-            }
             .topbar {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 margin-bottom: 24px;
             }
-            .topbar .back {
-                margin-bottom: 0;
+            .back {
+                color: #00f0ff;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            .back:hover {
+                text-decoration: underline;
             }
             .lang {
                 color: #888;
@@ -152,19 +147,19 @@
     <body>
         <div class="container">
             <div class="topbar">
-                <a class="back" href="/docs">← Документация</a>
-                <a class="lang" href="/docs/en/quick-start">EN</a>
+                <a class="back" href="/docs/en">← Documentation</a>
+                <a class="lang" href="/docs/quick-start">RU</a>
             </div>
-            <h1>Быстрый старт</h1>
-            <p class="subtitle">От открытия редактора до запуска бота за 15 минут</p>
+            <h1>Quick Start</h1>
+            <p class="subtitle">From opening the editor to a running bot in 15 minutes</p>
 
             <div class="step">
                 <div class="step-num">1</div>
                 <div class="step-content">
-                    <h3>Откройте редактор</h3>
+                    <h3>Open the editor</h3>
                     <p>
-                        Перейдите на <a href="/">главную страницу</a> и начните собирать бота.
-                        Перетащите блок "Команда" на холст.
+                        Go to the <a href="/">home page</a> and start building your bot. Drag a
+                        "Command" block onto the canvas.
                     </p>
                 </div>
             </div>
@@ -172,10 +167,10 @@
             <div class="step">
                 <div class="step-num">2</div>
                 <div class="step-content">
-                    <h3>Настройте бота</h3>
+                    <h3>Configure the bot</h3>
                     <p>
-                        Нажмите на блок и заполните слова-триггеры (слова, на которые бот реагирует)
-                        и текст ответа. Добавьте кнопки, условия и другие блоки по необходимости.
+                        Click the block and fill in the trigger words (words the bot reacts to) and
+                        the response text. Add buttons, conditions and other blocks as needed.
                     </p>
                 </div>
             </div>
@@ -183,10 +178,10 @@
             <div class="step">
                 <div class="step-num">3</div>
                 <div class="step-content">
-                    <h3>Экспортируйте конфигурацию</h3>
+                    <h3>Export the configuration</h3>
                     <p>
-                        Нажмите "Проверить и экспортировать" в верхней панели. Скачайте файл
-                        <code>flow.json</code>.
+                        Click "Validate & Export" in the top toolbar. Download the
+                        <code>flow.json</code> file.
                     </p>
                 </div>
             </div>
@@ -194,10 +189,10 @@
             <div class="step">
                 <div class="step-num">4</div>
                 <div class="step-content">
-                    <h3>Установите Node.js</h3>
+                    <h3>Install Node.js</h3>
                     <p>
-                        Если у вас ещё не установлен Node.js, скачайте и установите версию 18 или
-                        выше с <a href="https://nodejs.org" target="_blank">nodejs.org</a>.
+                        If you don't have Node.js yet, download and install version 18 or higher
+                        from <a href="https://nodejs.org" target="_blank">nodejs.org</a>.
                     </p>
                 </div>
             </div>
@@ -205,37 +200,37 @@
             <div class="step">
                 <div class="step-num">5</div>
                 <div class="step-content">
-                    <h3>Сгенерируйте проект</h3>
-                    <p>Откройте терминал в папке с файлом <code>flow.json</code> и выполните:</p>
+                    <h3>Generate the project</h3>
+                    <p>Open a terminal in the folder with <code>flow.json</code> and run:</p>
                     <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
-                    <p>Готовый проект с кодом появится в папке <code>my-bot</code>.</p>
+                    <p>A ready-to-run project with code will appear in the <code>my-bot</code> folder.</p>
                 </div>
             </div>
 
             <div class="note">
-                <strong>Не знаете что делать с кодом?</strong> Отправьте папку
-                <code>my-bot</code> вашему разработчику — он запустит бота за вас.
+                <strong>Not sure what to do with the code?</strong> Send the
+                <code>my-bot</code> folder to your developer — they will launch the bot for you.
             </div>
 
             <div class="step">
                 <div class="step-num">6</div>
                 <div class="step-content">
-                    <h3>Запустите бота</h3>
-                    <p>Откройте папку <code>my-bot</code> и следуйте инструкциям в файле README.</p>
+                    <h3>Launch the bot</h3>
+                    <p>Open the <code>my-bot</code> folder and follow the instructions in its README.</p>
                 </div>
             </div>
 
-            <h2>Следующие шаги</h2>
+            <h2>Next steps</h2>
             <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
                 <li>
-                    <a href="/docs/blocks">Описание блоков</a> — узнаете как работают команды,
-                    шаги, условия
+                    <a href="/docs/en/blocks">Block types</a> — learn how commands, steps and
+                    conditions work
                 </li>
                 <li>
-                    <a href="/docs/json-format">JSON-формат</a> — полная спецификация
-                    конфигурации
+                    <a href="/docs/en/json-format">JSON format</a> — full configuration
+                    specification
                 </li>
-                <li><a href="/docs/faq">FAQ</a> — ответы на частые вопросы</li>
+                <li><a href="/docs/en/faq">FAQ</a> — answers to common questions</li>
             </ul>
         </div>
     </body>

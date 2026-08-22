@@ -1,63 +1,77 @@
-import { memo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { StepNodeData } from '../../../types/flow';
 import useUiStore from '../../../store/uiStore';
 import { useT } from '../../../i18n/hook';
 import NodeHelpButton from './NodeHelpButton';
-import { getNodeClasses, getNodeStyles, NODE_COLORS } from './useNodeClasses';
-import { useNodeErrorsMap, NodeErrorsBadge } from './useNodeErrors';
+import {
+    getNodeClasses,
+    getNodeStyles,
+    NODE_COLORS,
+    nodeColorAlpha,
+    HANDLE_STYLES_GLOW,
+    BADGE_STYLES,
+} from './useNodeClasses';
+import { useNodeErrors, NodeErrorsBadge } from './useNodeErrors';
 import { truncatePreview } from '../../../utils/truncate';
 import { NodeIcon } from '../../ui/NodeIcons';
+
+/** Стиль бейджа saveTo — константа на уровне модуля. */
+const SAVE_TO_BADGE_STYLE = {
+    backgroundColor: nodeColorAlpha('step', 10),
+    color: NODE_COLORS.step.cssVar,
+} as const;
 
 function StepNodeComponent({ data, id }: NodeProps & { data: StepNodeData }) {
     const t = useT();
     const selectNode = useUiStore((s) => s.selectNode);
-    const selectedNodeId = useUiStore((s) => s.selectedNodeId);
-    const activePreviewNodeId = useUiStore((s) => s.activePreviewNodeId);
-    const nodeErrors = useNodeErrorsMap();
-    const errors = nodeErrors.get(id);
+    const isSelected = useUiStore((s) => s.selectedNodeId === id);
+    const isActivePreview = useUiStore((s) => s.activePreviewNodeId === id);
+    const isDimmed = useUiStore(
+        (s) => s.selectedNodeId !== null && s.selectedNodeId !== id && s.activePreviewNodeId !== id,
+    );
+    const errors = useNodeErrors(id);
     const hasErrors = (errors?.length ?? 0) > 0;
-    const isActivePreview = activePreviewNodeId === id;
-    const isSelected = selectedNodeId === id;
-    const isDimmed = selectedNodeId !== null && !isSelected && !isActivePreview;
     const promptPreview = truncatePreview(data.prompt?.text, t('node.preview.noPrompt'));
     const nodeColor = NODE_COLORS.step;
+    const nodeStyles = useMemo(
+        () => getNodeStyles('step', isSelected, isActivePreview),
+        [isSelected, isActivePreview],
+    );
+    const handleClick = useCallback(() => selectNode(id), [selectNode, id]);
 
     return (
         <div
             className={`relative min-w-[220px] ${getNodeClasses('step', isSelected, isDimmed, isActivePreview, hasErrors)}`}
-            style={getNodeStyles('step', isSelected, isActivePreview)}
-            onClick={() => selectNode(id)}
+            style={nodeStyles}
+            onClick={handleClick}
         >
             <NodeErrorsBadge errors={errors} />
             <Handle
                 type="target"
                 position={Position.Top}
-                className="!-top-3 !h-4 !w-4 !border-2 !border-white/30"
-                style={{ backgroundColor: nodeColor.hex, boxShadow: `0 0 8px rgba(${nodeColor.rgb},0.5)` }}
+                className="!-top-3 !h-4 !w-4 !border-2 !border-fg/30"
+                style={HANDLE_STYLES_GLOW.step}
             />
 
             <div className="mb-2 flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                    style={{ backgroundColor: `rgba(${nodeColor.rgb},0.25)` }}
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-fg"
+                    style={BADGE_STYLES.step}
                 >
                     <NodeIcon name="step" size={12} />
                     {t('node.badge.step')}
                 </span>
-                <span className="font-semibold text-white">{data.name}</span>
-                <NodeHelpButton content={t('help.stepDesc')} color={nodeColor.hex} />
+                <span className="font-semibold text-fg">{data.name}</span>
+                <NodeHelpButton content={t('help.stepDesc')} color={nodeColor.cssVar} />
             </div>
 
-            <div className="rounded-lg bg-white/5 px-2.5 py-1.5 text-xs text-white/60 italic">
+            <div className="rounded-lg bg-fg/5 px-2.5 py-1.5 text-xs text-fg/60 italic">
                 {promptPreview}
             </div>
 
             {data.saveTo && (
-                <div className="mt-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-                    style={{
-                        backgroundColor: `rgba(${nodeColor.rgb},0.1)`,
-                        color: nodeColor.hex,
-                    }}
+                <div className="mt-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                    style={SAVE_TO_BADGE_STYLE}
                 >
                     <svg
                         width="10"
@@ -77,8 +91,8 @@ function StepNodeComponent({ data, id }: NodeProps & { data: StepNodeData }) {
             <Handle
                 type="source"
                 position={Position.Bottom}
-                className="!-bottom-3 !h-4 !w-4 !border-2 !border-white/30"
-                style={{ backgroundColor: nodeColor.hex, boxShadow: `0 0 8px rgba(${nodeColor.rgb},0.5)` }}
+                className="!-bottom-3 !h-4 !w-4 !border-2 !border-fg/30"
+                style={HANDLE_STYLES_GLOW.step}
             />
         </div>
     );

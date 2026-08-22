@@ -41,7 +41,7 @@ export function VariableConfig({
                     value={fieldName}
                     onChange={(e) => onFieldNameChange(e.target.value)}
                     placeholder={t('action.field')}
-                    className="w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                    className="w-full border-0 border-b border-outline bg-transparent px-0 py-2 text-sm text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
             </Field>
 
@@ -52,10 +52,10 @@ export function VariableConfig({
                         <button
                             key={preset.value}
                             onClick={() => onFieldNameChange(preset.value)}
-                            className={`rounded-full border px-2.5 py-0.5 text-[10px] transition-colors ${
+                            className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
                                 fieldName === preset.value
-                                    ? 'border-[rgba(0,240,255,0.4)] bg-[rgba(0,240,255,0.15)] text-info shadow-[0_0_8px_rgba(0,240,255,0.2)]'
-                                    : 'border-[rgba(0,240,255,0.2)] bg-transparent text-info/50 hover:border-[rgba(0,240,255,0.35)] hover:bg-[rgba(0,240,255,0.08)] hover:text-info'
+                                    ? 'border-info/40 bg-info/15 text-info shadow-[0_0_8px_rgba(0,240,255,0.2)]'
+                                    : 'border-info/20 bg-transparent text-info/50 hover:border-info/35 hover:bg-info/[0.08] hover:text-info'
                             }`}
                         >
                             {preset.value}

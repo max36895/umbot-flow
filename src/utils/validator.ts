@@ -26,14 +26,8 @@ export function validateSchemaLevel(doc: unknown): ValidationError[] {
     const valid = validateSchema(doc);
     if (valid) return [];
 
-    const typeMessages: Record<string, string> = {
-        command: 'Команда',
-        step: 'Шаг',
-        condition: 'Условие',
-        action: 'Действие',
-        response: 'Ответ',
-        end: 'Конец',
-    };
+    // Допустимые типы блоков — только для проверки, в UI не показываются
+    const validTypes = new Set(['command', 'step', 'condition', 'action', 'response', 'end']);
 
     return (validateSchema.errors ?? []).map((err: ErrorObject) => {
         const path = err.instancePath || '/';
@@ -50,7 +44,7 @@ export function validateSchemaLevel(doc: unknown): ValidationError[] {
                 const nodeIdx = parseInt(parts[1] || '0');
                 const typeName = (nodes?.[nodeIdx] as Record<string, unknown>)?.type as
                     string | undefined;
-                if (typeName && !typeMessages[typeName]) {
+                if (typeName && !validTypes.has(typeName)) {
                     message = tf('validation.v.unknownType', { type: typeName });
                 } else if (typeName) {
                     message = tf('validation.v.badType', { idx: nodeIdx + 1, type: typeName });
@@ -453,7 +447,7 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
                     code: 'CONDITION_MISSING_BRANCHES',
                     message: tf('validation.v.condMissingBranches', {
                         name: (node as { name?: string }).name || node.id,
-                        missing: missing.join(' и '),
+                        missing: missing.join(` ${t('validation.and')} `),
                     }),
                     nodeId: node.id,
                 });

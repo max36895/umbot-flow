@@ -41,7 +41,7 @@ export function HttpConfig({
                             e.target.value as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
                         )
                     }
-                    className="w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white/80 focus:border-b-2 focus:border-info focus:outline-none"
+                    className="w-full border-0 border-b border-outline bg-transparent px-0 py-2 text-sm text-fg/80 focus:border-b-2 focus:border-info focus:outline-none"
                 >
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
@@ -57,7 +57,7 @@ export function HttpConfig({
                     value={url}
                     onChange={(e) => onUrlChange(e.target.value)}
                     placeholder="https://api.example.com"
-                    className="w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                    className="w-full border-0 border-b border-outline bg-transparent px-0 py-2 text-sm text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
             </Field>
 
@@ -68,7 +68,7 @@ export function HttpConfig({
                         onChange={(e) => onBodyChange(e.target.value)}
                         placeholder='{"key": "value"}'
                         rows={3}
-                        className="w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm font-mono text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none resize-none"
+                        className="w-full border-0 border-b border-outline bg-transparent px-0 py-2 text-sm font-mono text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none resize-none"
                     />
                 </Field>
             )}
@@ -79,7 +79,7 @@ export function HttpConfig({
                     value={saveResponseTo ?? ''}
                     onChange={(e) => onSaveResponseToChange(e.target.value)}
                     placeholder={t('action.saveResponseTo')}
-                    className="w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                    className="w-full border-0 border-b border-outline bg-transparent px-0 py-2 text-sm text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
             </Field>
         </div>

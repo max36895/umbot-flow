@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
 import { t } from '../../i18n';
+import { NODE_COLORS, type NodeTypeKey } from '../Canvas/nodes/nodeColors';
 
 interface Props {
     onClose: () => void;
@@ -68,22 +69,13 @@ export default function CommandPalette({ onClose }: Props) {
         }
     };
 
-    const typeColors: Record<string, string> = {
-        command: '#00f0ff',
-        step: '#bc13fe',
-        condition: '#ff0055',
-        action: '#ff9d00',
-        response: '#00ff9d',
-        end: '#ef4444',
-    };
-
     return (
         <div
             className="fixed inset-0 z-[300] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[15vh]"
             onClick={onClose}
         >
             <div
-                className="w-full max-w-md overflow-hidden rounded-xl border border-[rgba(255,255,255,0.15)] bg-[rgba(20,20,25,0.98)] shadow-[0_0_60px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+                className="w-full max-w-md overflow-hidden rounded-xl border border-outline bg-surface-modal shadow-[0_0_60px_rgba(0,0,0,0.7)] backdrop-blur-xl"
                 onClick={(e) => e.stopPropagation()}
             >
                 <input
@@ -93,17 +85,17 @@ export default function CommandPalette({ onClose }: Props) {
                     onChange={(e) => setSearch(e.target.value)}
                     onKeyDown={onKeyDown}
                     placeholder={t('palette.placeholder')}
-                    className="w-full border-b border-[rgba(255,255,255,0.1)] bg-transparent px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none"
+                    className="w-full border-b border-glass-border bg-transparent px-4 py-3 text-sm text-fg placeholder-fg/30 focus:outline-none"
                 />
                 <div className="max-h-72 overflow-y-auto">
                     {filtered.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-sm text-white/30">
+                        <div className="px-4 py-8 text-center text-sm text-fg/50">
                             {t('palette.noResults')}
                         </div>
                     ) : (
                         filtered.map((node, i) => {
                             const data = node.data as { name?: string; type?: string };
-                            const color = typeColors[node.type ?? ''] ?? '#888';
+                            const color = NODE_COLORS[(node.type ?? 'command') as NodeTypeKey];
                             const isSelected = i === selectedIdx;
                             return (
                                 <button
@@ -111,17 +103,17 @@ export default function CommandPalette({ onClose }: Props) {
                                     onClick={() => handleSelect(node.id)}
                                     onMouseEnter={() => setSelectedIdx(i)}
                                     className={`flex w-full items-center gap-3 px-4 py-2 text-left transition-colors ${
-                                        isSelected ? 'bg-[rgba(0,240,255,0.1)]' : ''
+                                        isSelected ? 'bg-info/10' : ''
                                     }`}
                                 >
                                     <span
                                         className="h-2 w-2 flex-shrink-0 rounded-full"
-                                        style={{ backgroundColor: color }}
+                                        style={{ backgroundColor: color?.cssVar ?? '#888' }}
                                     />
-                                    <span className="flex-1 truncate text-sm text-white/90">
+                                    <span className="flex-1 truncate text-sm text-fg/90">
                                         {data.name || node.id}
                                     </span>
-                                    <span className="text-[10px] uppercase tracking-wider text-white/30">
+                                    <span className="text-[11px] uppercase tracking-wider text-fg/50">
                                         {node.type}
                                     </span>
                                 </button>
@@ -129,12 +121,12 @@ export default function CommandPalette({ onClose }: Props) {
                         })
                     )}
                 </div>
-                <div className="border-t border-[rgba(255,255,255,0.08)] px-4 py-2 text-[10px] text-white/30">
-                    <span>↑↓ навигация</span>
+                <div className="border-t border-outline-variant px-4 py-2 text-[11px] text-fg/50">
+                    <span>{t('palette.navHint')}</span>
                     <span className="mx-2">·</span>
-                    <span>Enter выбрать</span>
+                    <span>{t('palette.selectHint')}</span>
                     <span className="mx-2">·</span>
-                    <span>Esc закрыть</span>
+                    <span>{t('palette.closeHint')}</span>
                 </div>
             </div>
         </div>

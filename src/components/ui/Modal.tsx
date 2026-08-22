@@ -68,10 +68,10 @@ export function Modal({
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between border-b border-outline-variant px-6 py-4">
-                    <h2 className="text-lg font-bold text-white/90">{title}</h2>
+                    <h2 className="text-lg font-bold text-fg/90">{title}</h2>
                     <button
                         onClick={handleClose}
-                        className="text-white/30 transition-colors hover:text-white/60"
+                        className="text-fg/50 transition-colors hover:text-fg/60"
                         aria-label={t('help.close')}
                     >
                         <NodeIcon name="close" size={14} />

@@ -9,6 +9,90 @@
             content="Ответы на часто задаваемые вопросы о Umbot Flow Editor: бесплатность, платформы, запуск бота, формат конфигурации."
         />
         <link rel="canonical" href="https://flow.maxim-m.ru/docs/faq" />
+        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq" />
+        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq" />
+        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq" />
+        <meta property="og:title" content="FAQ — Umbot Flow Editor" />
+        <meta
+            property="og:description"
+            content="Ответы на часто задаваемые вопросы о Umbot Flow Editor: бесплатность, платформы, запуск бота, формат конфигурации."
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://flow.maxim-m.ru/docs/faq" />
+        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Это бесплатно?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Да, Umbot Flow Editor полностью бесплатен и open-source. Редактор работает в браузере, генератор проекта доступен через npm. Никаких скрытых платежей и подписок."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Нужен ли свой сервер?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Редактор работает в браузере — сервер не нужен. Для запуска сгенерированного бота нужен компьютер с Node.js 18+. Бот будет работать на вашем сервере, данные хранятся локально."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Какие платформы поддерживаются?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Поддерживаются: Алиса (Яндекс), Telegram, VK, Маруся (Сбер), Max (VK), Viber, SmartApp (Сбер). Можно выбрать одну или несколько платформ одновременно."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Сложно ли запустить бота после скачивания?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Нет. Скачиваете файл конфигурации, устанавливаете Node.js и выполняете одну команду. Готовый проект с кодом появится автоматически. Если не знаете что делать с кодом — отправьте его разработчику."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Что такое umbot?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Umbot — это фреймворк для создания мультиплатформенных чат-ботов. Поддерживает Алису, Telegram, VK, Марусю и другие платформы. Визуальный редактор создаёт конфигурацию, а специальная программа генерирует готовый проект."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Можно ли редактировать конфигурацию вручную?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Да, формат полностью документирован. Можно редактировать в любом текстовом редакторе и загружать обратно в визуальный редактор. Формат стабилен — обновления не ломают ранее созданные конфигурации."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Можно ли использовать без написания кода?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Визуальный редактор позволяет собрать логику бота без кода. Однако для запуска бота необходим Node.js и базовые навыки работы с терминалом. Если вы не программист — отправьте сгенерированный проект вашему разработчику."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Какие форматы данных поддерживаются?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Боты могут работать с текстом, кнопками, изображениями, карточками, озвучкой (TTS) и HTTP-запросами. Поддерживаются переменные, условия и ветвления."
+                        }
+                    }
+                ]
+            }
+        </script>
         <style>
             * {
                 margin: 0;
@@ -45,6 +129,27 @@
             .back:hover {
                 text-decoration: underline;
             }
+            .topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 24px;
+            }
+            .topbar .back {
+                margin-bottom: 0;
+            }
+            .lang {
+                color: #888;
+                text-decoration: none;
+                font-size: 0.85rem;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 8px;
+                padding: 4px 10px;
+            }
+            .lang:hover {
+                color: #00f0ff;
+                border-color: rgba(0, 240, 255, 0.3);
+            }
             .faq-item {
                 margin-bottom: 24px;
                 padding: 20px;
@@ -76,7 +181,10 @@
     </head>
     <body>
         <div class="container">
-            <a class="back" href="/docs">← Документация</a>
+            <div class="topbar">
+                <a class="back" href="/docs">← Документация</a>
+                <a class="lang" href="/docs/en/faq">EN</a>
+            </div>
             <h1>Часто задаваемые вопросы</h1>
             <p class="subtitle">Ответы на популярные вопросы о Umbot Flow Editor</p>
 

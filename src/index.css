@@ -15,14 +15,14 @@ body,
         'Segoe UI',
         Roboto,
         sans-serif;
-    background: #0f0f14;
-    color: #e2e8f0;
+    background: var(--surface-dim);
+    color: rgb(var(--fg-rgb));
 }
 
-/* Глобальная стилизация скроллбара — тёмная тема */
+/* Глобальная стилизация скроллбара — через переменные темы */
 * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+    scrollbar-color: rgb(var(--fg-rgb) / 0.15) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -35,15 +35,107 @@ body,
 }
 
 *::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: rgb(var(--fg-rgb) / 0.15);
     border-radius: 3px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.25);
+    background-color: rgb(var(--fg-rgb) / 0.3);
 }
 
 @layer base {
+    :root {
+        /* ===== THEME TOKENS (dark по умолчанию) ===== */
+
+        /* Foreground — текст/иконки: белый в тёмной, почти чёрный в светлой.
+           ВАЖНО: пробельный синтаксис (не запятые) — иначе rgb(var / alpha) невалиден */
+        --fg-rgb: 255 255 255;
+
+        /* Поверхности */
+        --surface-dim: #0f0f14;
+        --surface-dim-rgb: 15 15 20;
+        --surface: rgba(30, 30, 35, 0.8);
+        --surface-container: rgba(40, 40, 48, 0.85);
+        --surface-container-low: rgba(25, 25, 30, 0.9);
+        --surface-container-high: rgba(50, 50, 58, 0.9);
+        --surface-panel: rgba(30, 30, 35, 0.9);
+        --surface-panel-docked: rgba(20, 20, 25, 0.95);
+        --surface-panel-docked-rgb: 20 20 25;
+        --surface-modal: rgba(20, 20, 25, 0.98);
+
+        /* Границы */
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --outline: rgba(255, 255, 255, 0.15);
+        --outline-variant: rgba(255, 255, 255, 0.08);
+
+        /* Акценты (пробельные rgb-триплеты для opacity-модификаторов) */
+        --info-rgb: 0 240 255;
+        --error-rgb: 255 0 85;
+        --success-rgb: 0 255 157;
+        --warning-rgb: 255 157 0;
+        --accent-rgb: 188 19 254;
+
+        /* Цвета типов нод — неон в тёмной теме (см. [data-theme='light'] для светлой).
+           Единственный источник: компоненты ссылаются через var(--node-*) */
+        --node-command: #00f0ff;
+        --node-step: #bc13fe;
+        --node-action: #ff9d00;
+        --node-condition: #ff0055;
+        --node-response: #00ff9d;
+        --node-end: #ef4444;
+        --node-start: #22c55e;
+        --node-welcome: #22c55e;
+        --node-help: #eab308;
+        --node-fallback: #ff9d00;
+
+        /* React Flow подложка */
+        --canvas-dot: rgba(255, 255, 255, 0.05);
+        --canvas-bg: #0f0f14;
+        color-scheme: dark;
+    }
+
+    [data-theme='light'] {
+        --fg-rgb: 15 23 42;
+
+        --surface-dim: #eef2f7;
+        --surface-dim-rgb: 238 242 247;
+        --surface: rgba(255, 255, 255, 0.85);
+        --surface-container: rgba(248, 250, 252, 0.9);
+        --surface-container-low: rgba(241, 245, 249, 0.92);
+        --surface-container-high: rgba(255, 255, 255, 0.95);
+        --surface-panel: rgba(255, 255, 255, 0.92);
+        --surface-panel-docked: rgba(255, 255, 255, 0.96);
+        --surface-panel-docked-rgb: 255 255 255;
+        --surface-modal: rgba(255, 255, 255, 0.98);
+
+        --glass-border: rgba(15, 23, 42, 0.12);
+        --outline: rgba(15, 23, 42, 0.2);
+        --outline-variant: rgba(15, 23, 42, 0.08);
+
+        /* Акценты темнее — читаются на белом фоне */
+        --info-rgb: 8 145 178;
+        --error-rgb: 225 29 72;
+        --success-rgb: 5 150 105;
+        --warning-rgb: 217 119 6;
+        --accent-rgb: 147 51 234;
+
+        /* Цвета нод темнее — читаются на белом фоне (неон не контрастен) */
+        --node-command: #0891b2;
+        --node-step: #9333ea;
+        --node-action: #d97706;
+        --node-condition: #e11d48;
+        --node-response: #059669;
+        --node-end: #dc2626;
+        --node-start: #16a34a;
+        --node-welcome: #16a34a;
+        --node-help: #ca8a04;
+        --node-fallback: #d97706;
+
+        --canvas-dot: rgba(15, 23, 42, 0.08);
+        --canvas-bg: #eef2f7;
+        color-scheme: light;
+    }
+
     :root {
         /* ===== DESIGN TOKENS ===== */
 
@@ -60,64 +152,6 @@ body,
         --space-4: 16px;
         --space-6: 24px;
         --space-8: 32px;
-
-        /* Severity colors */
-        --color-error: #ff0055;
-        --color-error-bg: rgba(255, 0, 85, 0.08);
-        --color-success: #00ff9d;
-        --color-warning: #ff9d00;
-        --color-info: #00f0ff;
-
-        /* Action accents */
-        --md-primary: #00d9e8;
-        --md-secondary: #bc13fe;
-
-        /* Dark Glassmorphism Tokens */
-        --md-on-primary: #000000;
-        --md-primary-container: rgba(0, 240, 255, 0.15);
-        --md-on-primary-container: #00f0ff;
-        --md-secondary-container: rgba(188, 19, 254, 0.15);
-
-        --md-surface: rgba(30, 30, 35, 0.8);
-        --md-surface-dim: #0f0f14;
-        --md-surface-container: rgba(40, 40, 48, 0.85);
-        --md-surface-container-low: rgba(25, 25, 30, 0.9);
-        --md-surface-container-high: rgba(50, 50, 58, 0.9);
-
-        --md-on-surface: #e2e8f0;
-        --md-on-surface-variant: #94a3b8;
-
-        --md-outline: rgba(255, 255, 255, 0.15);
-        --md-outline-variant: rgba(255, 255, 255, 0.08);
-
-        --md-error: #ff0055;
-        --md-success: #00ff9d;
-        --md-warning: #ff9d00;
-
-        /* Node Colors — Neon */
-        --node-command: #00f0ff;
-        --node-command-bg: rgba(0, 240, 255, 0.08);
-        --node-command-border: rgba(0, 240, 255, 0.3);
-
-        --node-step: #bc13fe;
-        --node-step-bg: rgba(188, 19, 254, 0.08);
-        --node-step-border: rgba(188, 19, 254, 0.3);
-
-        --node-condition: #ff0055;
-        --node-condition-bg: rgba(255, 0, 85, 0.08);
-        --node-condition-border: rgba(255, 0, 85, 0.3);
-
-        --node-action: #ff9d00;
-        --node-action-bg: rgba(255, 157, 0, 0.08);
-        --node-action-border: rgba(255, 157, 0, 0.3);
-
-        --node-response: #00ff9d;
-        --node-response-bg: rgba(0, 255, 157, 0.08);
-        --node-response-border: rgba(0, 255, 157, 0.3);
-
-        --node-end: #ef4444;
-        --node-end-bg: rgba(239, 68, 68, 0.08);
-        --node-end-border: rgba(239, 68, 68, 0.3);
 
         /* Elevation */
         --elevation-1: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -149,13 +183,17 @@ body,
 
 /* Node hover effects */
 .node-hover {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .node-hover:hover {
     transform: translateY(-1px);
     box-shadow:
-        0 0 20px rgba(255, 255, 255, 0.05),
+        0 0 20px rgb(var(--fg-rgb) / 0.05),
         0 4px 12px -2px rgba(0, 0, 0, 0.3);
 }
 
@@ -183,7 +221,8 @@ body,
 }
 
 .node-active-pulse {
-    animation: nodeActivePulse 1.5s infinite ease-in-out;
+    /* 200 итераций × 1.5s = 5 минут пульсации, затем — статичное свечение (forwards) */
+    animation: nodeActivePulse 1.5s ease-in-out 200 forwards;
 }
 
 /* Красная подсветка — только при .input-error-container на Field + имя внутри .field-content */
@@ -191,35 +230,37 @@ body,
 .input-error-container .field-content input,
 .input-error-container .field-content textarea,
 .input-error-container .field-content select {
-    border-bottom-color: rgba(255, 0, 85, 0.7) !important;
-    background-color: rgba(255, 0, 85, 0.03) !important;
+    border-bottom-color: rgb(var(--error-rgb) / 0.7) !important;
+    background-color: rgb(var(--error-rgb) / 0.03) !important;
 }
 
 .input-error-container .field-content input:focus,
 .input-error-container .field-content textarea:focus,
 .input-error-container .field-content select:focus {
-    border-bottom-color: #ff0055 !important;
-    box-shadow: 0 4px 8px -4px rgba(255, 0, 85, 0.4) !important;
+    border-bottom-color: rgb(var(--error-rgb)) !important;
+    box-shadow: 0 4px 8px -4px rgb(var(--error-rgb) / 0.4) !important;
 }
 
 /* Подсветка проблемных нод на канвасе — мягкая красная рамка */
 .node-error {
     box-shadow:
-        0 0 0 1.5px rgba(255, 0, 85, 0.5),
-        0 0 20px rgba(255, 0, 85, 0.15) !important;
-    border-color: rgba(255, 0, 85, 0.4) !important;
+        0 0 0 1.5px rgb(var(--error-rgb) / 0.5),
+        0 0 20px rgb(var(--error-rgb) / 0.15) !important;
+    border-color: rgb(var(--error-rgb) / 0.4) !important;
 }
 
 /* Spotlight — неактивные блоки при выделении (без blur) */
 .node-dimmed {
     opacity: 0.4;
-    transition: all 0.3s ease-out;
+    transition: opacity 0.3s ease-out;
 }
 
 .node-spotlight {
     transform: scale(1.02);
     filter: brightness(1);
-    transition: all 0.3s ease-out;
+    transition:
+        transform 0.3s ease-out,
+        opacity 0.3s ease-out;
 }
 
 /* Spotlight glow — свечение выделенной ноды */
@@ -227,7 +268,10 @@ body,
     opacity: 1;
     transform: scale(1.02);
     box-shadow: 0 0 30px var(--node-color, rgba(0, 240, 255, 0.3));
-    transition: all 0.3s ease-out;
+    transition:
+        transform 0.3s ease-out,
+        opacity 0.3s ease-out,
+        box-shadow 0.3s ease-out;
 }
 
 /* Running light animation for edges */
@@ -311,28 +355,28 @@ body,
     animation: contentFade 0.15s ease-out forwards;
 }
 
-/* ===== React Flow Controls & Minimap — Dark Theme (vendor overrides, !important оправдан) ===== */
+/* ===== React Flow Controls & Minimap (vendor overrides, !important оправдан) ===== */
 
 .react-flow__controls {
-    background: rgba(30, 30, 35, 0.9) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--surface-panel) !important;
+    border: 1px solid var(--glass-border) !important;
     border-radius: 12px !important;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.25) !important;
     backdrop-filter: blur(12px);
     overflow: hidden;
 }
 
 .react-flow__controls button {
     background: transparent !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: rgba(255, 255, 255, 0.5) !important;
+    border-bottom: 1px solid var(--outline-variant) !important;
+    color: rgb(var(--fg-rgb) / 0.5) !important;
     width: 32px !important;
     height: 32px !important;
 }
 
 .react-flow__controls button:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
+    background: rgb(var(--fg-rgb) / 0.1) !important;
+    color: rgb(var(--fg-rgb) / 0.9) !important;
 }
 
 .react-flow__controls button:last-child {
@@ -346,47 +390,43 @@ body,
 }
 
 .react-flow__minimap {
-    background: rgba(15, 15, 20, 0.9) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgb(var(--surface-dim-rgb) / 0.9) !important;
+    border: 1px solid var(--glass-border) !important;
     border-radius: 12px !important;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.25) !important;
 }
 
 .react-flow__minimap-mask {
-    fill: rgba(15, 15, 20, 0.7) !important;
+    fill: rgb(var(--surface-dim-rgb) / 0.7) !important;
 }
 
 .react-flow__attribution {
-    background: rgba(30, 30, 35, 0.8) !important;
+    background: var(--surface) !important;
 }
 
 .react-flow__attribution a {
-    color: rgba(255, 255, 255, 0.3) !important;
+    color: rgb(var(--fg-rgb) / 0.3) !important;
 }
 
 .react-flow__attribution a:hover {
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: rgb(var(--fg-rgb) / 0.6) !important;
 }
 
-/* ===== Select dropdown options — Dark Theme ===== */
-
-select {
-    color-scheme: dark;
-}
+/* ===== Select dropdown options ===== */
 
 select option {
-    background-color: #1e1e23;
-    color: #e2e8f0;
+    background-color: rgb(var(--surface-dim-rgb));
+    color: rgb(var(--fg-rgb));
     padding: 8px 12px;
 }
 
 select option:hover {
-    background-color: rgba(0, 240, 255, 0.1);
+    background-color: rgb(var(--info-rgb) / 0.1);
 }
 
 select option:checked {
-    background-color: rgba(0, 240, 255, 0.15);
-    color: #00f0ff;
+    background-color: rgb(var(--info-rgb) / 0.15);
+    color: rgb(var(--info-rgb));
 }
 
 /* Textarea — убираем скругление нижнего края */
@@ -396,4 +436,12 @@ textarea {
 
 .z-toolbar{
     z-index: 99;
+}
+
+/* Тулбар: горизонтальный скролл без видимого скроллбара (узкие экраны) */
+.toolbar-scroll {
+    scrollbar-width: none;
+}
+.toolbar-scroll::-webkit-scrollbar {
+    display: none;
 }

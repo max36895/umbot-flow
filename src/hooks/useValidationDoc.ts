@@ -3,6 +3,10 @@ import useFlowStore from '../store/flowStore';
 import { validate, validateGraph, type ValidationError } from '../utils/validator';
 import type { FlowDocument, FlowNodeData, FlowEdge } from '../types/flow';
 import { useLocale } from '../i18n/hook';
+import { useDebouncedValue } from './useDebouncedValue';
+
+/** Задержка дебаунса валидации — при быстром вводе/перетаскивании тяжёлые проверки запускаются реже. */
+const VALIDATION_DEBOUNCE_MS = 200;
 
 /**
  * Единый источник валидационной проекции.
@@ -37,14 +41,17 @@ export function useValidationDoc(): FlowDocument {
 /** Полная валидация (schema + graph) — для StatusBar и useNodeFieldErrors. */
 export function useValidationErrors(): ValidationError[] {
     const doc = useValidationDoc();
+    // Дебаунс: при быстром вводе/перетаскивании не гоняем AJV на каждый символ
+    const debouncedDoc = useDebouncedValue(doc, VALIDATION_DEBOUNCE_MS);
     // Сообщения валидатора локализованы — пересчитываем при смене языка
     const locale = useLocale();
-    return useMemo(() => validate(doc), [doc, locale]);
+    return useMemo(() => validate(debouncedDoc), [debouncedDoc, locale]);
 }
 
 /** Только graph-валидация (без schema) — для useNodeErrors (бейджи на нодах). */
 export function useGraphValidationErrors(): ValidationError[] {
     const doc = useValidationDoc();
+    const debouncedDoc = useDebouncedValue(doc, VALIDATION_DEBOUNCE_MS);
     const locale = useLocale();
-    return useMemo(() => validateGraph(doc), [doc, locale]);
+    return useMemo(() => validateGraph(debouncedDoc), [debouncedDoc, locale]);
 }

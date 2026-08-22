@@ -29,7 +29,7 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                         className={`rounded-lg px-3 py-2 text-sm ${
                             isUser
                                 ? 'bg-gradient-to-r from-[#bc13fe] to-[#00f0ff] text-white'
-                                : 'bg-[rgba(30,30,35,0.9)] text-white/80 border border-[rgba(255,255,255,0.08)]'
+                                : 'bg-surface-panel text-fg/80 border border-outline-variant'
                         }`}
                     >
                         {text}
@@ -40,12 +40,12 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                 {card && card.images.length > 0 && !isUser && (
                     <div className="mt-2">
                         {card.title && (
-                            <div className="mb-1 text-xs font-semibold text-white/60">
+                            <div className="mb-1 text-xs font-semibold text-fg/60">
                                 {card.title}
                             </div>
                         )}
                         <div
-                            className={`rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(30,30,35,0.9)] overflow-hidden ${
+                            className={`rounded-lg border border-outline-variant bg-surface-panel overflow-hidden ${
                                 card.type === 'gallery' ? 'flex gap-1 overflow-x-auto' : ''
                             }`}
                         >
@@ -54,7 +54,7 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                                     key={i}
                                     className={`${
                                         card.type === 'gallery' ? 'w-32 flex-shrink-0' : ''
-                                    } ${card.type !== 'gallery' && i > 0 ? 'border-t border-[rgba(255,255,255,0.05)]' : ''}`}
+                                    } ${card.type !== 'gallery' && i > 0 ? 'border-t border-outline-variant' : ''}`}
                                 >
                                     {img.src && (
                                         <img
@@ -69,12 +69,12 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                                     )}
                                     <div className="p-2">
                                         {img.title && (
-                                            <div className="text-xs font-medium text-white/80">
+                                            <div className="text-xs font-medium text-fg/80">
                                                 {img.title}
                                             </div>
                                         )}
                                         {img.description && (
-                                            <div className="mt-0.5 text-[10px] text-white/40">
+                                            <div className="mt-0.5 text-[11px] text-fg/55">
                                                 {img.description}
                                             </div>
                                         )}
@@ -86,7 +86,7 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                                                         targetNodeId: img.button!.targetNodeId,
                                                     })
                                                 }
-                                                className="mt-1 rounded bg-[rgba(0,240,255,0.15)] px-2 py-0.5 text-[10px] text-info hover:bg-[rgba(0,240,255,0.25)]"
+                                                className="mt-1 rounded bg-info/15 px-2 py-0.5 text-[11px] text-info hover:bg-info/25"
                                             >
                                                 {img.button.title}
                                             </button>
@@ -105,7 +105,7 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                             <button
                                 key={i}
                                 onClick={() => onButtonClick?.(btn)}
-                                className="rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.05)] px-2 py-0.5 text-[10px] text-info hover:bg-[rgba(0,240,255,0.15)]"
+                                className="rounded-full border border-info/30 bg-info/5 px-2 py-0.5 text-[11px] text-info hover:bg-info/15"
                             >
                                 {btn.title}
                             </button>

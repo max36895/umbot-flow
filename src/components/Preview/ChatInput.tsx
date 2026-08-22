@@ -22,7 +22,7 @@ export function ChatInput({ value, onChange, onSend, waitingForVarName }: ChatIn
                         ? tf('preview.waitingPlaceholder', { var: waitingForVarName })
                         : t('preview.placeholder')
                 }
-                className="min-w-0 flex-1 rounded-lg border border-glass-border bg-white/5 px-3 py-1.5 text-sm text-white/90 placeholder-white/30 focus:border-info focus:outline-none"
+                className="min-w-0 flex-1 rounded-lg border border-glass-border bg-fg/5 px-3 py-1.5 text-sm text-fg/90 placeholder-fg/30 focus:border-info focus:outline-none"
             />
             <button
                 onClick={onSend}

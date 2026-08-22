@@ -6,9 +6,20 @@
         <title>Типы блоков — Umbot Flow Editor</title>
         <meta
             name="description"
-            content="Подробное описание каждого типа блока в Umbot Flow Editor: команды, шаги, условия, действия, ответы, завершение."
+            content="Подробное описание каждого типа блока в Umbot Flow Editor: команды, шаги, условия, действия, ответы, завершение и служебные блоки (старт, помощь, ответ по умолчанию)."
         />
         <link rel="canonical" href="https://flow.maxim-m.ru/docs/blocks" />
+        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks" />
+        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks" />
+        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks" />
+        <meta property="og:title" content="Типы блоков — Umbot Flow Editor" />
+        <meta
+            property="og:description"
+            content="Подробное описание каждого типа блока в Umbot Flow Editor: команды, шаги, условия, действия, ответы, завершение и служебные блоки."
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://flow.maxim-m.ru/docs/blocks" />
+        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
         <style>
             * {
                 margin: 0;
@@ -49,6 +60,27 @@
             }
             .back:hover {
                 text-decoration: underline;
+            }
+            .topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 24px;
+            }
+            .topbar .back {
+                margin-bottom: 0;
+            }
+            .lang {
+                color: #888;
+                text-decoration: none;
+                font-size: 0.85rem;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 8px;
+                padding: 4px 10px;
+            }
+            .lang:hover {
+                color: #00f0ff;
+                border-color: rgba(0, 240, 255, 0.3);
             }
             .block {
                 margin-bottom: 24px;
@@ -112,6 +144,24 @@
             .end h3 {
                 color: #ef4444;
             }
+            .welcome {
+                border-left-color: #22c55e;
+            }
+            .welcome h3 {
+                color: #22c55e;
+            }
+            .help {
+                border-left-color: #eab308;
+            }
+            .help h3 {
+                color: #eab308;
+            }
+            .fallback {
+                border-left-color: #ff9d00;
+            }
+            .fallback h3 {
+                color: #ff9d00;
+            }
             code {
                 background: rgba(0, 240, 255, 0.1);
                 color: #00f0ff;
@@ -127,7 +177,10 @@
     </head>
     <body>
         <div class="container">
-            <a class="back" href="/docs">← Документация</a>
+            <div class="topbar">
+                <a class="back" href="/docs">← Документация</a>
+                <a class="lang" href="/docs/en/blocks">EN</a>
+            </div>
             <h1>Типы блоков</h1>
             <p class="subtitle">Подробное описание каждого типа блока в редакторе</p>
 
@@ -200,6 +253,48 @@
                 </p>
                 <div class="example">
                     <strong>Пример:</strong> После сообщения "До свидания!" диалог завершается.
+                </div>
+            </div>
+
+            <h2>Служебные блоки</h2>
+            <p style="color: #888; font-size: 0.9rem; margin-bottom: 16px">
+                Эти блоки не соединяются с другими — каждый из них существует в единственном
+                экземпляре и срабатывает в определённый момент.
+            </p>
+
+            <div class="block welcome">
+                <h3>Старт</h3>
+                <p>
+                    Приветствие при запуске бота. Показывается пользователю, когда он впервые
+                    открывает диалог или начинает новый разговор.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Текст "Привет! Я помогу вам с заказом. Напишите
+                    'помощь', если что-то непонятно."
+                </div>
+            </div>
+
+            <div class="block help">
+                <h3>Помощь</h3>
+                <p>
+                    Ответ на команду помощи. Срабатывает, когда пользователь запрашивает справку
+                    (например, пишет "помощь" или нажимает кнопку помощи платформы).
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Текст "Я умею отвечать на команды 'заказ' и 'статус'.
+                    Напишите одно из этих слов."
+                </div>
+            </div>
+
+            <div class="block fallback">
+                <h3>Ответ по умолчанию</h3>
+                <p>
+                    Ответ, когда бот не распознал команду пользователя. Вместо молчания или
+                    системной ошибки пользователь получит понятное сообщение.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Текст "Извините, я вас не понял. Напишите 'помощь',
+                    чтобы увидеть список команд."
                 </div>
             </div>
 

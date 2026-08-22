@@ -33,7 +33,12 @@ repos/umbot-flow-editor/
 │   │   ├── Canvas/
 │   │   │   ├── FlowCanvas.tsx       # Main canvas with React Flow
 │   │   │   ├── ContextMenu.tsx      # Right-click context menu
+│   │   │   ├── ValidationSync.tsx   # Единый прогон валидации → validationStore
 │   │   │   ├── nodes/               # Node renderers (Command, Step, Action, etc.)
+│   │   │   │   ├── nodeColors.ts    # Единый источник цветов нод (CSS-переменные)
+│   │   │   │   ├── useNodeClasses.ts # Классы/стили нод по состоянию
+│   │   │   │   ├── useNodeErrors.tsx # Hook ошибок ноды + бейдж
+│   │   │   │   └── RoundTerminalNode.tsx # Общий круглый узел (Start/End)
 │   │   │   └── edges/               # Edge renderers
 │   │   ├── Sidebar/
 │   │   │   └── Sidebar.tsx          # Node palette for drag-and-drop
@@ -60,15 +65,23 @@ repos/umbot-flow-editor/
 │   │   │   └── MessageBubble.tsx     # Message rendering
 │   │   ├── Toolbar/
 │   │   │   ├── Toolbar.tsx           # Top toolbar
-│   │   │   └── ExportDialog.tsx      # Export modal
+│   │   │   ├── ProjectsMenu.tsx      # Recent projects dropdown
+│   │   │   └── ExportDialog.tsx      # Export modal (на базе ui/Modal)
 │   │   ├── Settings/
-│   │   │   ├── BotSettingsModal.tsx   # Bot settings modal
-│   │   │   └── DatabaseSettings.tsx   # DB settings (legacy, now in modal)
+│   │   │   └── BotSettingsModal.tsx   # Bot settings modal (тексты, БД, режим, токены)
 │   │   ├── Help/
-│   │   │   └── HelpModal.tsx         # Help documentation
+│   │   │   └── HelpModal.tsx         # Help documentation (на базе ui/Modal)
+│   │   ├── StatusBar/
+│   │   │   └── StatusBar.tsx         # Ошибки валидации + индикатор автосохранения
+│   │   ├── Palette/
+│   │   │   └── CommandPalette.tsx    # Ctrl+K быстрый поиск по нодам
+│   │   ├── ErrorBoundary.tsx         # Глобальный перехват ошибок рендера
 │   │   └── ui/
+│   │       ├── Modal.tsx              # Единый модальный контейнер (overlay+анимация+ESC)
+│   │       ├── PrimaryButton.tsx      # Градиентная CTA-кнопка (accent→info)
+│   │       ├── AlertDialog.tsx        # Alert на базе Modal + PrimaryButton
 │   │       ├── TagInput.tsx           # Tag-style input
-│   │       ├── HelpButton.tsx         # "?" help button
+│   │       ├── HelpButton.tsx         # "?" help button (popover, не модалка)
 │   │       ├── VariablePicker.tsx     # Variable picker dropdown
 │   │       ├── NodeSelector.tsx       # Node selector dropdown
 │   │       └── PlatformSelector.tsx   # Platform multi-select
@@ -126,19 +139,40 @@ Both MUST use the same VariableConfig component for consistency.
 
 ## Node Types and Colors
 
-| Node      | Color Variable   | CSS Value |
-| --------- | ---------------- | --------- |
-| Command   | --node-command   | #3B82F6   |
-| Step      | --node-step      | #F97316   |
-| Action    | --node-action    | #14B8A6   |
-| Condition | --node-condition | #A855F7   |
-| Response  | --node-response  | #6366F1   |
-| End       | --node-end       | #EF4444   |
+Цвета нод заданы CSS-переменными `--node-*` в `src/index.css` (отдельные значения для тёмной и светлой темы). Единственный источник правды в коде — `src/components/Canvas/nodes/nodeColors.ts` (`NODE_COLORS[type].cssVar` + хелпер `nodeColorAlpha(type, percent)` через `color-mix`). **Не хардкодить hex в компонентах.**
+
+| Node      | CSS Variable     | Dark (неон) | Light (читаемый) |
+| --------- | ---------------- | ----------- | ---------------- |
+| Command   | --node-command   | #00f0ff     | #0891b2          |
+| Step      | --node-step      | #bc13fe     | #9333ea          |
+| Action    | --node-action    | #ff9d00     | #d97706          |
+| Condition | --node-condition | #ff0055     | #e11d48          |
+| Response  | --node-response  | #00ff9d     | #059669          |
+| End       | --node-end       | #ef4444     | #dc2626          |
+| Start     | --node-start     | #22c55e     | #16a34a          |
+| Welcome   | --node-welcome   | #22c55e     | #16a34a          |
+| Help      | --node-help      | #eab308     | #ca8a04          |
+| Fallback  | --node-fallback  | #ff9d00     | #d97706          |
+
+Тема переключается атрибутом `data-theme="light"` на `<html>` (см. `uiStore.applyTheme`) — CSS-переменные подхватываются автоматически.
+
+## Design System (UI/UX conventions)
+
+- **Шрифт** — Inter, подключён локально через `@fontsource/inter` (400/500/600/700, кириллица) в `main.tsx`.
+- **Минимальный размер текста** — 11px (`text-[11px]`). Не использовать 9–10px.
+- **Контраст вторичного текста** — не ниже `text-fg/50`. Для tertiary допустимо `/40`, но не `/20–/35`.
+- **Модалки** — только через единый `ui/Modal.tsx` (overlay + анимация + ESC/click-outside). Кнопки-CTA — через `ui/PrimaryButton.tsx` (градиент accent→info). Не дублировать разметку модалок и не хардкодить градиент.
+- **HelpButton / NodeHelpButton** — открывают лёгкий popover (портал в `body`), а не модалку. `HelpButton` рендерится с `z-alert`, чтобы быть поверх модалок.
+- **Пульсация активной ноды** (`nodeActivePulse`) — ограничена 5 минутами (200 итераций × 1.5s, `forwards`), не бесконечная.
+- **Transition** — в `.node-hover`/`.node-dimmed`/`.node-spotlight*` перечислены конкретные свойства (не `transition: all`).
+- **Цвета рёбер** — через токены темы (`rgb(var(--fg-rgb) / …)`, `--success-rgb`, `--error-rgb`), адаптируются к теме.
+- **Тулбар** — иконки без текстовых подписей (осознанное решение, не добавлять текст, чтобы не перегружать).
 
 ## State Management
 
-- **flowStore.ts** — nodes, edges, metadata, addNode, removeNode, duplicateNode, pasteNode
-- **uiStore.ts** — selectedNodeId, selectedEdgeId, propertiesPanelMode (docked/floating), activePreviewNodeId, botSettingsOpen, minimapVisible
+- **flowStore.ts** — nodes, edges, metadata, addNode, removeNode, duplicateNode, pasteNode, undo/redo, автосохранение в localStorage
+- **uiStore.ts** — selectedNodeId, selectedEdgeId, propertiesPanelMode (docked/floating), activePreviewNodeId, botSettingsOpen, minimapVisible, theme (dark/light через `data-theme`), locale
+- **validationStore.ts** — результат единого прогона валидации (`nodeErrors` по id узла); заполняется в `Canvas/ValidationSync.tsx`, читается нодами (`useNodeErrors`), панелью свойств и StatusBar
 
 ## How umbot Works (for code generation)
 

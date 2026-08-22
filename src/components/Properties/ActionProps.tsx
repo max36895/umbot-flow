@@ -13,12 +13,11 @@ interface Props {
 }
 
 const INPUT_CLASS =
-    'w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
+    'w-full border-0 border-b border-outline bg-transparent px-0 py-2 text-sm text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
 
 export function ActionProps({ nodeId }: Props) {
-    const nodes = useFlowStore((s) => s.nodes);
+    const node = useFlowStore((s) => s.nodes.find((n) => n.id === nodeId));
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
-    const node = nodes.find((n) => n.id === nodeId);
     const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
@@ -40,7 +39,7 @@ export function ActionProps({ nodeId }: Props) {
                 />
             </Field>
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <Field label={t('props.actions')} errors={getFieldErrorList(fieldErrors, 'actions')}>
                 <ActionBlockEditor
@@ -50,7 +49,7 @@ export function ActionProps({ nodeId }: Props) {
                 />
             </Field>
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <ResponseText
                 value={data.text ?? ''}
@@ -66,7 +65,7 @@ export function ActionProps({ nodeId }: Props) {
                 />
             </Field>
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <CardEditor card={data.card} onChange={(card) => updateNodeData(nodeId, { card })} />
         </div>

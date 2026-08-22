@@ -1,56 +1,59 @@
-import { memo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ResponseNodeData } from '../../../types/flow';
 import useUiStore from '../../../store/uiStore';
 import { useT } from '../../../i18n/hook';
 import NodeHelpButton from './NodeHelpButton';
-import { getNodeClasses, getNodeStyles, NODE_COLORS } from './useNodeClasses';
-import { useNodeErrorsMap, NodeErrorsBadge } from './useNodeErrors';
+import {
+    getNodeClasses,
+    getNodeStyles,
+    NODE_COLORS,
+    HANDLE_STYLES_GLOW,
+    BADGE_STYLES,
+} from './useNodeClasses';
+import { useNodeErrors, NodeErrorsBadge } from './useNodeErrors';
 import { truncatePreview } from '../../../utils/truncate';
 import { NodeIcon } from '../../ui/NodeIcons';
 
 function ResponseNodeComponent({ data, id }: NodeProps & { data: ResponseNodeData }) {
     const t = useT();
     const selectNode = useUiStore((s) => s.selectNode);
-    const selectedNodeId = useUiStore((s) => s.selectedNodeId);
-    const isSelected = selectedNodeId === id;
-    const isDimmed = selectedNodeId !== null && !isSelected;
-    const nodeErrors = useNodeErrorsMap();
-    const errors = nodeErrors.get(id);
+    const isSelected = useUiStore((s) => s.selectedNodeId === id);
+    const isDimmed = useUiStore((s) => s.selectedNodeId !== null && s.selectedNodeId !== id);
+    const errors = useNodeErrors(id);
     const hasErrors = (errors?.length ?? 0) > 0;
     const textPreview = truncatePreview(data.response?.text, t('node.preview.noResponse'));
     const nodeColor = NODE_COLORS.response;
+    const nodeStyles = useMemo(() => getNodeStyles('response', isSelected, false), [isSelected]);
+    const handleClick = useCallback(() => selectNode(id), [selectNode, id]);
 
     return (
         <div
             className={`relative min-w-[200px] ${getNodeClasses('response', isSelected, isDimmed, false, hasErrors)}`}
-            style={getNodeStyles('response', isSelected, false)}
-            onClick={() => selectNode(id)}
+            style={nodeStyles}
+            onClick={handleClick}
         >
             <NodeErrorsBadge errors={errors} />
             <Handle
                 type="target"
                 position={Position.Top}
-                className="!-top-3 !h-4 !w-4 !border-2 !border-white/30"
-                style={{
-                    backgroundColor: nodeColor.hex,
-                    boxShadow: `0 0 8px rgba(${nodeColor.rgb},0.5)`,
-                }}
+                className="!-top-3 !h-4 !w-4 !border-2 !border-fg/30"
+                style={HANDLE_STYLES_GLOW.response}
             />
 
             <div className="mb-2 flex items-center gap-2">
                 <span
-                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                    style={{ backgroundColor: `rgba(${nodeColor.rgb},0.25)` }}
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-fg"
+                    style={BADGE_STYLES.response}
                 >
                     <NodeIcon name="response" size={12} />
                     {t('node.badge.response')}
                 </span>
-                <span className="font-semibold text-white">{data.name}</span>
-                <NodeHelpButton content={t('help.responseDesc')} color={nodeColor.hex} />
+                <span className="font-semibold text-fg">{data.name}</span>
+                <NodeHelpButton content={t('help.responseDesc')} color={nodeColor.cssVar} />
             </div>
 
-            <div className="rounded-lg bg-white/5 px-2.5 py-1.5 text-xs text-white/60 italic">
+            <div className="rounded-lg bg-fg/5 px-2.5 py-1.5 text-xs text-fg/60 italic">
                 {textPreview}
             </div>
 
@@ -59,7 +62,7 @@ function ResponseNodeComponent({ data, id }: NodeProps & { data: ResponseNodeDat
                     {data.response.buttons.slice(0, 3).map((btn: { title: string }, i: number) => (
                         <span
                             key={i}
-                            className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success"
+                            className="rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-medium text-success"
                         >
                             {btn.title}
                         </span>
@@ -70,11 +73,8 @@ function ResponseNodeComponent({ data, id }: NodeProps & { data: ResponseNodeDat
             <Handle
                 type="source"
                 position={Position.Bottom}
-                className="!-bottom-3 !h-4 !w-4 !border-2 !border-white/30"
-                style={{
-                    backgroundColor: nodeColor.hex,
-                    boxShadow: `0 0 8px rgba(${nodeColor.rgb},0.5)`,
-                }}
+                className="!-bottom-3 !h-4 !w-4 !border-2 !border-fg/30"
+                style={HANDLE_STYLES_GLOW.response}
             />
         </div>
     );

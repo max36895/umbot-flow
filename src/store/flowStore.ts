@@ -45,6 +45,13 @@ interface FlowStore {
     setEdges: (edges: Edge[]) => void;
     /** Update metadata. */
     setMetadata: (meta: Partial<FlowMetadata>) => void;
+    /** Update node data AND metadata in a single set() — для встроенных узлов (welcome/help/fallback),
+     * чтобы не было двойного прохода уведомлений подписчиков. */
+    updateNodeDataWithMetadata: (
+        id: string,
+        data: Partial<NodeData>,
+        meta: Partial<FlowMetadata>,
+    ) => void;
     /** Push current state to undo history manually (used for drag operations). */
     pushHistory: () => void;
     /** Push a specific snapshot to undo history (used for drag operations to push PRE-drag state). */
@@ -81,7 +88,9 @@ const useFlowStore = create<FlowStore>((set, get) => {
     const pushHistoryEntry = () => {
         const { nodes, edges } = get();
         const history = getHistory();
-        history.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
+        // Shallow-копия массивов достаточна: store полностью иммутабелен,
+        // объекты нод/рёбер никогда не мутируются in-place.
+        history.push({ nodes: [...nodes], edges: [...edges] });
         setHistory(history);
         setRedoStack([]);
     };
@@ -278,6 +287,27 @@ const useFlowStore = create<FlowStore>((set, get) => {
         get().autoSave();
     },
 
+    updateNodeDataWithMetadata: (id, data, meta) => {
+        // Коалесцинг — как в updateNodeData
+        const now = Date.now();
+        const coalesceKey = `${id}:${Object.keys(data).sort().join(',')}`;
+        const shouldCoalesce =
+            lastCoalesceKey === coalesceKey && now - lastCoalesceTime < COALESCE_WINDOW_MS;
+        lastCoalesceKey = coalesceKey;
+        lastCoalesceTime = now;
+        if (!shouldCoalesce) {
+            pushHistoryEntry();
+        }
+        // Один set() — один проход уведомлений подписчиков
+        set((state) => ({
+            nodes: state.nodes.map((n) =>
+                n.id === id ? { ...n, data: { ...n.data, ...data } as NodeData } : n,
+            ),
+            metadata: { ...state.metadata, ...meta },
+        }));
+        get().autoSave();
+    },
+
     pushHistory: () => {
         pushHistoryEntry();
     },
@@ -285,8 +315,8 @@ const useFlowStore = create<FlowStore>((set, get) => {
     pushHistorySnapshot: (snapshot) => {
         const history = getHistory();
         history.push({
-            nodes: structuredClone(snapshot.nodes),
-            edges: structuredClone(snapshot.edges),
+            nodes: [...snapshot.nodes],
+            edges: [...snapshot.edges],
         });
         setHistory(history);
         setRedoStack([]);
@@ -302,7 +332,7 @@ const useFlowStore = create<FlowStore>((set, get) => {
 
         const { nodes, edges } = get();
         const redoStack = getRedoStack();
-        redoStack.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
+        redoStack.push({ nodes: [...nodes], edges: [...edges] });
         setRedoStack(redoStack);
 
         const prev = history.pop()!;
@@ -320,7 +350,7 @@ const useFlowStore = create<FlowStore>((set, get) => {
 
         const { nodes, edges } = get();
         const history = getHistory();
-        history.push({ nodes: structuredClone(nodes), edges: structuredClone(edges) });
+        history.push({ nodes: [...nodes], edges: [...edges] });
         setHistory(history);
 
         const next = redoStack.pop()!;

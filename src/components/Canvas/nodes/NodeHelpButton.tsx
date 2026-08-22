@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { t } from '../../../i18n';
+import { memo, useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 interface NodeHelpButtonProps {
     content: string;
@@ -7,43 +7,88 @@ interface NodeHelpButtonProps {
 }
 
 /**
- * Кнопка "?" на ноде — открывает модальное окно с описанием типа блока.
+ * Кнопка "?" на ноде — открывает лёгкий popover с описанием типа блока.
+ * Обёрнута в memo: пропсы (content, color) — стабильные строки, поэтому
+ * компонент не ре-рендерится вместе с родительской нодой без необходимости.
  */
-export default function NodeHelpButton({ content, color }: NodeHelpButtonProps) {
-    const [show, setShow] = useState(false);
+function NodeHelpButtonComponent({ content, color }: NodeHelpButtonProps) {
+    const [open, setOpen] = useState(false);
+    const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+    const btnRef = useRef<HTMLButtonElement>(null);
+    const popRef = useRef<HTMLDivElement>(null);
+
+    const updatePos = useCallback(() => {
+        const rect = btnRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const width = 288; // w-72
+        const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+        let top = rect.bottom + 6;
+        if (window.innerHeight - top < 180) top = Math.max(8, rect.top - 166);
+        setPos({ top, left });
+    }, []);
+
+    useEffect(() => {
+        if (!open) return;
+        updatePos();
+        window.addEventListener('resize', updatePos);
+        document.addEventListener('scroll', updatePos, true);
+        return () => {
+            window.removeEventListener('resize', updatePos);
+            document.removeEventListener('scroll', updatePos, true);
+        };
+    }, [open, updatePos]);
+
+    useEffect(() => {
+        if (!open) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as Node;
+            if (btnRef.current?.contains(target)) return;
+            if (popRef.current?.contains(target)) return;
+            setOpen(false);
+        };
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEsc);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEsc);
+        };
+    }, [open]);
 
     return (
         <>
             <button
+                ref={btnRef}
                 type="button"
                 onClick={(e) => {
                     e.stopPropagation();
-                    setShow(true);
+                    setOpen((v) => !v);
                 }}
-                className="flex h-4 w-4 items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] text-[9px] font-bold text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.2)] hover:text-white/70"
+                aria-expanded={open}
+                className="flex h-4 w-4 items-center justify-center rounded-full bg-fg/10 text-[11px] font-bold text-fg/50 transition-colors hover:bg-fg/20 hover:text-fg/70"
             >
                 ?
             </button>
-            {show && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                    onClick={() => setShow(false)}
-                >
+            {open &&
+                pos &&
+                createPortal(
                     <div
-                        className="w-full max-w-md rounded-xl border bg-[rgba(20,20,25,0.98)] p-6 shadow-[0_0_40px_rgba(0,0,0,0.6)] backdrop-blur-xl"
-                        style={{ borderColor: `${color}40` }}
+                        ref={popRef}
+                        role="tooltip"
+                        style={{ top: pos.top, left: pos.left }}
+                        className="fixed z-popover w-72 rounded-lg border bg-surface-modal p-3.5 shadow-dropdown backdrop-blur-xl"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <p className="text-base leading-relaxed text-white/80">{content}</p>
-                        <button
-                            onClick={() => setShow(false)}
-                            className="mt-5 w-full rounded-lg bg-[rgba(255,255,255,0.1)] px-4 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.15)]"
-                        >
-                            {t('help.close')}
-                        </button>
-                    </div>
-                </div>
-            )}
+                        <div className="mb-2 h-0.5 w-8 rounded-full" style={{ backgroundColor: color }} />
+                        <p className="text-xs leading-relaxed text-fg/80">{content}</p>
+                    </div>,
+                    document.body,
+                )}
         </>
     );
 }
+
+const NodeHelpButton = memo(NodeHelpButtonComponent);
+export default NodeHelpButton;

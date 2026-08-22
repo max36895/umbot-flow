@@ -4,12 +4,13 @@ import type { FlowNodeData } from '../../types/flow';
 import { t } from '../../i18n';
 import { useState } from 'react';
 import { NodeIcon, type NodeIconName } from '../ui/NodeIcons';
+import { NODE_COLORS, nodeColorAlpha, type NodeTypeKey } from '../Canvas/nodes/nodeColors';
 
 const NODE_TYPES: {
     type: FlowNodeData['type'] | 'welcome' | 'help' | 'fallback';
     labelKey: string;
     descKey: string;
-    borderColor: string;
+    colorKey: NodeTypeKey;
     icon: NodeIconName;
     tooltipKey: string;
     role?: 'welcome' | 'help' | 'fallback';
@@ -18,7 +19,7 @@ const NODE_TYPES: {
         type: 'welcome',
         labelKey: 'sidebar.welcome.label',
         descKey: 'sidebar.welcome.desc',
-        borderColor: '#22c55e',
+        colorKey: 'welcome',
         icon: 'welcome',
         tooltipKey: 'sidebar.welcome.desc',
         role: 'welcome',
@@ -27,7 +28,7 @@ const NODE_TYPES: {
         type: 'help',
         labelKey: 'sidebar.help.label',
         descKey: 'sidebar.help.desc',
-        borderColor: '#eab308',
+        colorKey: 'help',
         icon: 'help',
         tooltipKey: 'sidebar.help.desc',
         role: 'help',
@@ -36,7 +37,7 @@ const NODE_TYPES: {
         type: 'fallback',
         labelKey: 'sidebar.fallback.label',
         descKey: 'sidebar.fallback.desc',
-        borderColor: '#ff9d00',
+        colorKey: 'fallback',
         icon: 'fallback',
         tooltipKey: 'sidebar.fallback.desc',
         role: 'fallback',
@@ -45,7 +46,7 @@ const NODE_TYPES: {
         type: 'command',
         labelKey: 'sidebar.command.label',
         descKey: 'sidebar.command.desc',
-        borderColor: '#00f0ff',
+        colorKey: 'command',
         icon: 'command',
         tooltipKey: 'help.cmdDesc',
     },
@@ -53,7 +54,7 @@ const NODE_TYPES: {
         type: 'response',
         labelKey: 'sidebar.response.label',
         descKey: 'sidebar.response.desc',
-        borderColor: '#00ff9d',
+        colorKey: 'response',
         icon: 'response',
         tooltipKey: 'help.responseDesc',
     },
@@ -61,7 +62,7 @@ const NODE_TYPES: {
         type: 'step',
         labelKey: 'sidebar.step.label',
         descKey: 'sidebar.step.desc',
-        borderColor: '#bc13fe',
+        colorKey: 'step',
         icon: 'step',
         tooltipKey: 'help.stepDesc',
     },
@@ -69,7 +70,7 @@ const NODE_TYPES: {
         type: 'action',
         labelKey: 'sidebar.custom.label',
         descKey: 'sidebar.custom.desc',
-        borderColor: '#ff9d00',
+        colorKey: 'action',
         icon: 'action',
         tooltipKey: 'help.actionDesc',
     },
@@ -77,7 +78,7 @@ const NODE_TYPES: {
         type: 'condition',
         labelKey: 'sidebar.condition.label',
         descKey: 'sidebar.condition.desc',
-        borderColor: '#ff0055',
+        colorKey: 'condition',
         icon: 'condition',
         tooltipKey: 'help.condDesc',
     },
@@ -85,7 +86,7 @@ const NODE_TYPES: {
         type: 'end',
         labelKey: 'sidebar.end.label',
         descKey: 'sidebar.end.desc',
-        borderColor: '#ef4444',
+        colorKey: 'end',
         icon: 'end',
         tooltipKey: 'help.endDesc',
     },
@@ -142,7 +143,7 @@ export default function Sidebar() {
         return (
             <button
                 onClick={toggleSidebar}
-                className="fixed left-2 top-24 z-sticky rounded-lg border border-glass-border bg-surface p-2 text-white/60 shadow-lg backdrop-blur-xl hover:bg-white/10 hover:text-white/90"
+                className="fixed left-2 top-24 z-sticky rounded-lg border border-glass-border bg-surface p-2 text-fg/60 shadow-lg backdrop-blur-xl hover:bg-fg/10 hover:text-fg/90"
             >
                 <NodeIcon name="menu" size={16} />
             </button>
@@ -161,10 +162,10 @@ export default function Sidebar() {
     return (
         <div className="flex min-w-[220px] max-w-[280px] flex-1 flex-col border-r border-outline-variant bg-surface-panel-docked backdrop-blur-xl">
             <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
-                <h2 className="text-sm font-bold text-white/80">{t('sidebar.nodes')}</h2>
+                <h2 className="text-sm font-bold text-fg/80">{t('sidebar.nodes')}</h2>
                 <button
                     onClick={toggleSidebar}
-                    className="text-white/30 transition-colors hover:text-white/60"
+                    className="text-fg/50 transition-colors hover:text-fg/60"
                 >
                     <NodeIcon name="close" size={14} />
                 </button>
@@ -177,7 +178,7 @@ export default function Sidebar() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t('sidebar.searchPlaceholder')}
-                    className="w-full rounded-lg border border-glass-border bg-white/5 px-3 py-2 text-sm text-white/90 placeholder-white/30 focus:border-info focus:outline-none"
+                    className="w-full rounded-lg border border-glass-border bg-fg/5 px-3 py-2 text-sm text-fg/90 placeholder-fg/30 focus:border-info focus:outline-none"
                 />
             </div>
 
@@ -196,43 +197,43 @@ export default function Sidebar() {
                                 className={`rounded-xl border-l-4 p-3 transition-all duration-200 ${
                                     isDisabled
                                         ? 'cursor-not-allowed opacity-40'
-                                        : 'cursor-grab hover:bg-white/5 hover:shadow-lg hover:scale-[1.02] active:cursor-grabbing active:scale-[0.98]'
+                                        : 'cursor-grab hover:bg-fg/5 hover:shadow-lg hover:scale-[1.02] active:cursor-grabbing active:scale-[0.98]'
                                 }`}
                                 style={{
-                                    borderLeftColor: nt.borderColor,
-                                    backgroundColor: `${nt.borderColor}10`,
+                                    borderLeftColor: NODE_COLORS[nt.colorKey].cssVar,
+                                    backgroundColor: nodeColorAlpha(nt.colorKey, 6),
                                 }}
                             >
                                 <div className="flex items-center gap-2">
-                                    <span style={{ color: nt.borderColor }}>
+                                    <span style={{ color: NODE_COLORS[nt.colorKey].cssVar }}>
                                         <NodeIcon name={nt.icon} size={16} />
                                     </span>
-                                    <span className="text-sm font-medium text-white/80">
+                                    <span className="text-sm font-medium text-fg/80">
                                         {t(nt.labelKey)}
                                     </span>
                                     {isDisabled && (
-                                        <span className="ml-auto text-[10px] text-white/30">
+                                        <span className="ml-auto text-[11px] text-fg/50">
                                             {t('sidebar.added')}
                                         </span>
                                     )}
                                 </div>
-                                <p className="mt-1 text-[11px] text-white/55">{t(nt.descKey)}</p>
+                                <p className="mt-1 text-[11px] text-fg/55">{t(nt.descKey)}</p>
                             </div>
                         );
                     })}
                 </div>
 
                 {filteredNodeTypes.length === 0 && (
-                    <div className="py-8 text-center text-xs text-white/30 italic">
+                    <div className="py-8 text-center text-xs text-fg/50 italic">
                         {t('sidebar.noResults')}
                     </div>
                 )}
 
                 <div className="mt-6">
-                    <h3 className="mb-2 text-xs font-bold text-white/50 uppercase">
+                    <h3 className="mb-2 text-xs font-bold text-fg/50 uppercase">
                         {t('sidebar.howToUse')}
                     </h3>
-                    <ul className="space-y-1 text-[11px] text-white/55">
+                    <ul className="space-y-1 text-[11px] text-fg/55">
                         <li>{t('sidebar.tip1')}</li>
                         <li>{t('sidebar.tip2')}</li>
                         <li>{t('sidebar.tip3')}</li>

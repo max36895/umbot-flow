@@ -1,71 +1,25 @@
-import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import useUiStore from '../../store/uiStore';
 import useFlowStore from '../../store/flowStore';
+import useValidationStore from '../../store/validationStore';
 import { CommandProps } from './CommandProps';
 import { StepProps } from './StepProps';
 import { ConditionProps } from './ConditionProps';
 import { ActionProps } from './ActionProps';
 import { ResponseProps } from './ResponseProps';
 import { t } from '../../i18n';
-import { isValidJSIdentifier } from '../../utils/identifiers';
 import { NodeIcon } from '../ui/NodeIcons';
-
-/** Валидация выбранного узла */
-function useNodeValidation(
-    nodeId: string | null,
-    nodes: { id: string; type?: string; data?: Record<string, unknown> }[],
-) {
-    return useMemo(() => {
-        if (!nodeId) return [];
-        const node = nodes.find((n) => n.id === nodeId);
-        if (!node) return [];
-
-        const errors: string[] = [];
-        const data = node.data ?? {};
-
-        if (node.type !== 'end') {
-            const name = data.name as string | undefined;
-            if (!name || name.trim() === '') {
-                errors.push(t('validation.emptyName'));
-            }
-        }
-
-        if (node.type === 'command' || node.type === 'step') {
-            const saveTo = data.saveTo as string | undefined;
-            if (saveTo && !isValidJSIdentifier(saveTo)) {
-                errors.push(`${saveTo} — ${t('validation.invalidVarName')}`);
-            }
-        }
-
-        if (node.type === 'action') {
-            const actions = (data.actions ?? []) as Array<{ field?: string; type: string }>;
-            for (const action of actions) {
-                if (action.field && !isValidJSIdentifier(action.field)) {
-                    errors.push(`${action.field} — ${t('validation.invalidVarName')}`);
-                }
-            }
-        }
-
-        if (node.type !== 'end') {
-            const name = data.name as string | undefined;
-            if (name) {
-                const duplicate = nodes.find(
-                    (n) => n.id !== nodeId && (n.data as { name?: string })?.name === name,
-                );
-                if (duplicate) {
-                    errors.push(`${t('validation.duplicateName')}: "${name}"`);
-                }
-            }
-        }
-
-        return errors;
-    }, [nodeId, nodes]);
-}
 
 export default function PropertiesPanel() {
     const selectedNodeId = useUiStore((s) => s.selectedNodeId);
-    const nodes = useFlowStore((s) => s.nodes);
-    const edges = useFlowStore((s) => s.edges);
+    // Селектим конкретный узел — ре-рендер только при изменении этого узла
+    const selectedNode = useFlowStore((s) =>
+        selectedNodeId ? s.nodes.find((n) => n.id === selectedNodeId) : undefined,
+    );
+    // Ошибки валидации из централизованного store (один вызов validateGraph на весь граф)
+    const validationErrors = useValidationStore((s) =>
+        selectedNodeId ? s.nodeErrors[selectedNodeId] : undefined,
+    );
     const removeNode = useFlowStore((s) => s.removeNode);
     const panelMode = useUiStore((s) => s.propertiesPanelMode);
     const panelPosition = useUiStore((s) => s.propertiesPanelPosition);
@@ -80,9 +34,6 @@ export default function PropertiesPanel() {
     // Save indicator — показываем "✓ Сохранено" на 1 сек после каждого изменения
     const [justSaved, setJustSaved] = useState(false);
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const selectedNode = nodes.find((n) => n.id === selectedNodeId);
-    const validationErrors = useNodeValidation(selectedNodeId, nodes);
 
     // Анимация появления панели
     useEffect(() => {
@@ -114,7 +65,7 @@ export default function PropertiesPanel() {
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     }, [selectedNodeId]);
 
-    // При изменении нод или edges — показываем "Сохранено"
+    // При изменении выбранной ноды — показываем "Сохранено"
     useEffect(() => {
         if (!selectedNodeId) return;
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -122,7 +73,7 @@ export default function PropertiesPanel() {
         return () => {
             if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
         };
-    }, [nodes, edges, selectedNodeId]);
+    }, [selectedNode, selectedNodeId]);
 
 
     const typeLabel: Record<string, string> = {
@@ -193,13 +144,13 @@ export default function PropertiesPanel() {
         if (panelMode === 'floating') {
             return (
                 <div
-                    className="fixed z-40 flex min-w-[48px] flex-col rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(30,30,35,0.9)] backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.4)]"
+                    className="fixed z-40 flex min-w-[48px] flex-col rounded-xl border border-glass-border bg-surface-panel backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.4)]"
                     style={{ left: panelPosition.x, top: panelPosition.y }}
                 >
-                    <div className="flex items-center justify-center border-b border-[rgba(255,255,255,0.08)] py-2">
+                    <div className="flex items-center justify-center border-b border-outline-variant py-2">
                         <button
                             onClick={togglePanelMode}
-                            className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
+                            className="rounded-lg p-2 text-fg/55 transition-colors hover:bg-fg/10 hover:text-fg/70"
                             title={t('props.dockedMode')}
                         >
                             <NodeIcon name="panelDocked" size={16} />
@@ -209,11 +160,11 @@ export default function PropertiesPanel() {
             );
         }
         return (
-            <div className="flex min-w-[48px] flex-col border-l border-[rgba(255,255,255,0.08)] bg-[rgba(20,20,25,0.95)] backdrop-blur-xl">
-                <div className="flex items-center justify-center border-b border-[rgba(255,255,255,0.08)] py-3">
+            <div className="flex min-w-[48px] flex-col border-l border-outline-variant bg-surface-panel-docked backdrop-blur-xl">
+                <div className="flex items-center justify-center border-b border-outline-variant py-3">
                     <button
                         onClick={togglePanelMode}
-                        className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
+                        className="rounded-lg p-2 text-fg/55 transition-colors hover:bg-fg/10 hover:text-fg/70"
                         title={t('props.floatingMode')}
                     >
                         <NodeIcon name="panelFloating" size={16} />
@@ -226,24 +177,24 @@ export default function PropertiesPanel() {
     // Свёрнутый вид
     if (collapsed) {
         const CollapsedContent = (
-            <div className="flex flex-col items-center gap-2 border-b border-[rgba(255,255,255,0.08)] py-3">
+            <div className="flex flex-col items-center gap-2 border-b border-outline-variant py-3">
                 <button
                     onClick={() => setCollapsed(false)}
-                    className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
+                    className="rounded-lg p-2 text-fg/55 transition-colors hover:bg-fg/10 hover:text-fg/70"
                     title={t('props.expand')}
                 >
                     <NodeIcon name="chevronLeft" size={16} />
                 </button>
                 <button
                     onClick={() => removeNode(selectedNode.id)}
-                    className="rounded-lg p-2 text-error transition-colors hover:bg-[rgba(255,0,85,0.15)]"
+                    className="rounded-lg p-2 text-error transition-colors hover:bg-error/15"
                     title={t('props.delete')}
                 >
                     <NodeIcon name="trash" size={16} />
                 </button>
                 <button
                     onClick={togglePanelMode}
-                    className="rounded-lg p-2 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
+                    className="rounded-lg p-2 text-fg/55 transition-colors hover:bg-fg/10 hover:text-fg/70"
                     title={panelMode === 'docked' ? t('props.floatingMode') : t('props.dockedMode')}
                 >
                     <NodeIcon
@@ -257,7 +208,7 @@ export default function PropertiesPanel() {
         if (panelMode === 'floating') {
             return (
                 <div
-                    className={`fixed z-40 flex w-[48px] flex-col rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(30,30,35,0.9)] backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.4)] ${floatingTransitionClass} ${draggingClass}`}
+                    className={`fixed z-40 flex w-[48px] flex-col rounded-xl border border-glass-border bg-surface-panel backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.4)] ${floatingTransitionClass} ${draggingClass}`}
                     style={{ left: panelPosition.x, top: panelPosition.y }}
                     onMouseDown={handleMouseDown}
                 >
@@ -266,7 +217,7 @@ export default function PropertiesPanel() {
             );
         }
         return (
-            <div className="flex w-[48px] min-w-[48px] flex-col border-l border-[rgba(255,255,255,0.08)] bg-[rgba(20,20,25,0.95)] backdrop-blur-xl">
+            <div className="flex w-[48px] min-w-[48px] flex-col border-l border-outline-variant bg-surface-panel-docked backdrop-blur-xl">
                 {CollapsedContent}
             </div>
         );
@@ -277,23 +228,23 @@ export default function PropertiesPanel() {
         <>
             {/* Header */}
             <div
-                className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-4 py-3"
+                className="flex items-center justify-between border-b border-outline-variant px-4 py-3"
                 onMouseDown={panelMode === 'floating' ? handleMouseDown : undefined}
                 style={panelMode === 'floating' ? { cursor: 'move' } : undefined}
             >
                 <div className="flex items-center gap-2 min-w-0">
                     <button
                         onClick={() => setCollapsed(true)}
-                        className="flex-shrink-0 rounded-lg p-1.5 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
+                        className="flex-shrink-0 rounded-lg p-1.5 text-fg/55 transition-colors hover:bg-fg/10 hover:text-fg/70"
                         title={t('props.collapse')}
                     >
                         <NodeIcon name="chevronRight" size={16} />
                     </button>
                     <div className="min-w-0">
-                        <h2 className="truncate text-sm font-bold text-white/90 flex items-center gap-1.5">
+                        <h2 className="truncate text-sm font-bold text-fg/90 flex items-center gap-1.5">
                             {typeLabel[selectedNode.type ?? ''] ?? selectedNode.type?.toUpperCase()}
                             {justSaved && (
-                                <span className="inline-flex items-center gap-0.5 text-[10px] text-success font-normal">
+                                <span className="inline-flex items-center gap-0.5 text-[11px] text-success font-normal">
                                     <svg
                                         width="10"
                                         height="10"
@@ -310,7 +261,7 @@ export default function PropertiesPanel() {
                                 </span>
                             )}
                         </h2>
-                        <p className="truncate text-xs text-white/40">
+                        <p className="truncate text-xs text-fg/55">
                             {selectedNode.data?.name as string}
                         </p>
                     </div>
@@ -318,7 +269,7 @@ export default function PropertiesPanel() {
                 <div className="flex items-center gap-1">
                     <button
                         onClick={togglePanelMode}
-                        className="rounded-lg p-1.5 text-white/40 transition-colors hover:bg-[rgba(255,255,255,0.1)] hover:text-white/70"
+                        className="rounded-lg p-1.5 text-fg/55 transition-colors hover:bg-fg/10 hover:text-fg/70"
                         title={
                             panelMode === 'docked' ? t('props.floatingMode') : t('props.dockedMode')
                         }
@@ -330,7 +281,7 @@ export default function PropertiesPanel() {
                     </button>
                     <button
                         onClick={() => removeNode(selectedNode.id)}
-                        className="flex-shrink-0 rounded-lg bg-[rgba(255,0,85,0.15)] px-2 py-1 text-xs text-error transition-colors hover:bg-[rgba(255,0,85,0.25)]"
+                        className="flex-shrink-0 rounded-lg bg-error/15 px-2 py-1 text-xs text-error transition-colors hover:bg-error/25"
                     >
                         {t('props.delete')}
                     </button>
@@ -338,8 +289,8 @@ export default function PropertiesPanel() {
             </div>
 
             {/* Validation errors */}
-            {validationErrors.length > 0 && (
-                <div className="mx-4 mt-3 rounded-lg border border-[rgba(255,0,85,0.3)] bg-[rgba(255,0,85,0.1)] p-3">
+            {validationErrors && validationErrors.length > 0 && (
+                <div className="mx-4 mt-3 rounded-lg border border-error/30 bg-error/10 p-3">
                     {validationErrors.map((err, i) => (
                         <p key={i} className="flex items-start gap-1.5 text-xs text-error">
                             <NodeIcon name="warning" size={12} className="mt-0.5 flex-shrink-0" />
@@ -357,7 +308,7 @@ export default function PropertiesPanel() {
                 {selectedNode.type === 'action' && <ActionProps nodeId={selectedNode.id} />}
                 {selectedNode.type === 'response' && <ResponseProps nodeId={selectedNode.id} />}
                 {selectedNode.type === 'end' && (
-                    <div className="text-sm text-white/50">
+                    <div className="text-sm text-fg/50">
                         <p>{t('help.endDesc')}</p>
                     </div>
                 )}
@@ -368,7 +319,7 @@ export default function PropertiesPanel() {
     if (panelMode === 'floating') {
         return (
             <div
-                className={`fixed z-40 flex h-[600px] w-[320px] flex-col rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[rgba(30,30,35,0.9)] backdrop-blur-xl shadow-[-10px_0_40px_rgba(0,0,0,0.5)] ${panelAnimationClass} ${floatingTransitionClass} ${draggingClass}`}
+                className={`fixed z-40 flex h-[600px] w-[320px] flex-col rounded-2xl border border-glass-border bg-surface-panel backdrop-blur-xl shadow-[-10px_0_40px_rgba(0,0,0,0.5)] ${panelAnimationClass} ${floatingTransitionClass} ${draggingClass}`}
                 style={{ left: panelPosition.x, top: panelPosition.y }}
             >
                 {FullContent}
@@ -378,7 +329,7 @@ export default function PropertiesPanel() {
 
     return (
         <div
-            className={`flex w-[320px] min-w-[320px] flex-col border-l border-[rgba(255,255,255,0.08)] bg-[rgba(20,20,25,0.95)] backdrop-blur-xl overflow-hidden ${panelAnimationClass}`}
+            className={`flex w-[320px] min-w-[320px] flex-col border-l border-outline-variant bg-surface-panel-docked backdrop-blur-xl overflow-hidden ${panelAnimationClass}`}
         >
             {FullContent}
         </div>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateProject } from '../utils/templateGenerator';
-import type { FlowDocument } from '../types/flow';
+import type { ConditionOperator, FlowDocument } from '../types/flow';
 
 const simpleDoc: FlowDocument = {
     schemaVersion: '1.0',
@@ -159,7 +159,9 @@ describe('templateGenerator', () => {
                     name: 'c',
                     slots: ['t'],
                     isPattern: false,
-                    conditions: [{ variable: 'score', operator: op as any, value: val }],
+                    conditions: [
+                        { variable: 'score', operator: op as ConditionOperator, value: val },
+                    ],
                     response: { text: '', buttons: [], sounds: [] },
                 },
             ],
@@ -1856,7 +1858,7 @@ describe('templateGenerator', () => {
                     },
                     null,
                     undefined,
-                ] as any,
+                ] as unknown as FlowDocument['nodes'],
             };
             const idx = generateProject(doc).find((f) => f.path === 'src/index.ts');
             expect(idx?.content).toContain("addCommand('c'");

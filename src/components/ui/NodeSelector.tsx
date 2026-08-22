@@ -25,7 +25,7 @@ export default function NodeSelector({
         <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className={`rounded border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-xs text-white/80 focus:border-info focus:outline-none ${className}`}
+            className={`rounded border border-glass-border bg-fg/5 px-2 py-1 text-xs text-fg/80 focus:border-info focus:outline-none ${className}`}
         >
             <option value="">—</option>
             {availableNodes.map((n) => {

@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
 import { t } from '../../i18n';
 import type { ActionBlock, DatabaseType, BotMode } from '../../types/flow';
 import { TextArea } from '../ui/TextArea';
 import HelpButton from '../ui/HelpButton';
-import { NodeIcon } from '../ui/NodeIcons';
+import { Modal } from '../ui/Modal';
+import { PrimaryButton } from '../ui/PrimaryButton';
 
 /** Информация о переменной */
 interface VariableInfo {
@@ -110,21 +111,11 @@ export default function BotSettingsModal() {
     const setMetadata = useFlowStore((s) => s.setMetadata);
     const nodes = useFlowStore((s) => s.nodes);
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
-    const [animate, setAnimate] = useState(false);
     const [expandedVar, setExpandedVar] = useState<string | null>(null);
     const [tokensOpen, setTokensOpen] = useState(false);
     const [textsOpen, setTextsOpen] = useState(false);
 
     const variables = useMemo(() => collectVariables(nodes), [nodes]);
-
-    useEffect(() => {
-        requestAnimationFrame(() => setAnimate(true));
-    }, []);
-
-    const handleClose = () => {
-        setAnimate(false);
-        setTimeout(() => toggleBotSettings(), 150);
-    };
 
     const toggleExpand = (name: string) => {
         setExpandedVar(expandedVar === name ? null : name);
@@ -133,11 +124,11 @@ export default function BotSettingsModal() {
     /** Переход к блоку: закрываем модалку и выбираем ноду */
     const goToNode = useCallback(
         (nodeId: string) => {
-            handleClose();
+            toggleBotSettings();
             // Даём время модалке закрыться, затем выбираем ноду
             setTimeout(() => selectNode(nodeId), 200);
         },
-        [selectNode],
+        [selectNode, toggleBotSettings],
     );
 
     /** Обновление комментария переменной в связанных нодах */
@@ -176,37 +167,23 @@ export default function BotSettingsModal() {
     );
 
     return (
-        <div
-            className={`fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-150 ${animate ? 'opacity-100' : 'opacity-0'}`}
-            onClick={handleClose}
-        >
-            <div
-                className={`flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(20,20,25,0.98)] shadow-[0_0_60px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all duration-150 ${animate ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-6 py-4">
-                    <h2 className="text-lg font-bold text-white/90">{t('settings.title')}</h2>
-                    <button onClick={handleClose} className="text-white/30 hover:text-white/60">
-                        <NodeIcon name="close" size={14} />
-                    </button>
-                </div>
-
-                <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
+        <Modal title={t('settings.title')} onClose={toggleBotSettings} maxWidth="lg">
+            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
                     {/* Тексты бота (спойлер) */}
                     <div>
                         <button
                             onClick={() => setTextsOpen(!textsOpen)}
-                            className="flex w-full items-center justify-between rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-xs transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                            className="flex w-full items-center justify-between rounded-lg border border-outline-variant bg-fg/[0.03] px-3 py-2 text-xs transition-colors hover:bg-fg/5"
                         >
-                            <span className="font-medium text-white/60">{t('db.texts')}</span>
-                            <span className="text-[10px] text-white/30">
+                            <span className="font-medium text-fg/60">{t('db.texts')}</span>
+                            <span className="text-[11px] text-fg/50">
                                 {textsOpen ? '▾' : '▸'}
                             </span>
                         </button>
                         {textsOpen && (
-                            <div className="mt-2 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-3 space-y-3">
+                            <div className="mt-2 rounded-lg border border-outline-variant bg-fg/[0.03] p-3 space-y-3">
                                 <div>
-                                    <label className="mb-1 block text-[10px] font-medium text-white/40">
+                                    <label className="mb-1 block text-[11px] font-medium text-fg/55">
                                         {t('db.welcome')}
                                     </label>
                                     <TextArea
@@ -223,7 +200,7 @@ export default function BotSettingsModal() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="mb-1 block text-[10px] font-medium text-white/40">
+                                    <label className="mb-1 block text-[11px] font-medium text-fg/55">
                                         {t('db.fallback')}
                                     </label>
                                     <TextArea
@@ -235,7 +212,7 @@ export default function BotSettingsModal() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="mb-1 block text-[10px] font-medium text-white/40">
+                                    <label className="mb-1 block text-[11px] font-medium text-fg/55">
                                         {t('db.helpText')}
                                     </label>
                                     <TextArea
@@ -253,7 +230,7 @@ export default function BotSettingsModal() {
                     {/* Тип БД */}
                     <div>
                         <div className="mb-1 flex items-center gap-1">
-                            <label className="text-xs font-medium text-white/40">
+                            <label className="text-xs font-medium text-fg/55">
                                 {t('db.type')}
                             </label>
                             <HelpButton content={t('settings.dbTypeHelp')} />
@@ -269,8 +246,8 @@ export default function BotSettingsModal() {
                                     }
                                     className={`flex-1 rounded-lg px-3 py-2 text-xs transition-colors ${
                                         metadata.database.type === type
-                                            ? 'bg-[rgba(0,240,255,0.15)] text-info border border-[rgba(0,240,255,0.3)]'
-                                            : 'bg-[rgba(255,255,255,0.05)] text-white/50 border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.1)]'
+                                            ? 'bg-info/15 text-info border border-info/30'
+                                            : 'bg-fg/5 text-fg/50 border border-outline-variant hover:bg-fg/10'
                                     }`}
                                 >
                                     {t(`db.type${type.charAt(0).toUpperCase() + type.slice(1)}`)}
@@ -282,7 +259,7 @@ export default function BotSettingsModal() {
                     {/* Сохранение данных */}
                     <div>
                         <div className="mb-1 flex items-center gap-1">
-                            <label className="text-xs font-medium text-white/40">
+                            <label className="text-xs font-medium text-fg/55">
                                 {t('db.localStorage')}
                             </label>
                             <HelpButton content={t('settings.localStorageHelp')} />
@@ -293,13 +270,13 @@ export default function BotSettingsModal() {
                             }
                             className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-xs transition-colors ${
                                 metadata.isLocalStorage
-                                    ? 'border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.1)] text-info'
-                                    : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] text-white/50'
+                                    ? 'border-info/30 bg-info/10 text-info'
+                                    : 'border-outline-variant bg-fg/5 text-fg/50'
                             }`}
                         >
                             <div
                                 className={`flex h-4 w-7 items-center rounded-full transition-colors ${
-                                    metadata.isLocalStorage ? 'bg-info' : 'bg-white/20'
+                                    metadata.isLocalStorage ? 'bg-info' : 'bg-fg/20'
                                 }`}
                             >
                                 <div
@@ -317,7 +294,7 @@ export default function BotSettingsModal() {
                     {/* Режим бота */}
                     <div>
                         <div className="mb-1 flex items-center gap-1">
-                            <label className="text-xs font-medium text-white/40">
+                            <label className="text-xs font-medium text-fg/55">
                                 {t('db.mode')}
                             </label>
                             <HelpButton content={t('settings.modeHelp')} />
@@ -329,8 +306,8 @@ export default function BotSettingsModal() {
                                     onClick={() => setMetadata({ mode: mode as BotMode })}
                                     className={`flex-1 rounded-lg px-3 py-2 text-xs transition-colors ${
                                         metadata.mode === mode
-                                            ? 'bg-[rgba(0,240,255,0.15)] text-info border border-[rgba(0,240,255,0.3)]'
-                                            : 'bg-[rgba(255,255,255,0.05)] text-white/50 border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.1)]'
+                                            ? 'bg-info/15 text-info border border-info/30'
+                                            : 'bg-fg/5 text-fg/50 border border-outline-variant hover:bg-fg/10'
                                     }`}
                                 >
                                     {mode}
@@ -343,25 +320,25 @@ export default function BotSettingsModal() {
                     <div>
                         <button
                             onClick={() => setTokensOpen(!tokensOpen)}
-                            className="flex w-full items-center justify-between rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-xs transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                            className="flex w-full items-center justify-between rounded-lg border border-outline-variant bg-fg/[0.03] px-3 py-2 text-xs transition-colors hover:bg-fg/5"
                         >
-                            <span className="font-medium text-white/60">
+                            <span className="font-medium text-fg/60">
                                 {t('db.tokens')} ({metadata.platforms.length})
                             </span>
-                            <span className="text-[10px] text-white/30">
+                            <span className="text-[11px] text-fg/50">
                                 {tokensOpen ? '▾' : '▸'}
                             </span>
                         </button>
                         {tokensOpen && (
-                            <div className="mt-2 space-y-2 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-2">
+                            <div className="mt-2 space-y-2 rounded-lg border border-outline-variant bg-fg/[0.03] p-2">
                                 {metadata.platforms.length === 0 ? (
-                                    <p className="text-[10px] text-white/30">
+                                    <p className="text-[11px] text-fg/50">
                                         {t('db.tokensEmpty')}
                                     </p>
                                 ) : (
                                     metadata.platforms.map((platform) => (
                                         <div key={platform}>
-                                            <label className="mb-0.5 block text-[10px] font-medium text-white/40">
+                                            <label className="mb-0.5 block text-[11px] font-medium text-fg/55">
                                                 {t(`platform.${platform}`)}
                                             </label>
                                             <input
@@ -376,46 +353,46 @@ export default function BotSettingsModal() {
                                                     })
                                                 }
                                                 placeholder={t('db.tokenPlaceholder')}
-                                                className="w-full rounded border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-[11px] text-white/80 placeholder-white/20 focus:border-info focus:ring-0"
+                                                className="w-full rounded border border-outline-variant bg-fg/5 px-2 py-1 text-[11px] text-fg/80 placeholder-fg/20 focus:border-info focus:ring-0"
                                             />
                                         </div>
                                     ))
                                 )}
-                                <p className="text-[10px] text-white/30">{t('db.tokensHint')}</p>
+                                <p className="text-[11px] text-fg/50">{t('db.tokensHint')}</p>
                             </div>
                         )}
                     </div>
 
                     {/* Переменные */}
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-white/40">
+                        <label className="mb-1 block text-xs font-medium text-fg/55">
                             {t('userData.title')} ({variables.length})
                         </label>
-                        <div className="max-h-48 overflow-y-auto rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-2">
+                        <div className="max-h-48 overflow-y-auto rounded-lg border border-outline-variant bg-fg/[0.03] p-2">
                             {variables.length === 0 ? (
-                                <p className="text-xs text-white/30">{t('userData.empty')}</p>
+                                <p className="text-xs text-fg/50">{t('userData.empty')}</p>
                             ) : (
                                 variables.map((v) => (
                                     <div
                                         key={v.name}
-                                        className="border-b border-[rgba(255,255,255,0.05)] last:border-b-0"
+                                        className="border-b border-outline-variant last:border-b-0"
                                     >
                                         <button
                                             onClick={() => toggleExpand(v.name)}
-                                            className="flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors hover:bg-[rgba(255,255,255,0.05)] rounded"
+                                            className="flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors hover:bg-fg/5 rounded"
                                         >
                                             <span className="font-mono text-xs text-info">
                                                 {v.name}
                                             </span>
                                             {v.comment && (
                                                 <span
-                                                    className="max-w-[100%] truncate text-[10px] text-white/30"
+                                                    className="max-w-[100%] truncate text-[11px] text-fg/50"
                                                     title={v.comment}
                                                 >
                                                     — {v.comment}
                                                 </span>
                                             )}
-                                            <span className="ml-auto text-[10px] text-white/20">
+                                            <span className="ml-auto text-[11px] text-fg/40">
                                                 {expandedVar === v.name ? '▾' : '▸'}
                                             </span>
                                         </button>
@@ -423,7 +400,7 @@ export default function BotSettingsModal() {
                                             <div className="px-2 pb-2 space-y-2">
                                                 {/* Поле комментария */}
                                                 <div>
-                                                    <label className="mb-0.5 block text-[10px] font-medium text-white/40">
+                                                    <label className="mb-0.5 block text-[11px] font-medium text-fg/55">
                                                         {t('userData.comment')}
                                                     </label>
                                                     <input
@@ -433,13 +410,13 @@ export default function BotSettingsModal() {
                                                             updateComment(v.name, e.target.value)
                                                         }
                                                         placeholder={t('userData.commentPlaceholder')}
-                                                        className="w-full rounded border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] px-2 py-1 text-[11px] text-white/80 placeholder-white/20 focus:border-info focus:ring-0"
+                                                        className="w-full rounded border border-outline-variant bg-fg/5 px-2 py-1 text-[11px] text-fg/80 placeholder-fg/20 focus:border-info focus:ring-0"
                                                     />
                                                 </div>
 
                                                 {v.definedIn.length > 0 && (
                                                     <div>
-                                                        <p className="text-[10px] font-medium text-white/40 mb-0.5">
+                                                        <p className="text-[11px] font-medium text-fg/55 mb-0.5">
                                                             {t('userData.definedIn')}
                                                         </p>
                                                         <div className="flex flex-wrap gap-1">
@@ -450,7 +427,7 @@ export default function BotSettingsModal() {
                                                                         e.stopPropagation();
                                                                         goToNode(ref.nodeId);
                                                                     }}
-                                                                    className="cursor-pointer rounded bg-[rgba(0,255,157,0.1)] px-1.5 py-0.5 text-[10px] text-success border border-[rgba(0,255,157,0.15)] transition-colors hover:bg-[rgba(0,255,157,0.25)] hover:border-[rgba(0,255,157,0.3)]"
+                                                                    className="cursor-pointer rounded bg-success/10 px-1.5 py-0.5 text-[11px] text-success border border-success/15 transition-colors hover:bg-success/25 hover:border-success/30"
                                                                     title={`Перейти к ${ref.nodeName}`}
                                                                 >
                                                                     {t(TYPE_LABEL_KEYS[ref.type] ?? 'sidebar.command.label') ||
@@ -463,7 +440,7 @@ export default function BotSettingsModal() {
                                                 )}
                                                 {v.usedIn.length > 0 && (
                                                     <div>
-                                                        <p className="text-[10px] font-medium text-white/40 mb-0.5">
+                                                        <p className="text-[11px] font-medium text-fg/55 mb-0.5">
                                                             {t('userData.usedIn')}
                                                         </p>
                                                         <div className="flex flex-wrap gap-1">
@@ -474,7 +451,7 @@ export default function BotSettingsModal() {
                                                                         e.stopPropagation();
                                                                         goToNode(ref.nodeId);
                                                                     }}
-                                                                    className="cursor-pointer rounded bg-[rgba(0,240,255,0.1)] px-1.5 py-0.5 text-[10px] text-info border border-[rgba(0,240,255,0.15)] transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:border-[rgba(0,240,255,0.3)]"
+                                                                    className="cursor-pointer rounded bg-info/10 px-1.5 py-0.5 text-[11px] text-info border border-info/15 transition-colors hover:bg-info/25 hover:border-info/30"
                                                                     title={`Перейти к ${ref.nodeName}`}
                                                                 >
                                                                     {t(TYPE_LABEL_KEYS[ref.type] ?? 'sidebar.command.label') ||
@@ -487,7 +464,7 @@ export default function BotSettingsModal() {
                                                 )}
                                                 {v.definedIn.length === 0 &&
                                                     v.usedIn.length === 0 && (
-                                                        <p className="text-[10px] text-white/30">
+                                                        <p className="text-[11px] text-fg/50">
                                                             {t('userData.notFound')}
                                                         </p>
                                                     )}
@@ -500,15 +477,9 @@ export default function BotSettingsModal() {
                     </div>
                 </div>
 
-                <div className="flex justify-end border-t border-[rgba(255,255,255,0.08)] px-6 py-4">
-                    <button
-                        onClick={handleClose}
-                        className="rounded-lg bg-gradient-to-r from-[#bc13fe] to-[#00f0ff] px-4 py-2 text-sm text-white shadow-[0_0_10px_rgba(0,240,255,0.3)] hover:shadow-[0_0_15px_rgba(0,240,255,0.5)] transition-all"
-                    >
-                        {t('help.close')}
-                    </button>
-                </div>
+            <div className="flex justify-end border-t border-outline-variant px-6 py-4">
+                <PrimaryButton onClick={toggleBotSettings}>{t('help.close')}</PrimaryButton>
             </div>
-        </div>
+        </Modal>
     );
 }

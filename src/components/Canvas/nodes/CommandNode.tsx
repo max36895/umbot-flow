@@ -1,27 +1,35 @@
-import { memo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { CommandNodeData } from '../../../types/flow';
 import useUiStore from '../../../store/uiStore';
 import { useT } from '../../../i18n/hook';
 import NodeHelpButton from './NodeHelpButton';
-import { getNodeClasses, getNodeStyles, NODE_COLORS, type NodeTypeKey } from './useNodeClasses';
-import { useNodeErrorsMap, NodeErrorsBadge } from './useNodeErrors';
+import {
+    getNodeClasses,
+    getNodeStyles,
+    NODE_COLORS,
+    HANDLE_STYLES,
+    BADGE_STYLES,
+    type NodeTypeKey,
+} from './useNodeClasses';
+import { useNodeErrors, NodeErrorsBadge } from './useNodeErrors';
 import { truncatePreview } from '../../../utils/truncate';
 import { NodeIcon, type NodeIconName } from '../../ui/NodeIcons';
 
 function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData }) {
     const t = useT();
     const selectNode = useUiStore((s) => s.selectNode);
-    const selectedNodeId = useUiStore((s) => s.selectedNodeId);
-    const activePreviewNodeId = useUiStore((s) => s.activePreviewNodeId);
-    const nodeErrors = useNodeErrorsMap();
-    const errors = nodeErrors.get(id);
+    const isSelected = useUiStore((s) => s.selectedNodeId === id);
+    const isActivePreview = useUiStore((s) => s.activePreviewNodeId === id);
+    const isDimmed = useUiStore(
+        (s) => s.selectedNodeId !== null && s.selectedNodeId !== id && s.activePreviewNodeId !== id,
+    );
+    const errors = useNodeErrors(id);
     const hasErrors = (errors?.length ?? 0) > 0;
-    const isActivePreview = activePreviewNodeId === id;
-    const isSelected = selectedNodeId === id;
-    const isDimmed = selectedNodeId !== null && !isSelected && !isActivePreview;
     const slotCount = data.slots?.length ?? 0;
     const responsePreview = truncatePreview(data.response?.text, t('node.preview.noResponse'));
+
+    const handleClick = useCallback(() => selectNode(id), [selectNode, id]);
 
     // role может быть 'welcome' | 'help' | 'fallback' | undefined
     const role = (data as { role?: string }).role;
@@ -30,6 +38,10 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
             ? (role as NodeTypeKey)
             : 'command';
     const nodeColor = NODE_COLORS[nodeType];
+    const nodeStyles = useMemo(
+        () => getNodeStyles(nodeType, isSelected, isActivePreview),
+        [nodeType, isSelected, isActivePreview],
+    );
     const badgeKey =
         role === 'welcome'
             ? 'node.badge.welcome'
@@ -38,25 +50,24 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
               : role === 'fallback'
                 ? 'node.badge.fallback'
                 : 'node.badge.cmd';
-
     return (
         <div
             className={`relative min-w-[220px] ${getNodeClasses(nodeType, isSelected, isDimmed, isActivePreview, hasErrors)}`}
-            style={getNodeStyles(nodeType, isSelected, isActivePreview)}
-            onClick={() => selectNode(id)}
+            style={nodeStyles}
+            onClick={handleClick}
         >
             <NodeErrorsBadge errors={errors} />
             <Handle
                 type="target"
                 position={Position.Top}
-                className="!-top-3 !h-4 !w-4 !border-2 !border-white/30"
-                style={{ backgroundColor: nodeColor.hex }}
+                className="!-top-3 !h-4 !w-4 !border-2 !border-fg/30"
+                style={HANDLE_STYLES[nodeType]}
             />
 
             <div className="mb-2 flex items-center gap-2">
                 <span
-                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white"
-                    style={{ backgroundColor: `rgba(${nodeColor.rgb},0.25)` }}
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-fg"
+                    style={BADGE_STYLES[nodeType]}
                 >
                     <NodeIcon
                         name={
@@ -70,7 +81,7 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                     />
                     {t(badgeKey)}
                 </span>
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-fg">
                     {data.role === 'welcome'
                         ? t('sidebar.welcome.label')
                         : data.role === 'help'
@@ -89,11 +100,11 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                                 ? 'sidebar.fallback.desc'
                                 : 'help.cmdDesc',
                     )}
-                    color={nodeColor.hex}
+                    color={nodeColor.cssVar}
                 />
             </div>
 
-            <div className="mb-1.5 flex items-center gap-1 text-xs text-white/50">
+            <div className="mb-1.5 flex items-center gap-1 text-xs text-fg/50">
                 <svg
                     width="12"
                     height="12"
@@ -102,7 +113,7 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                     stroke="currentColor"
                     strokeWidth="1.5"
                 >
-                    <path d="M6 2v4M4 4h4" strokeLinecap="round" />
+                    <path d="M6 4v4M4 6h4" strokeLinecap="round" />
                     <circle cx="6" cy="6" r="4" />
                 </svg>
                 {slotCount > 0
@@ -112,7 +123,7 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                       : t('node.preview.noSlots')}
             </div>
 
-            <div className="rounded-lg bg-white/5 px-2.5 py-1.5 text-xs text-white/60 italic">
+            <div className="rounded-lg bg-fg/5 px-2.5 py-1.5 text-xs text-fg/60 italic">
                 {responsePreview}
             </div>
 
@@ -121,13 +132,13 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
                     {data.response.buttons.slice(0, 4).map((btn: { title: string }, i: number) => (
                         <span
                             key={i}
-                            className="rounded-full bg-info/10 px-2 py-0.5 text-[10px] font-medium text-info"
+                            className="rounded-full bg-info/10 px-2 py-0.5 text-[11px] font-medium text-info"
                         >
                             {btn.title}
                         </span>
                     ))}
                     {data.response.buttons.length > 4 && (
-                        <span className="text-[10px] text-white/30">
+                        <span className="text-[11px] text-fg/50">
                             +{data.response.buttons.length - 4}
                         </span>
                     )}
@@ -137,8 +148,8 @@ function CommandNodeComponent({ data, id }: NodeProps & { data: CommandNodeData 
             <Handle
                 type="source"
                 position={Position.Bottom}
-                className="!-bottom-3 !h-4 !w-4 !border-2 !border-white/30"
-                style={{ backgroundColor: nodeColor.hex }}
+                className="!-bottom-3 !h-4 !w-4 !border-2 !border-fg/30"
+                style={HANDLE_STYLES[nodeType]}
             />
         </div>
     );

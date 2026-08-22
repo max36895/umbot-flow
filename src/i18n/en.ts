@@ -124,6 +124,7 @@ export default {
     'toolbar.recentProjects': 'Recent Projects',
     'toolbar.noProjects': 'No other projects yet',
     'toolbar.removeProject': 'Remove from history',
+    'toolbar.more': 'All commands',
     'toolbar.platforms': 'Platforms',
     'toolbar.platformsAll': 'All platforms',
     'toolbar.platformsVoice': 'Voice',
@@ -237,12 +238,13 @@ export default {
     'help.shortcutDuplicate': 'Duplicate block',
     'help.shortcutDelete': 'Delete block or connection',
     'help.close': 'Got it',
+    'help.docsLink': 'Full documentation',
 
     // Node badges
     'node.badge.cmd': 'COMMAND',
     'node.badge.welcome': 'START',
     'node.badge.help': 'HELP',
-    'node.badge.fallback': 'NOT UNDERSTOOD',
+    'node.badge.fallback': 'DEFAULT',
     'node.badge.step': 'STEP',
     'node.badge.if': 'IF',
     'node.badge.end': 'END',
@@ -283,6 +285,9 @@ export default {
     // Command palette
     'palette.placeholder': 'Search blocks... (Ctrl+K)',
     'palette.noResults': 'No results',
+    'palette.navHint': '↑↓ navigate',
+    'palette.selectHint': 'Enter to select',
+    'palette.closeHint': 'Esc to close',
     'props.cardHelp':
         'A visual block with images. Shown instead of text or alongside it.\n\nTypes:\n• Single image — one picture\n• List — images top to bottom\n• Gallery — images horizontally',
     'props.addCard': 'Add card',
@@ -370,6 +375,8 @@ export default {
     // Toolbar tooltips
     'toolbar.localeRu': 'Switch to Russian',
     'toolbar.localeEn': 'Switch to English',
+    'toolbar.themeLight': 'Switch to light theme',
+    'toolbar.themeDark': 'Switch to dark theme',
     'toolbar.hideMinimap': 'Hide minimap',
     'toolbar.showMinimap': 'Show minimap',
     'props.floatingMode': 'Floating mode',
@@ -443,6 +450,8 @@ export default {
     // Validation (validator *
     'validation.v.unknownType':
         'Unknown block type "{type}". Valid types: command, step, condition, action, response, end',
+    'validation.v.requiredField': 'required field',
+    'validation.and': 'and',
     'validation.v.badType': 'Block #{idx}: invalid type "{type}"',
     'validation.v.badTypeNoName': 'Block #{idx}: invalid type',
     'validation.v.unknownOperator': 'Unknown operator in a condition',

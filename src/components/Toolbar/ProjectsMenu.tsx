@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import useFlowStore from '../../store/flowStore';
 import { listRecentProjects, removeRecentProject, MAX_PROJECTS } from '../../utils/projectsStore';
 import { t, tf } from '../../i18n';
@@ -6,19 +7,47 @@ import { t, tf } from '../../i18n';
 /**
  * Дроп-даун недавних проектов — быстрый переход между ботами.
  * Хранится в localStorage, до 8 последних.
+ *
+ * Меню рендерится через портал в body с position: fixed — тулбар имеет
+ * overflow-x-auto, который по спецификации CSS делает overflow-y != visible
+ * и обрезал бы выпадающее вниз меню.
  */
 export default function ProjectsMenu() {
     const metadata = useFlowStore((s) => s.metadata);
     const fromJSON = useFlowStore((s) => s.fromJSON);
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+
+    // Позиция меню привязана к кнопке; пересчитываем при скролле/ресайзе,
+    // чтобы меню не «отрывалось» от кнопки при горизонтальном скролле тулбара
+    useEffect(() => {
+        if (!open) return;
+        const update = () => {
+            const rect = ref.current?.getBoundingClientRect();
+            if (!rect) return;
+            const width = 256; // w-64
+            const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+            setPos({ top: rect.bottom + 4, left });
+        };
+        update();
+        window.addEventListener('resize', update);
+        document.addEventListener('scroll', update, true);
+        return () => {
+            window.removeEventListener('resize', update);
+            document.removeEventListener('scroll', update, true);
+        };
+    }, [open]);
 
     useEffect(() => {
         if (!open) return;
         const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
+            const target = e.target as Node;
+            if (ref.current?.contains(target)) return;
+            // Меню в портале вне ref, поэтому проверяем его отдельно
+            if (menuRef.current?.contains(target)) return;
+            setOpen(false);
         };
         // Capture phase + pointerdown для React Flow, который перехватывает события холста
         document.addEventListener('mousedown', handler, true);
@@ -42,8 +71,8 @@ export default function ProjectsMenu() {
                 title={t('toolbar.recentProjects')}
                 className={`rounded-lg p-2 transition-all duration-200 hover:-translate-y-0.5 ${
                     open
-                        ? 'bg-[rgba(0,240,255,0.15)] text-info'
-                        : 'text-white/60 hover:bg-[rgba(255,255,255,0.1)] hover:text-white/90'
+                        ? 'bg-info/15 text-info'
+                        : 'text-fg/60 hover:bg-fg/10 hover:text-fg/90'
                 }`}
             >
                 <svg
@@ -61,16 +90,22 @@ export default function ProjectsMenu() {
                 </svg>
             </button>
 
-            {open && (
-                <div className="absolute left-0 top-full z-[150] mt-1 w-64 overflow-hidden rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(30,30,35,0.98)] shadow-[0_0_30px_rgba(0,0,0,0.6)] backdrop-blur-xl">
-                    <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-white/30">
+            {open &&
+                pos &&
+                createPortal(
+                    <div
+                        ref={menuRef}
+                        style={{ top: pos.top, left: pos.left }}
+                        className="fixed z-menu w-64 overflow-hidden rounded-xl border border-glass-border bg-surface-modal shadow-[0_0_30px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+                    >
+                    <div className="flex items-center justify-between border-b border-outline-variant px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-fg/50">
                         <span>{t('toolbar.recentProjects')}</span>
-                        <span className="text-white/20">
+                        <span className="text-fg/40">
                             {projects.length}/{MAX_PROJECTS}
                         </span>
                     </div>
                     {projects.length === 0 ? (
-                        <div className="px-3 py-4 text-center text-xs text-white/30">
+                        <div className="px-3 py-4 text-center text-xs text-fg/50">
                             {t('toolbar.noProjects')}
                         </div>
                     ) : (
@@ -84,8 +119,8 @@ export default function ProjectsMenu() {
                                         key={p.id}
                                         className={`group flex items-center gap-2 px-3 py-2 transition-colors ${
                                             isCurrent
-                                                ? 'bg-[rgba(0,240,255,0.08)]'
-                                                : 'hover:bg-[rgba(255,255,255,0.05)]'
+                                                ? 'bg-info/[0.08]'
+                                                : 'hover:bg-fg/5'
                                         }`}
                                     >
                                         <button
@@ -106,13 +141,13 @@ export default function ProjectsMenu() {
                                             className="flex-1 text-left"
                                             title={dateStr}
                                         >
-                                            <div className="truncate text-sm text-white/90">
+                                            <div className="truncate text-sm text-fg/90">
                                                 {isCurrent && (
                                                     <span className="mr-1 text-info">●</span>
                                                 )}
                                                 {p.name}
                                             </div>
-                                            <div className="text-[10px] text-white/30">
+                                            <div className="text-[10px] text-fg/50">
                                                 {p.doc.nodes.length} {t('export.nodes')} · {dateStr}
                                             </div>
                                         </button>
@@ -124,7 +159,7 @@ export default function ProjectsMenu() {
                                                     setOpen(false);
                                                     setTimeout(() => setOpen(true), 0);
                                                 }}
-                                                className="invisible rounded p-1 text-white/30 hover:bg-[rgba(255,0,85,0.15)] hover:text-error group-hover:visible"
+                                                className="invisible rounded p-1 text-fg/50 hover:bg-error/15 hover:text-error group-hover:visible"
                                                 title={t('toolbar.removeProject')}
                                             >
                                                 <svg
@@ -145,8 +180,9 @@ export default function ProjectsMenu() {
                             })}
                         </div>
                     )}
-                </div>
-            )}
+                    </div>,
+                    document.body,
+                )}
         </div>
     );
 }

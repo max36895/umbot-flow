@@ -5,14 +5,18 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                // Semantic colors — hex значения. Поддерживают opacity-модификаторы (bg-info/10).
-                info: '#00f0ff',
-                error: '#ff0055',
-                success: '#00ff9d',
-                warning: '#ff9d00',
-                accent: '#bc13fe',
+                // Semantic colors — через CSS-переменные темы (dark/light).
+                // Формат rgb(var / <alpha-value>) поддерживает opacity-модификаторы (bg-info/10).
+                info: 'rgb(var(--info-rgb) / <alpha-value>)',
+                error: 'rgb(var(--error-rgb) / <alpha-value>)',
+                success: 'rgb(var(--success-rgb) / <alpha-value>)',
+                warning: 'rgb(var(--warning-rgb) / <alpha-value>)',
+                accent: 'rgb(var(--accent-rgb) / <alpha-value>)',
 
-                // Neon accent palette (node colors)
+                // Foreground — текст/иконки (белый в тёмной теме, тёмный в светлой)
+                fg: 'rgb(var(--fg-rgb) / <alpha-value>)',
+
+                // Neon accent palette (node colors) — фиксированные брендовые цвета
                 neon: {
                     cyan: '#00f0ff',
                     purple: '#bc13fe',
@@ -34,29 +38,29 @@ const config: Config = {
                     help: '#eab308',
                 },
 
-                // Glass/surface colors
+                // Glass/surface colors — через переменные темы
                 glass: {
-                    bg: '#0F0F14',
-                    surface: 'rgba(30, 30, 35, 0.8)',
-                    surfaceHigh: 'rgba(40, 40, 48, 0.85)',
-                    border: 'rgba(255, 255, 255, 0.1)',
+                    bg: 'var(--surface-dim)',
+                    surface: 'var(--surface)',
+                    surfaceHigh: 'var(--surface-container-high)',
+                    border: 'var(--glass-border)',
                 },
 
                 // Surface shades
                 surface: {
-                    DEFAULT: 'rgba(30, 30, 35, 0.8)',
-                    dim: '#0f0f14',
-                    container: 'rgba(40, 40, 48, 0.85)',
-                    'container-low': 'rgba(25, 25, 30, 0.9)',
-                    'container-high': 'rgba(50, 50, 58, 0.9)',
-                    panel: 'rgba(30, 30, 35, 0.9)',
-                    'panel-docked': 'rgba(20, 20, 25, 0.95)',
-                    modal: 'rgba(20, 20, 25, 0.98)',
+                    DEFAULT: 'var(--surface)',
+                    dim: 'rgb(var(--surface-dim-rgb) / <alpha-value>)',
+                    container: 'var(--surface-container)',
+                    'container-low': 'var(--surface-container-low)',
+                    'container-high': 'var(--surface-container-high)',
+                    panel: 'var(--surface-panel)',
+                    'panel-docked': 'rgb(var(--surface-panel-docked-rgb) / <alpha-value>)',
+                    modal: 'var(--surface-modal)',
                 },
 
                 // Outline / borders
-                outline: 'rgba(255, 255, 255, 0.15)',
-                'outline-variant': 'rgba(255, 255, 255, 0.08)',
+                outline: 'var(--outline)',
+                'outline-variant': 'var(--outline-variant)',
             },
 
             zIndex: {

@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { t } from '../i18n';
+import { PrimaryButton } from './ui/PrimaryButton';
 
 interface Props {
     children: ReactNode;
@@ -29,20 +30,17 @@ export default class ErrorBoundary extends Component<Props, State> {
 
         return (
             <div className="flex h-screen w-screen items-center justify-center bg-surface-dim p-6">
-                <div className="w-full max-w-md rounded-xl border border-[rgba(255,0,85,0.3)] bg-[rgba(20,20,25,0.98)] p-6 shadow-[0_0_60px_rgba(0,0,0,0.6)]">
-                    <h1 className="mb-2 text-lg font-bold text-white/90">
+                <div className="w-full max-w-md rounded-xl border border-error/30 bg-surface-modal p-6 shadow-[0_0_60px_rgba(0,0,0,0.6)]">
+                    <h1 className="mb-2 text-lg font-bold text-fg/90">
                         {t('error.crashTitle')}
                     </h1>
-                    <p className="mb-4 text-sm text-white/60">{t('error.crashDesc')}</p>
-                    <pre className="mb-4 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg border border-[rgba(255,255,255,0.08)] bg-white/[0.03] p-3 text-xs text-error/80">
+                    <p className="mb-4 text-sm text-fg/60">{t('error.crashDesc')}</p>
+                    <pre className="mb-4 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg border border-outline-variant bg-fg/[0.03] p-3 text-xs text-error/80">
                         {this.state.error.message}
                     </pre>
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="rounded-lg bg-gradient-to-r from-[#bc13fe] to-[#00f0ff] px-4 py-2 text-sm text-white shadow-[0_0_10px_rgba(0,240,255,0.3)] transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.5)]"
-                    >
+                    <PrimaryButton onClick={() => window.location.reload()}>
                         {t('error.reload')}
-                    </button>
+                    </PrimaryButton>
                 </div>
             </div>
         );

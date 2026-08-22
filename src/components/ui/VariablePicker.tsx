@@ -122,7 +122,7 @@ export default function VariablePicker({
 
     // Дефолтные стили, если className не передан
     const defaultInputClass =
-        'w-full resize-none border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 pr-16 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
+        'w-full resize-none border-0 border-b border-outline bg-transparent px-0 py-2 pr-16 text-sm text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none';
 
     return (
         <div className="relative min-w-0" ref={pickerRef}>
@@ -148,25 +148,25 @@ export default function VariablePicker({
             <button
                 type="button"
                 onClick={() => setShowPicker(!showPicker)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-full border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.15)] px-2 py-0.5 text-[10px] text-info transition-colors hover:bg-[rgba(0,240,255,0.25)] hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
+                className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-full border border-info/30 bg-info/15 px-2 py-0.5 text-[11px] text-info transition-colors hover:bg-info/25 hover:shadow-[0_0_8px_rgba(0,240,255,0.3)]"
                 title={t('variable.insertVar')}
             >
                 <span>+</span>
                 <span>{'{var}'}</span>
             </button>
             {showPicker && (
-                <div className="absolute left-0 top-full z-[100] max-h-60 w-full overflow-y-auto rounded-b border border-[rgba(255,255,255,0.1)] border-t-0 bg-[rgba(30,30,35,0.98)] shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                <div className="absolute left-0 top-full z-[100] max-h-60 w-full overflow-y-auto rounded-b border border-glass-border border-t-0 bg-surface-modal shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                     {/* Системные переменные */}
-                    <div className="border-b border-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-medium text-white/30">
+                    <div className="border-b border-outline-variant px-3 py-1 text-[11px] font-medium text-fg/50">
                         {t('variable.system')}
                     </div>
                     {systemVars.map((sv) => (
                         <button
                             key={sv.name}
                             onClick={() => insertVariable(sv.name)}
-                            className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
+                            className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-xs text-fg/70 hover:bg-fg/5"
                         >
-                            <span className="text-white/30">
+                            <span className="text-fg/50">
                                 <NodeIcon name="gear" size={11} />
                             </span>
                             {sv.label}
@@ -176,7 +176,7 @@ export default function VariablePicker({
                     {/* Переменные из текущего блока */}
                     {currentVars.length > 0 && (
                         <>
-                            <div className="flex items-center gap-1 border-b border-[rgba(0,240,255,0.2)] bg-[rgba(0,240,255,0.05)] px-3 py-1 text-[10px] font-medium text-info/70">
+                            <div className="flex items-center gap-1 border-b border-info/20 bg-info/5 px-3 py-1 text-[11px] font-medium text-info/70">
                                 <NodeIcon name="pin" size={10} />
                                 {t('variable.thisBlock')}
                             </div>
@@ -184,7 +184,7 @@ export default function VariablePicker({
                                 <button
                                     key={`cur-${v.name}`}
                                     onClick={() => insertVariable(v.name)}
-                                    className="block w-full px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(0,240,255,0.08)]"
+                                    className="block w-full px-3 py-1.5 text-left text-xs text-fg/70 hover:bg-info/[0.08]"
                                 >
                                     {'{{' + v.name + '}}'}
                                 </button>
@@ -195,17 +195,17 @@ export default function VariablePicker({
                     {/* Переменные из других блоков */}
                     {otherVars.length > 0 && (
                         <>
-                            <div className="border-b border-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-medium text-white/30">
+                            <div className="border-b border-outline-variant px-3 py-1 text-[11px] font-medium text-fg/50">
                                 {t('userData.title')}
                             </div>
                             {otherVars.map((v) => (
                                 <button
                                     key={`oth-${v.name}`}
                                     onClick={() => insertVariable(v.name)}
-                                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
+                                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-fg/70 hover:bg-fg/5"
                                 >
                                     <span className="flex-1">{'{{' + v.name + '}}'}</span>
-                                    <span className="text-[9px] text-white/25">{v.sourceNode}</span>
+                                    <span className="text-[11px] text-fg/45">{v.sourceNode}</span>
                                 </button>
                             ))}
                         </>
@@ -214,14 +214,14 @@ export default function VariablePicker({
                     {/* Глобальные переменные */}
                     {metaVars.length > 0 && (
                         <>
-                            <div className="border-b border-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-medium text-white/30">
+                            <div className="border-b border-outline-variant px-3 py-1 text-[11px] font-medium text-fg/50">
                                 {t('variable.global')}
                             </div>
                             {metaVars.map((v) => (
                                 <button
                                     key={`meta-${v.name}`}
                                     onClick={() => insertVariable(v.name)}
-                                    className="block w-full px-3 py-1.5 text-left text-xs text-white/70 hover:bg-[rgba(255,255,255,0.05)]"
+                                    className="block w-full px-3 py-1.5 text-left text-xs text-fg/70 hover:bg-fg/5"
                                 >
                                     {'{{' + v.name + '}}'}
                                 </button>

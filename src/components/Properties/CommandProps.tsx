@@ -1,5 +1,5 @@
 import useFlowStore from '../../store/flowStore';
-import type { CommandNodeData } from '../../types/flow';
+import type { CommandNodeData, FlowMetadata } from '../../types/flow';
 import { t } from '../../i18n';
 import TagInput from '../ui/TagInput';
 import CardEditor from './CardEditor';
@@ -22,42 +22,43 @@ interface Props {
 }
 
 export function CommandProps({ nodeId }: Props) {
-    const nodes = useFlowStore((s) => s.nodes);
+    const node = useFlowStore((s) => s.nodes.find((n) => n.id === nodeId));
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
-    const setMetadata = useFlowStore((s) => s.setMetadata);
-    const node = nodes.find((n) => n.id === nodeId);
+    const updateNodeDataWithMetadata = useFlowStore((s) => s.updateNodeDataWithMetadata);
     const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
     const data = node.data as CommandNodeData;
     const isBuiltin = data.role === 'welcome' || data.role === 'help' || data.role === 'fallback';
 
+    /** Строит патч metadata для встроенных узлов (welcome/help/fallback). */
+    const builtinMetaPatch = (response: CommandNodeData['response']): Partial<FlowMetadata> | null => {
+        if (!isBuiltin) return null;
+        if (data.role === 'welcome') return { welcome: { text: response.text, buttons: response.buttons } };
+        if (data.role === 'help') return { helpText: { text: response.text } };
+        if (data.role === 'fallback') return { fallback: { text: response.text } };
+        return null;
+    };
+
     const update = (patch: Partial<CommandNodeData>) => {
-        updateNodeData(nodeId, patch);
-        // Синхронизация текста welcome/help с настройками бота
-        if (isBuiltin && patch.response) {
+        // Для встроенных узлов с патчем response — один set() вместо двух
+        if (patch.response) {
             const newResponse = { ...data.response, ...patch.response };
-            if (data.role === 'welcome') {
-                setMetadata({ welcome: { text: newResponse.text, buttons: newResponse.buttons } });
-            } else if (data.role === 'help') {
-                setMetadata({ helpText: { text: newResponse.text } });
-            } else if (data.role === 'fallback') {
-                setMetadata({ fallback: { text: newResponse.text } });
+            const metaPatch = builtinMetaPatch(newResponse);
+            if (metaPatch) {
+                updateNodeDataWithMetadata(nodeId, { ...patch, response: newResponse }, metaPatch);
+                return;
             }
         }
+        updateNodeData(nodeId, patch);
     };
     const updateResponse = (patch: Partial<CommandNodeData['response']>) => {
         const response = { ...data.response, ...patch };
-        updateNodeData(nodeId, { response });
-        // Синхронизация текста welcome/help с настройками бота
-        if (isBuiltin && patch.text !== undefined) {
-            if (data.role === 'welcome') {
-                setMetadata({ welcome: { text: response.text, buttons: response.buttons } });
-            } else if (data.role === 'help') {
-                setMetadata({ helpText: { text: response.text } });
-            } else if (data.role === 'fallback') {
-                setMetadata({ fallback: { text: response.text } });
-            }
+        const metaPatch = builtinMetaPatch(response);
+        if (metaPatch) {
+            updateNodeDataWithMetadata(nodeId, { response }, metaPatch);
+        } else {
+            updateNodeData(nodeId, { response });
         }
     };
 
@@ -71,14 +72,14 @@ export function CommandProps({ nodeId }: Props) {
                         value={data.name}
                         onChange={(e) => update({ name: e.target.value })}
                         placeholder={t('props.namePlaceholder')}
-                        className="w-full border-0 border-b border-[rgba(255,255,255,0.2)] bg-transparent px-0 py-2 text-sm text-white placeholder-white/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
+                        className="w-full border-0 border-b border-outline bg-transparent px-0 py-2 text-sm text-fg placeholder-fg/35 transition-colors focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                     />
                 </Field>
             )}
 
             {isBuiltin && (
-                <div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-2">
-                    <p className="text-xs text-white/50">
+                <div className="rounded-lg border border-outline-variant bg-fg/[0.03] px-3 py-2">
+                    <p className="text-xs text-fg/50">
                         {t(`sidebar.${data.role}.label`)} — {data.name}
                     </p>
                 </div>
@@ -116,7 +117,7 @@ export function CommandProps({ nodeId }: Props) {
                 onChange={(val) => updateResponse({ tts: val || undefined })}
             />
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             {/* Кнопки */}
             <Field label={t('props.buttons')} help={t('props.buttonsHelp')}>
@@ -127,7 +128,7 @@ export function CommandProps({ nodeId }: Props) {
                 />
             </Field>
 
-            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <hr className="border-outline-variant" />
 
             <CardEditor card={data.response.card} onChange={(card) => updateResponse({ card })} />
 

@@ -2,29 +2,30 @@ import { t } from '../../i18n';
 
 interface DebugVarsPanelProps {
     variables: Record<string, string>;
-    waitingForStep: string | null;
+    /** Человекочитаемое имя шага, ожидающего ввод (не ID). */
+    waitingForStepName: string | null;
 }
 
 /** Отладочная панель переменных — нижняя часть ChatPreview. */
-export function DebugVarsPanel({ variables, waitingForStep }: DebugVarsPanelProps) {
+export function DebugVarsPanel({ variables, waitingForStepName }: DebugVarsPanelProps) {
     return (
-        <div className="border-t border-outline-variant bg-surface-panel-docked/90 p-2 text-[10px]">
-            <div className="mb-1 font-bold text-white/40">{t('preview.debugVars')}</div>
+        <div className="border-t border-outline-variant bg-surface-panel-docked/90 p-2 text-[11px]">
+            <div className="mb-1 font-bold text-fg/55">{t('preview.debugVars')}</div>
             {Object.keys(variables).length === 0 ? (
-                <div className="text-white/30">{t('userData.empty')}</div>
+                <div className="text-fg/50">{t('userData.empty')}</div>
             ) : (
                 <div className="max-h-24 overflow-y-auto">
                     {Object.entries(variables).map(([key, val]) => (
                         <div key={key} className="flex gap-2">
                             <span className="font-mono text-info">{key}:</span>
-                            <span className="truncate text-white/60">{val}</span>
+                            <span className="truncate text-fg/60">{val}</span>
                         </div>
                     ))}
                 </div>
             )}
-            {waitingForStep && (
+            {waitingForStepName && (
                 <div className="mt-1 text-warning">
-                    {t('preview.waiting')}: {waitingForStep}
+                    {t('preview.waiting')}: {waitingForStepName}
                 </div>
             )}
         </div>

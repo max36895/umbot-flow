@@ -37,7 +37,7 @@ export default function AlertDialog({ title, message, onClose }: AlertDialogProp
                         <NodeIcon name="warning" size={16} />
                     </span>
                 </div>
-                <pre className="max-h-[50vh] overflow-y-auto whitespace-pre-wrap rounded-lg border border-outline-variant bg-white/[0.03] p-3 text-xs leading-relaxed text-white/70">
+                <pre className="max-h-[50vh] overflow-y-auto whitespace-pre-wrap rounded-lg border border-outline-variant bg-fg/[0.03] p-3 text-xs leading-relaxed text-fg/70">
                     {message}
                 </pre>
             </div>

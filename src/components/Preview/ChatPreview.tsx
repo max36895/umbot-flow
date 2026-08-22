@@ -626,22 +626,31 @@ export default function ChatPreview() {
         >
             <div className="flex items-center justify-between rounded-t-xl bg-gradient-to-r from-accent to-info px-4 py-2">
                 <span className="text-sm font-bold text-white">{t('preview.title')}</span>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1.5">
                     <button
                         onClick={handleReset}
-                        className="rounded p-1 text-white/60 hover:text-white"
+                        className="flex h-6 w-6 items-center justify-center rounded-md bg-black/25 text-white/90 transition-colors hover:bg-black/40 hover:text-white"
                         title={t('preview.reset')}
                     >
                         <NodeIcon name="refresh" size={13} />
                     </button>
                     <button
                         onClick={() => setDebugMode(!debugMode)}
-                        className={`rounded px-1.5 py-0.5 text-[10px] ${debugMode ? 'bg-accent/20 text-accent' : 'text-white/60 hover:text-white'}`}
+                        className={`flex h-6 items-center gap-1 rounded-md px-2 text-[11px] font-medium transition-colors ${
+                            debugMode
+                                ? 'bg-black/40 text-white'
+                                : 'bg-black/25 text-white/90 hover:bg-black/40 hover:text-white'
+                        }`}
                         title={t('preview.debug')}
                     >
+                        <NodeIcon name="gear" size={11} />
                         {t('preview.varsTitle')}
                     </button>
-                    <button onClick={handleClose} className="text-white/60 hover:text-white">
+                    <button
+                        onClick={handleClose}
+                        className="flex h-6 w-6 items-center justify-center rounded-md bg-black/25 text-white/90 transition-colors hover:bg-black/40 hover:text-white"
+                        title={t('help.close')}
+                    >
                         <NodeIcon name="close" size={12} />
                     </button>
                 </div>
@@ -649,7 +658,7 @@ export default function ChatPreview() {
 
             <div className="flex-1 overflow-y-auto p-3">
                 {messages.length === 0 && (
-                    <div className="mt-8 text-center text-sm text-white/30">
+                    <div className="mt-8 text-center text-sm text-fg/50">
                         {t('preview.empty')}
                     </div>
                 )}
@@ -667,7 +676,16 @@ export default function ChatPreview() {
             </div>
 
             {debugMode && (
-                <DebugVarsPanel variables={variables} waitingForStep={waitingForStep} />
+                <DebugVarsPanel
+                    variables={variables}
+                    waitingForStepName={
+                        waitingForStep
+                            ? ((doc.nodes.find((n) => n.id === waitingForStep)?.data as
+                                  | { name?: string }
+                                  | undefined)?.name ?? waitingForStep)
+                            : null
+                    }
+                />
             )}
 
             <ChatInput

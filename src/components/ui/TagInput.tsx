@@ -47,11 +47,11 @@ export default function TagInput({ value, onChange, placeholder }: TagInputProps
     }, [input, addTag]);
 
     return (
-        <div className="flex w-full flex-wrap items-center gap-1 rounded border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] px-2 py-1 focus-within:border-info focus-within:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)]">
+        <div className="flex w-full flex-wrap items-center gap-1 rounded border border-outline bg-fg/5 px-2 py-1 focus-within:border-info focus-within:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)]">
             {value.map((tag, i) => (
                 <span
                     key={tag}
-                    className="inline-flex items-center gap-1 rounded bg-[rgba(0,240,255,0.15)] px-2 py-0.5 text-xs font-medium text-info"
+                    className="inline-flex items-center gap-1 rounded bg-info/15 px-2 py-0.5 text-xs font-medium text-info"
                 >
                     {tag}
                     <button
@@ -70,7 +70,7 @@ export default function TagInput({ value, onChange, placeholder }: TagInputProps
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
                 placeholder={value.length === 0 ? placeholder : ''}
-                className="min-w-[80px] flex-1 border-none bg-transparent text-sm text-white placeholder-white/35 outline-none"
+                className="min-w-[80px] flex-1 border-none bg-transparent text-sm text-fg placeholder-fg/35 outline-none"
             />
         </div>
     );

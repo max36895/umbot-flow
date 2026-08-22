@@ -86,18 +86,18 @@ export default function StatusBar() {
                                         <button
                                             key={i}
                                             onClick={() => selectNode(nodeId)}
-                                            className="flex shrink-0 cursor-pointer items-center gap-1 rounded border border-error/30 bg-error/10 px-1.5 py-0.5 text-[10px] text-error transition-colors hover:bg-error/20 hover:text-white"
+                                            className="flex shrink-0 cursor-pointer items-center gap-1 rounded border border-error/30 bg-error/10 px-1.5 py-0.5 text-[11px] text-error transition-colors hover:bg-error/20 hover:text-white"
                                             title={nodeErrors.map((e) => e.message).join('\n')}
                                         >
                                             <span className="truncate">{nodeLabel}</span>
-                                            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-error text-[9px] font-bold text-white">
+                                            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-error text-[11px] font-bold text-white">
                                                 {nodeErrors.length}
                                             </span>
                                         </button>
                                     );
                                 })}
                                 {uniqueNodes.length > 5 && (
-                                    <span className="text-[10px] text-white/30">
+                                    <span className="text-[11px] text-fg/50">
                                         +{uniqueNodes.length - 5} {t('statusbar.more')}
                                     </span>
                                 )}
@@ -110,15 +110,15 @@ export default function StatusBar() {
             <div className="flex-1" />
 
             <span
-                className={`flex items-center gap-1 text-[10px] transition-colors ${
-                    savedState === 'saved' ? 'text-success/60' : 'text-white/20'
+                className={`flex items-center gap-1 text-[11px] transition-colors ${
+                    savedState === 'saved' ? 'text-success/60' : 'text-fg/40'
                 }`}
             >
                 {savedState === 'saved' && <NodeIcon name="check" size={10} strokeWidth={2} />}
                 {savedState === 'saved' ? t('statusbar.saved') : t('statusbar.saving')}
             </span>
 
-            <span className="text-white/30">
+            <span className="text-fg/50">
                 {nodes.length} {t('export.nodes')} · {edges.length} {t('export.edges')}
             </span>
         </div>
