@@ -421,6 +421,9 @@ export default {
     // Status bar extras
     'statusbar.saved': 'Saved',
     'statusbar.saving': 'Saving…',
+    'statusbar.saveError':
+        'Could not save: browser storage is full. Export the project to a JSON file so you do not lose your work.',
+    'statusbar.saveErrorShort': 'Not saved!',
     'statusbar.clickToExport': 'Validate & export',
     'projects.openConfirm':
         'Open project "{name}"? The current project stays in recent list, but your current editing session will be replaced.',
@@ -467,6 +470,8 @@ export default {
         'Block has no name (ID: {id}). Fill in the "Name" field on the right.',
     'validation.v.duplicateNames':
         'Block name "{name}" is used twice: by blocks "{a}" and "{b}". Names must be unique.',
+    'validation.v.dupSanitizedNames':
+        'Block names "{name}" and "{other}" become identical in generated code ("{target}"). Rename one of them: spaces and special characters turn into "_" in code.',
     'validation.v.invalidVarName':
         'Variable name "{name}" is invalid. Use letters, digits, and underscore (do not start with a digit).',
     'validation.v.emptyVarName':
@@ -520,6 +525,10 @@ export default {
         'dev — development mode with verbose logs.\nprod — production mode.\nstrict_prod — like prod, but any error stops the bot (for critical production scenarios).',
     'settings.localStorageHelp':
         'Save user answers to local storage. When off — variables are lost between runs.',
+    'settings.goToNode': 'Go to {name}',
+    'settings.mode.dev': 'Development (dev)',
+    'settings.mode.prod': 'Production (prod)',
+    'settings.mode.strict_prod': 'Strict production (strict_prod)',
 
     // Condition node / props
     'condition.preview': 'Condition',
@@ -539,4 +548,10 @@ export default {
     'ui.done': 'Done',
     'ui.up': 'Up',
     'ui.down': 'Down',
+    'confirm.cancel': 'Cancel',
+    'confirm.ok': 'Confirm',
+    'toolbar.newProjectConfirm':
+        'Create a new project? The current flow will be replaced (it stays in the recent list).',
+    'projects.openTitle': 'Open project',
+    'error.exportTitle': 'Export failed',
 } as const;

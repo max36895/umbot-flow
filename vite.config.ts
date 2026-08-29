@@ -16,11 +16,15 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 // Разбиваем вендоров на отдельные чанки — они кэшируются браузером
-                // независимо от кода приложения
-                manualChunks: {
-                    react: ['react', 'react-dom'],
-                    xyflow: ['@xyflow/react'],
-                    validation: ['ajv', 'ajv-formats'],
+                // независимо от кода приложения. Function-форма надёжнее object-формы:
+                // react/react-dom иначе «прилипали» к основному чанку (react-чанк был пустым).
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) return undefined;
+                    // @xyflow проверяем раньше react: путь @xyflow/react содержит 'react'
+                    if (id.includes('@xyflow')) return 'xyflow';
+                    if (id.includes('ajv')) return 'validation';
+                    if (id.includes('react') || id.includes('scheduler')) return 'react';
+                    return undefined;
                 },
             },
         },

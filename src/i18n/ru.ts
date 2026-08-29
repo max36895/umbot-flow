@@ -364,6 +364,9 @@ export default {
     'props.emotion.bad': 'Грустная',
     'statusbar.saved': 'Сохранено',
     'statusbar.saving': 'Сохранение…',
+    'statusbar.saveError':
+        'Не удалось сохранить: хранилище браузера переполнено. Экспортируйте проект в JSON-файл, чтобы не потерять работу.',
+    'statusbar.saveErrorShort': 'Не сохранено!',
     'statusbar.clickToExport': 'Проверить и экспортировать',
     'projects.openConfirm':
         'Открыть проект "{name}"? Текущий проект останется в списке недавних, но открытый сейчас проект будет заменён.',
@@ -398,6 +401,8 @@ export default {
     'validation.v.emptyNodeName': 'У блока нет имени (ID: {id}). Заполните поле "Название" справа.',
     'validation.v.duplicateNames':
         'Имя блока "{name}" используется дважды: блоки "{a}" и "{b}". Имена должны быть уникальными.',
+    'validation.v.dupSanitizedNames':
+        'Имена блоков "{name}" и "{other}" после преобразования в код совпадают ("{target}"). Переименуйте один из них: пробелы и спецсимволы в коде становятся "_".',
     'validation.v.invalidVarName':
         'Имя переменной "{name}" недопустимо. Используйте буквы, цифры и подчёркивание (не начинайте с цифры).',
     'validation.v.emptyVarName':
@@ -447,6 +452,10 @@ export default {
         'dev — режим разработки с подробными логами.\nprod — продакшен-режим.\nstrict_prod — как prod, но строго: приложение завершится при любой ошибке. Для старта оставьте "prod".',
     'settings.localStorageHelp':
         'Сохранять ответы пользователя в локальное хранилище. Если выключено — переменные теряются между запусками.',
+    'settings.goToNode': 'Перейти к {name}',
+    'settings.mode.dev': 'Разработка (dev)',
+    'settings.mode.prod': 'Продакшн (prod)',
+    'settings.mode.strict_prod': 'Строгий продакшн (strict_prod)',
     'condition.preview': 'Условие',
     'condition.compareWith': 'Сравнить с:',
     'condition.thisAnswer': 'последний ввод пользователя',
@@ -458,4 +467,10 @@ export default {
     'ui.done': 'Готово',
     'ui.up': 'Вверх',
     'ui.down': 'Вниз',
+    'confirm.cancel': 'Отмена',
+    'confirm.ok': 'Подтвердить',
+    'toolbar.newProjectConfirm':
+        'Создать новый проект? Текущий флоу будет заменён (он сохранится в списке недавних).',
+    'projects.openTitle': 'Открыть проект',
+    'error.exportTitle': 'Ошибка экспорта',
 } as const;

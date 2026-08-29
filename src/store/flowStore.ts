@@ -9,16 +9,23 @@ import type {
 import { DEFAULT_METADATA } from '../types/flow';
 import { toReactFlowEdge, fromReactFlowEdge } from '../types/nodes';
 import { t } from '../i18n';
+import { evictProjectsForSpace } from '../utils/projectsStore';
 
 interface HistoryEntry {
     nodes: Node[];
     edges: Edge[];
 }
 
+/** Статус автосохранения — по факту записи в localStorage, а не по факту изменения. */
+export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
 interface FlowStore {
     nodes: Node[];
     edges: Edge[];
     metadata: FlowMetadata;
+    /** Результат последней записи автосейва. 'error' = хранилище переполнено/недоступно,
+     * данные НЕ сохранены — UI обязан показать предупреждение и путь спасения (экспорт). */
+    saveState: SaveState;
 
     /** Add a new node to the canvas. */
     addNode: (
@@ -64,8 +71,10 @@ interface FlowStore {
     toJSON: () => FlowDocument;
     /** Import flow from JSON document. */
     fromJSON: (doc: FlowDocument) => void;
-    /** Auto-save to localStorage. */
+    /** Auto-save to localStorage (debounced). */
     autoSave: () => void;
+    /** Немедленная синхронная запись без debounce — для pagehide/visibilitychange. */
+    flushSave: () => void;
     /** Auto-load from localStorage. */
     autoLoad: () => void;
     /** Clear undo/redo history. */
@@ -77,14 +86,41 @@ const STORAGE_KEY = 'umbot-flow-editor';
 /** Текущая поддерживаемая версия схемы. При изменении — добавить миграцию. */
 export const CURRENT_SCHEMA_VERSION = '1.0';
 
+/** Источник metadata: корень flow.json (FlowDocument) или сохранённый metadata. */
+type MetadataSource = Partial<FlowMetadata>;
+
+/**
+ * Нормализует metadata до полного FlowMetadata, подставляя дефолты для опциональных полей.
+ * Схема не требует fallback/welcome/database/version и др., поэтому «чужой» или старый
+ * документ без этих полей уронил бы UI (ChatPreview читает fallback.text, BotSettingsModal —
+ * database.type/welcome.text). Структурные поля берём из DEFAULT_METADATA, пользовательские
+ * тексты — пустые, чтобы не подставлять чужой контент в импортируемого бота.
+ */
+function normalizeMetadata(src: MetadataSource): FlowMetadata {
+    return {
+        schemaVersion: src.schemaVersion ?? CURRENT_SCHEMA_VERSION,
+        name: src.name ?? DEFAULT_METADATA.name,
+        version: src.version ?? '1.0.0',
+        description: src.description ?? '',
+        platforms: src.platforms ?? DEFAULT_METADATA.platforms,
+        database: src.database ?? DEFAULT_METADATA.database,
+        mode: src.mode ?? DEFAULT_METADATA.mode,
+        isLocalStorage: src.isLocalStorage ?? DEFAULT_METADATA.isLocalStorage,
+        fallback: src.fallback ?? { text: '' },
+        welcome: src.welcome ?? { text: '', buttons: [] },
+        helpText: src.helpText ?? { text: '' },
+        variables: src.variables ?? {},
+        tokens: src.tokens ?? {},
+    };
+}
+
 let idCounter = 0;
 function generateNodeId(): string {
     idCounter += 1;
     return `node_${Date.now()}_${idCounter}`;
 }
 
-const useFlowStore = create<FlowStore>((set, get) => {
-    /** Пушит текущее состояние в undo-историю и очищает redo. */
+const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит текущее состояние в undo-историю и очищает redo. */
     const pushHistoryEntry = () => {
         const { nodes, edges } = get();
         const history = getHistory();
@@ -110,6 +146,7 @@ const useFlowStore = create<FlowStore>((set, get) => {
     nodes: [],
     edges: [],
     metadata: { ...DEFAULT_METADATA },
+    saveState: 'idle',
 
     addNode: (type: NodeData['type'] | 'welcome' | 'help' | 'fallback', position) => {
         const id = generateNodeId();
@@ -469,21 +506,7 @@ const useFlowStore = create<FlowStore>((set, get) => {
         set({
             nodes: flowNodes,
             edges: flowEdges,
-            metadata: {
-                schemaVersion: doc.schemaVersion,
-                name: doc.name,
-                version: doc.version,
-                description: doc.description,
-                platforms: doc.platforms,
-                database: doc.database,
-                mode: doc.mode,
-                isLocalStorage: doc.isLocalStorage,
-                fallback: doc.fallback,
-                welcome: doc.welcome,
-                helpText: doc.helpText ?? { text: '' },
-                variables: doc.variables,
-                tokens: doc.tokens ?? {},
-            },
+            metadata: normalizeMetadata(doc),
         });
         get().autoSave();
     },
@@ -491,19 +514,19 @@ const useFlowStore = create<FlowStore>((set, get) => {
     autoSave: () => {
         // Откладываем сохранение для уменьшения нагрузки
         if (saveTimeout) clearTimeout(saveTimeout);
+        set({ saveState: 'saving' });
         saveTimeout = setTimeout(() => {
-            try {
-                const state = get();
-                const data = {
-                    nodes: state.nodes,
-                    edges: state.edges,
-                    metadata: state.metadata,
-                };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            } catch {
-                // Storage full or unavailable
-            }
+            persistNow();
         }, SAVE_DELAY);
+    },
+
+    flushSave: () => {
+        // Записываем только если есть несохранённые изменения (ждёт debounce).
+        // Иначе каждое переключение вкладки писало бы одно и то же состояние.
+        if (!saveTimeout) return;
+        clearTimeout(saveTimeout);
+        saveTimeout = null;
+        persistNow();
     },
 
     autoLoad: () => {
@@ -524,7 +547,7 @@ const useFlowStore = create<FlowStore>((set, get) => {
                 set({
                     nodes: data.nodes,
                     edges: data.edges,
-                    metadata: data.metadata,
+                    metadata: normalizeMetadata(data.metadata),
                 });
             }
         } catch {
@@ -545,6 +568,46 @@ const useFlowStore = create<FlowStore>((set, get) => {
 const MAX_HISTORY = 50;
 let undoStack: HistoryEntry[] = [];
 let redoStackRef: HistoryEntry[] = [];
+
+/**
+ * Синхронная запись текущего состояния в localStorage с честным результатом.
+ *
+ * При QuotaExceededError спасает место: удаляет САМЫЕ СТАРЫЕ снапшоты из истории
+ * недавних проектов (umbot-flow-projects), где хранятся полные копии до 8 ботов.
+ * Текущий документ (umbot-flow-editor) не трогаем — он всегда важнее истории.
+ * Если после эвикции запись всё ещё не проходит — saveState='error', UI показывает
+ * предупреждение с призывом экспортировать JSON.
+ */
+function persistNow(): void {
+    const state = useFlowStore.getState();
+    const data = JSON.stringify({
+        nodes: state.nodes,
+        edges: state.edges,
+        metadata: state.metadata,
+    });
+    try {
+        localStorage.setItem(STORAGE_KEY, data);
+        useFlowStore.setState({ saveState: 'saved' });
+    } catch {
+        // QuotaExceededError или storage unavailable. Пытаемся освободить место:
+        // удаляем самые старые снапшоты истории, но не текущий проект.
+        try {
+            if (
+                evictProjectsForSpace(
+                    data.length,
+                    useFlowStore.getState().metadata.name,
+                )
+            ) {
+                localStorage.setItem(STORAGE_KEY, data);
+                useFlowStore.setState({ saveState: 'saved' });
+                return;
+            }
+        } catch {
+            // эвикция сама упала — ниже переведём в 'error'
+        }
+        useFlowStore.setState({ saveState: 'error' });
+    }
+}
 
 // Коалесцинг быстрых правок (ввод текста): окно, в котором правки
 // одной ноды с одной формой патча считаются одним шагом undo

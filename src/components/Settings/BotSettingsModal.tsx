@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
-import { t } from '../../i18n';
+import { t, tf } from '../../i18n';
 import type { ActionBlock, DatabaseType, BotMode } from '../../types/flow';
 import { TextArea } from '../ui/TextArea';
 import HelpButton from '../ui/HelpButton';
@@ -300,17 +300,17 @@ export default function BotSettingsModal() {
                             <HelpButton content={t('settings.modeHelp')} />
                         </div>
                         <div className="flex gap-2">
-                            {['dev', 'prod', 'strict_prod'].map((mode) => (
+                            {(['dev', 'prod', 'strict_prod'] as BotMode[]).map((mode) => (
                                 <button
                                     key={mode}
-                                    onClick={() => setMetadata({ mode: mode as BotMode })}
+                                    onClick={() => setMetadata({ mode })}
                                     className={`flex-1 rounded-lg px-3 py-2 text-xs transition-colors ${
                                         metadata.mode === mode
                                             ? 'bg-info/15 text-info border border-info/30'
                                             : 'bg-fg/5 text-fg/50 border border-outline-variant hover:bg-fg/10'
                                     }`}
                                 >
-                                    {mode}
+                                    {t(`settings.mode.${mode}`)}
                                 </button>
                             ))}
                         </div>
@@ -428,7 +428,9 @@ export default function BotSettingsModal() {
                                                                         goToNode(ref.nodeId);
                                                                     }}
                                                                     className="cursor-pointer rounded bg-success/10 px-1.5 py-0.5 text-[11px] text-success border border-success/15 transition-colors hover:bg-success/25 hover:border-success/30"
-                                                                    title={`Перейти к ${ref.nodeName}`}
+                                                                    title={tf('settings.goToNode', {
+                                                                        name: ref.nodeName,
+                                                                    })}
                                                                 >
                                                                     {t(TYPE_LABEL_KEYS[ref.type] ?? 'sidebar.command.label') ||
                                                                         ref.type}
@@ -452,7 +454,9 @@ export default function BotSettingsModal() {
                                                                         goToNode(ref.nodeId);
                                                                     }}
                                                                     className="cursor-pointer rounded bg-info/10 px-1.5 py-0.5 text-[11px] text-info border border-info/15 transition-colors hover:bg-info/25 hover:border-info/30"
-                                                                    title={`Перейти к ${ref.nodeName}`}
+                                                                    title={tf('settings.goToNode', {
+                                                                        name: ref.nodeName,
+                                                                    })}
                                                                 >
                                                                     {t(TYPE_LABEL_KEYS[ref.type] ?? 'sidebar.command.label') ||
                                                                         ref.type}

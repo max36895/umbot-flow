@@ -1,8 +1,14 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import useFlowStore from '../../store/flowStore';
-import { listRecentProjects, removeRecentProject, MAX_PROJECTS } from '../../utils/projectsStore';
+import {
+    listRecentProjects,
+    removeRecentProject,
+    MAX_PROJECTS,
+    type ProjectSnapshot,
+} from '../../utils/projectsStore';
 import { t, tf } from '../../i18n';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 /**
  * Дроп-даун недавних проектов — быстрый переход между ботами.
@@ -19,6 +25,7 @@ export default function ProjectsMenu() {
     const ref = useRef<HTMLDivElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+    const [pendingProject, setPendingProject] = useState<ProjectSnapshot | null>(null);
 
     // Позиция меню привязана к кнопке; пересчитываем при скролле/ресайзе,
     // чтобы меню не «отрывалось» от кнопки при горизонтальном скролле тулбара
@@ -125,14 +132,8 @@ export default function ProjectsMenu() {
                                     >
                                         <button
                                             onClick={() => {
-                                                if (
-                                                    !isCurrent &&
-                                                    !window.confirm(
-                                                        tf('projects.openConfirm', {
-                                                            name: p.name,
-                                                        }),
-                                                    )
-                                                ) {
+                                                if (!isCurrent) {
+                                                    setPendingProject(p);
                                                     return;
                                                 }
                                                 fromJSON(p.doc);
@@ -183,6 +184,19 @@ export default function ProjectsMenu() {
                     </div>,
                     document.body,
                 )}
+
+            {pendingProject && (
+                <ConfirmDialog
+                    title={t('projects.openTitle')}
+                    message={tf('projects.openConfirm', { name: pendingProject.name })}
+                    onConfirm={() => {
+                        fromJSON(pendingProject.doc);
+                        setPendingProject(null);
+                        setOpen(false);
+                    }}
+                    onCancel={() => setPendingProject(null)}
+                />
+            )}
         </div>
     );
 }

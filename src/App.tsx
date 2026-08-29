@@ -35,10 +35,27 @@ export default function App() {
         }
     }, []);
 
+    // Гарантированная запись при закрытии/скрытии вкладки: debounce autoSave (300 мс)
+    // иначе терял последние правки при быстром закрытии. pagehide надёжнее unload
+    // (работает в bfcache и мобильных браузерах), visibilitychange — для перехода
+    // в фон, где debounce может не успеть до убийства процесса.
+    useEffect(() => {
+        const flush = () => useFlowStore.getState().flushSave();
+        const onVisibility = () => {
+            if (document.visibilityState === 'hidden') flush();
+        };
+        window.addEventListener('pagehide', flush);
+        document.addEventListener('visibilitychange', onVisibility);
+        return () => {
+            window.removeEventListener('pagehide', flush);
+            document.removeEventListener('visibilitychange', onVisibility);
+        };
+    }, []);
+
     // Ctrl+K — палитра команд
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault();
                 setPaletteOpen((v) => !v);
             }
@@ -55,9 +72,11 @@ export default function App() {
             const isInput =
                 e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
             const mod = e.ctrlKey || e.metaKey;
+            // toLowerCase — чтобы хоткеи работали и с включённым Caps Lock
+            const key = e.key.toLowerCase();
 
             // Ctrl+D — дублирование (всегда работает)
-            if (mod && e.key === 'd' && !isInput) {
+            if (mod && key === 'd' && !isInput) {
                 e.preventDefault();
                 const id = useUiStore.getState().selectedNodeId;
                 if (id) {
@@ -68,7 +87,7 @@ export default function App() {
 
             // Delete/Backspace — удаление выделенных нод и рёбер.
             // Глобально, чтобы работало без фокуса на канвасе.
-            if ((e.key === 'Delete' || e.key === 'Backspace') && !isInput) {
+            if ((key === 'delete' || key === 'backspace') && !isInput) {
                 const state = useFlowStore.getState();
                 const nodeIds = new Set(state.nodes.filter((n) => n.selected).map((n) => n.id));
                 const edgeIds = new Set(state.edges.filter((ed) => ed.selected).map((ed) => ed.id));
@@ -86,7 +105,7 @@ export default function App() {
             }
 
             // Ctrl+C — копирование (fallback через localStorage)
-            if (mod && e.key === 'c' && !isInput) {
+            if (mod && key === 'c' && !isInput) {
                 const id = useUiStore.getState().selectedNodeId;
                 if (id) {
                     const node = useFlowStore.getState().nodes.find((n) => n.id === id);
@@ -103,7 +122,7 @@ export default function App() {
             }
 
             // Ctrl+X — вырезание
-            if (mod && e.key === 'x' && !isInput) {
+            if (mod && key === 'x' && !isInput) {
                 const id = useUiStore.getState().selectedNodeId;
                 if (id) {
                     const node = useFlowStore.getState().nodes.find((n) => n.id === id);
@@ -122,7 +141,7 @@ export default function App() {
             }
 
             // Ctrl+V — вставка (fallback через localStorage)
-            if (mod && e.key === 'v' && !isInput) {
+            if (mod && key === 'v' && !isInput) {
                 const tryInsert = (text: string) => {
                     try {
                         const data = JSON.parse(text);

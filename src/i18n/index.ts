@@ -17,6 +17,14 @@ let currentLocale: Locale = (() => {
     return navigator.language.startsWith('ru') ? 'ru' : 'en';
 })();
 
+/** Выставляет текущую локаль в атрибут <html lang> — для a11y и SEO. */
+function applyLang(locale: Locale): void {
+    if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('lang', locale);
+    }
+}
+applyLang(currentLocale);
+
 // Слушатели смены locale — используем react-компонентам
 type LocaleListener = () => void;
 const listeners = new Set<LocaleListener>();
@@ -47,6 +55,7 @@ export function tf(key: string, params: Record<string, string | number>): string
 export function setLocale(locale: Locale): void {
     if (currentLocale === locale) return;
     currentLocale = locale;
+    applyLang(locale);
     try {
         localStorage.setItem(STORAGE_KEY, locale);
     } catch {

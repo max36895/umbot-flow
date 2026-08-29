@@ -33,17 +33,27 @@ export default function ExportDialog() {
     };
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(JSON.stringify(doc, null, 2)).then(() => {
-            setJsonCopied(true);
-            setTimeout(() => setJsonCopied(false), 2000);
-        });
+        navigator.clipboard
+            ?.writeText(JSON.stringify(doc, null, 2))
+            .then(() => {
+                setJsonCopied(true);
+                setTimeout(() => setJsonCopied(false), 2000);
+            })
+            .catch(() => {
+                /* clipboard недоступен (например, http-контекст) — молча игнорируем */
+            });
     };
 
     const handleCopyCommand = useCallback(() => {
-        navigator.clipboard.writeText(command).then(() => {
-            setCommandCopied(true);
-            setTimeout(() => setCommandCopied(false), 2000);
-        });
+        navigator.clipboard
+            ?.writeText(command)
+            .then(() => {
+                setCommandCopied(true);
+                setTimeout(() => setCommandCopied(false), 2000);
+            })
+            .catch(() => {
+                /* clipboard недоступен — молча игнорируем */
+            });
     }, [command]);
 
     const handleErrorClick = (nodeId: string) => {
@@ -211,12 +221,16 @@ export default function ExportDialog() {
                                                 npx umbot create from-flow {safeFileName}.json
                                                 --output ./my-bot --usecloud
                                             </code>
-                                            <button
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard
+                                                    ?.writeText(
                                                         `npx umbot create from-flow ${safeFileName}.json --output ./my-bot --usecloud`,
-                                                    );
-                                                }}
+                                                    )
+                                                    .catch(() => {
+                                                        /* clipboard недоступен — молча игнорируем */
+                                                    });
+                                            }}
                                                 title={t('export.copyCommand')}
                                                 className="flex-shrink-0 rounded border border-success/30 bg-success/10 p-1 text-success transition-colors hover:bg-success/20"
                                             >

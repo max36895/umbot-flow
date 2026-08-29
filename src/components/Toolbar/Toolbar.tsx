@@ -9,8 +9,10 @@ import {
     saveRecentProject,
     listRecentProjects,
     removeRecentProject,
+    type ProjectSnapshot,
 } from '../../utils/projectsStore';
 import AlertDialog from '../ui/AlertDialog';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import {
     IconUndo,
     IconRedo,
@@ -47,6 +49,7 @@ export default function Toolbar() {
     const setMetadata = useFlowStore((s) => s.setMetadata);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+    const [confirmNewOpen, setConfirmNewOpen] = useState(false);
 
     // Бургер-меню для узких экранов: показываем, когда тулбар переполнен
     const toolbarRef = useRef<HTMLDivElement>(null);
@@ -91,29 +94,32 @@ export default function Toolbar() {
     }, [metadata.name, nodes, toJSON]);
 
     const handleNewProject = useCallback(() => {
-        if (window.confirm(t('toolbar.newProject') + '?')) {
-            fromJSON({
-                schemaVersion: '1.0',
-                name: 'New Bot',
-                version: '1.0.0',
-                description: '',
-                platforms: [],
-                database: { type: 'file', config: {} },
-                mode: 'prod',
-                isLocalStorage: true,
-                nodes: [],
-                edges: [],
-                fallback: {
-                    text:
-                        locale === 'ru'
-                            ? 'Извините, я вас не понял.'
-                            : "Sorry, I didn't understand.",
-                },
-                welcome: { text: '', buttons: [] },
-                helpText: { text: '' },
-                variables: {},
-            });
-        }
+        setConfirmNewOpen(true);
+    }, []);
+
+    const confirmNewProject = useCallback(() => {
+        setConfirmNewOpen(false);
+        fromJSON({
+            schemaVersion: '1.0',
+            name: 'New Bot',
+            version: '1.0.0',
+            description: '',
+            platforms: [],
+            database: { type: 'file', config: {} },
+            mode: 'prod',
+            isLocalStorage: true,
+            nodes: [],
+            edges: [],
+            fallback: {
+                text:
+                    locale === 'ru'
+                        ? 'Извините, я вас не понял.'
+                        : "Sorry, I didn't understand.",
+            },
+            welcome: { text: '', buttons: [] },
+            helpText: { text: '' },
+            variables: {},
+        });
     }, [fromJSON, locale]);
 
     const handleExportJSON = useCallback(() => {
@@ -188,7 +194,7 @@ export default function Toolbar() {
             a.download = `${metadata.name || 'flow'}-full.png`;
             a.click();
         } catch {
-            alert(t('error.exportFailed'));
+            setAlertDialog({ title: t('error.exportTitle'), message: t('error.exportFailed') });
         }
     }, [metadata.name]);
 
@@ -198,37 +204,39 @@ export default function Toolbar() {
             const isInput =
                 e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
             const mod = e.ctrlKey || e.metaKey;
+            // toLowerCase — чтобы хоткеи работали и с включённым Caps Lock
+            const key = e.key.toLowerCase();
 
             // Ctrl+N — новый проект
-            if (mod && e.key === 'n') {
+            if (mod && key === 'n') {
                 e.preventDefault();
                 handleNewProject();
                 return;
             }
 
             // Ctrl+S — экспорт JSON
-            if (mod && e.key === 's') {
+            if (mod && key === 's') {
                 e.preventDefault();
                 handleExportJSON();
                 return;
             }
 
             // Ctrl+P — превью чата
-            if (mod && e.key === 'p' && !e.shiftKey) {
+            if (mod && key === 'p' && !e.shiftKey) {
                 e.preventDefault();
                 togglePreview();
                 return;
             }
 
             // Ctrl+Z — отмена
-            if (mod && e.key === 'z' && !e.shiftKey && !isInput) {
+            if (mod && key === 'z' && !e.shiftKey && !isInput) {
                 e.preventDefault();
                 undo();
                 return;
             }
 
             // Ctrl+Shift+Z — повтор
-            if (mod && e.key === 'z' && e.shiftKey && !isInput) {
+            if (mod && key === 'z' && e.shiftKey && !isInput) {
                 e.preventDefault();
                 redo();
                 return;
@@ -408,6 +416,15 @@ export default function Toolbar() {
                     onClose={() => setAlertDialog(null)}
                 />
             )}
+
+            {confirmNewOpen && (
+                <ConfirmDialog
+                    title={t('toolbar.newProject')}
+                    message={t('toolbar.newProjectConfirm')}
+                    onConfirm={confirmNewProject}
+                    onCancel={() => setConfirmNewOpen(false)}
+                />
+            )}
         </>
     );
 }
@@ -489,6 +506,7 @@ function BurgerMenu({
     const fromJSON = useFlowStore((s) => s.fromJSON);
     const metadata = useFlowStore((s) => s.metadata);
     const [projects, setProjects] = useState<ReturnType<typeof listRecentProjects>>([]);
+    const [pendingProject, setPendingProject] = useState<ProjectSnapshot | null>(null);
 
     useEffect(() => {
         setProjects(listRecentProjects());
@@ -515,6 +533,7 @@ function BurgerMenu({
     );
 
     return (
+        <>
         <div className="absolute right-0 top-full z-menu mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-glass-border bg-surface-panel py-1.5 shadow-panel-lg backdrop-blur-xl">
             {item(<IconUndo />, t('toolbar.undo'), onUndo)}
             {item(<IconRedo />, t('toolbar.redo'), onRedo)}
@@ -552,10 +571,8 @@ function BurgerMenu({
                         <div key={p.id} className="group flex items-center gap-1 pr-2">
                             <button
                                 onClick={() => {
-                                    if (
-                                        p.name !== metadata.name &&
-                                        !window.confirm(tf('projects.openConfirm', { name: p.name }))
-                                    ) {
+                                    if (p.name !== metadata.name) {
+                                        setPendingProject(p);
                                         return;
                                     }
                                     fromJSON(p.doc);
@@ -593,6 +610,20 @@ function BurgerMenu({
                 </>
             )}
         </div>
+
+        {pendingProject && (
+            <ConfirmDialog
+                title={t('projects.openTitle')}
+                message={tf('projects.openConfirm', { name: pendingProject.name })}
+                onConfirm={() => {
+                    fromJSON(pendingProject.doc);
+                    setPendingProject(null);
+                    onClose();
+                }}
+                onCancel={() => setPendingProject(null)}
+            />
+        )}
+        </>
     );
 }
 

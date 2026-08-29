@@ -282,7 +282,7 @@ export default function ChatPreview() {
         );
         const welcomeText = welcomeNode
             ? (welcomeNode as CommandNodeData).response.text
-            : doc.welcome.text;
+            : doc.welcome?.text ?? '';
         if (welcomeText) {
             setMessages([{ role: 'bot', text: welcomeText }]);
         }
@@ -312,7 +312,7 @@ export default function ChatPreview() {
         );
         const welcomeText = welcomeNode
             ? (welcomeNode as CommandNodeData).response.text
-            : doc.welcome.text;
+            : doc.welcome?.text ?? '';
         if (welcomeText) {
             setMessages([{ role: 'bot', text: welcomeText }]);
         } else {
@@ -534,7 +534,7 @@ export default function ChatPreview() {
                 } else {
                     newMessages.push({
                         role: 'bot',
-                        text: substitute(doc.fallback.text, variables),
+                        text: substitute(doc.fallback?.text ?? '', variables),
                     });
                 }
 
@@ -613,7 +613,7 @@ export default function ChatPreview() {
                 setWaitingForStep(result.waitStep);
             }
         } else {
-            newMessages.push({ role: 'bot', text: substitute(doc.fallback.text, variables) });
+            newMessages.push({ role: 'bot', text: substitute(doc.fallback?.text ?? '', variables) });
         }
 
         setMessages(newMessages);
