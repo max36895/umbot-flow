@@ -147,6 +147,160 @@ describe('templateGenerator', () => {
             expect(idx?.content).toContain("setText(ctrl, 'High')");
             expect(idx?.content).toContain("setText(ctrl, 'Low')");
         });
+
+        it('multiple inline conditions — no duplicate const declarations', () => {
+            // Регрессия: два условия в одной команде ранее порождали два const condVar
+            // в одной области видимости — сгенерированный код не компилировался.
+            const doc: FlowDocument = {
+                ...simpleDoc,
+                nodes: [
+                    {
+                        type: 'command',
+                        id: 'c',
+                        name: 'c',
+                        slots: ['t'],
+                        isPattern: false,
+                        conditions: [
+                            { variable: 'a', operator: 'eq', value: '1' },
+                            { variable: 'b', operator: 'neq', value: '2' },
+                        ],
+                        response: { text: '', buttons: [], sounds: [] },
+                    },
+                ],
+            };
+            const idx = generateProject(doc).find((f) => f.path === 'src/index.ts');
+            const code = idx?.content ?? '';
+            // Каждый const объявляется ровно один раз на уровень блока
+            expect(code.split('const condVar').length - 1).toBe(2); // по одному в каждом блоке условия
+            // Блоки-обёртки присутствуют и корректно закрыты
+            expect(code).toMatch(/\{\s*\n\s*const condVar/);
+            // Второй блок: const объявлен внутри отдельного скоупа — считаем пары "{ const condVar"
+            const scopedOccurrences = code.match(/\{[^{}]*const condVar/g) ?? [];
+            expect(scopedOccurrences.length).toBe(2);
+        });
+
+        it('sanity: generated code passes a strict block-scope parse (no redeclared consts)', () => {
+            // грубая проверка: на каждый "const X" в одной строке области — максимум одно объявление.
+            // Полный парс JS здесь не делаем — оцениваем только одноблочные дубли.
+            const doc: FlowDocument = {
+                ...simpleDoc,
+                nodes: [
+                    {
+                        type: 'command',
+                        id: 'c',
+                        name: 'c',
+                        slots: ['t'],
+                        isPattern: false,
+                        conditions: [
+                            { variable: 'a', operator: 'eq', value: '1' },
+                            { variable: 'b', operator: 'neq', value: '2' },
+                            { variable: 'c', operator: 'gt', value: '3' },
+                        ],
+                        response: { text: '', buttons: [], sounds: [] },
+                    },
+                ],
+            };
+            const idx = generateProject(doc).find((f) => f.path === 'src/index.ts');
+            const code = idx?.content ?? '';
+            const scopedOccurrences = code.match(/\{[^{}]*const condVar/g) ?? [];
+            expect(scopedOccurrences.length).toBe(3);
+        });
+    });
+
+    describe('role nodes (welcome/help/fallback)', () => {
+        const roleDoc: FlowDocument = {
+            ...simpleDoc,
+            fallback: { text: 'Meta fallback' },
+            welcome: { text: 'Meta welcome', buttons: [] },
+            helpText: { text: 'Meta help' },
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'w1',
+                    name: 'welcome',
+                    slots: [],
+                    isPattern: false,
+                    role: 'welcome',
+                    response: { text: 'Node welcome', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'command',
+                    id: 'h1',
+                    name: 'help',
+                    slots: [],
+                    isPattern: false,
+                    role: 'help',
+                    response: { text: 'Node help', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'command',
+                    id: 'f1',
+                    name: 'fallback',
+                    slots: [],
+                    isPattern: false,
+                    role: 'fallback',
+                    response: { text: 'Node fallback', buttons: [], sounds: [] },
+                },
+            ],
+            edges: [],
+        };
+
+        it('role node texts go to setPlatformParams, node wins over metadata', () => {
+            const idx = generateProject(roleDoc).find((f) => f.path === 'src/index.ts');
+            const code = idx?.content ?? '';
+            expect(code).toContain("welcome_text: 'Node welcome'");
+            expect(code).toContain("help_text: 'Node help'");
+            expect(code).toContain("empty_text: 'Node fallback'");
+            // Метадата перезаписана нодами — её тексты не должны победить
+            expect(code).not.toContain("welcome_text: 'Meta welcome'");
+            expect(code).not.toContain("empty_text: 'Meta fallback'");
+        });
+
+        it('role nodes do not generate dead addCommand handlers', () => {
+            const idx = generateProject(roleDoc).find((f) => f.path === 'src/index.ts');
+            const code = idx?.content ?? '';
+            expect(code).not.toContain("addCommand('welcome'");
+            expect(code).not.toContain("addCommand('help'");
+            expect(code).not.toContain("addCommand('fallback'");
+            // FALLBACK_COMMAND — ровно один, с текстом ноды
+            expect(code.split('FALLBACK_COMMAND').length - 1).toBe(2); // import + addCommand
+            expect(code).toContain("setText(ctrl, 'Node fallback')");
+        });
+
+        it('empty node text does not override non-empty metadata text', () => {
+            const doc: FlowDocument = {
+                ...roleDoc,
+                nodes: [
+                    {
+                        type: 'command',
+                        id: 'w1',
+                        name: 'welcome',
+                        slots: [],
+                        isPattern: false,
+                        role: 'welcome',
+                        response: { text: '', buttons: [], sounds: [] },
+                    },
+                ],
+            };
+            const idx = generateProject(doc).find((f) => f.path === 'src/index.ts');
+            expect(idx?.content).toContain("welcome_text: 'Meta welcome'");
+        });
+
+        it('metadata texts used when no role nodes exist', () => {
+            const doc: FlowDocument = {
+                ...simpleDoc,
+                fallback: { text: 'Meta fallback' },
+                welcome: { text: 'Meta welcome', buttons: [] },
+                helpText: { text: 'Meta help' },
+                nodes: [],
+                edges: [],
+            };
+            const idx = generateProject(doc).find((f) => f.path === 'src/index.ts');
+            const code = idx?.content ?? '';
+            expect(code).toContain("welcome_text: 'Meta welcome'");
+            expect(code).toContain("help_text: 'Meta help'");
+            expect(code).toContain("empty_text: 'Meta fallback'");
+        });
     });
 
     describe('conditions (inline in command)', () => {

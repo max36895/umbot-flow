@@ -70,3 +70,50 @@ export function removeRecentProject(id: string): void {
 export function getRecentProject(id: string): ProjectSnapshot | null {
     return readProjects().find((p) => p.id === id) ?? null;
 }
+
+/**
+ * Освобождает место в localStorage для записи текущего проекта.
+ * Удаляет самые старые снапшоты истории (кроме protectName — текущего проекта),
+ * пока сумма (остающаяся история + incomingBytes) не помещается в эмпирический
+ * бюджет квоты. Возвращает true, если что-то удалили (вызывающий должен повторить
+ * запись), false — если удалять больше нечего.
+ *
+ * Механика проверки — пробная запись: после каждой эвикции пытаемся записать
+ * тестовый ключ размером с incoming данные. Это точнее оценки байтов, потому
+ * что quota зависит от origin и уже занятых ключей.
+ */
+export function evictProjectsForSpace(incomingBytes: number, protectName?: string): boolean {
+    let evicted = false;
+    // Защищаем текущий проект по имени (id строится из имени)
+    let protectId: string | null = null;
+    if (protectName) {
+        protectId = `proj_${protectName.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '_')}`;
+    }
+
+    const probeKey = 'umbot-flow-quota-probe';
+    const probeData = 'x'.repeat(Math.max(incomingBytes, 1024));
+
+    for (;;) {
+        // Помещается ли (история + incoming) в квоту? Пробуем записать incoming.
+        try {
+            localStorage.setItem(probeKey, probeData);
+            localStorage.removeItem(probeKey);
+            break; // place есть (или эвекция изначально не требовалась)
+        } catch {
+            // квоты не хватает — удаляем самый старый незащищённый снапшот.
+            // Сортируем по убыванию updatedAt и берём последний: при равных
+            // метках (записи в одну миллисекунду) последним оказывается снапшот,
+            // записанный раньше (unshift кладёт новые в начало массива).
+            const projects = readProjects();
+            const victim = [...projects]
+                .filter((p) => p.id !== protectId)
+                .sort((a, b) => b.updatedAt - a.updatedAt)
+                .pop();
+            if (!victim) break; // удалять больше нечего
+            writeProjects(projects.filter((p) => p.id !== victim.id));
+            evicted = true;
+        }
+    }
+
+    return evicted;
+}

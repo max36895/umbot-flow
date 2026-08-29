@@ -52,7 +52,7 @@ describe('Sidebar', () => {
 
     it('filters nodes by search query', () => {
         render(<Sidebar />);
-        const searchInput = screen.getByPlaceholderText('Search blocks...');
+        const searchInput = screen.getByPlaceholderText('Search blocks…');
         fireEvent.change(searchInput, { target: { value: 'condition' } });
         expect(screen.getByText('Condition')).toBeInTheDocument();
         expect(screen.queryByText('Command')).not.toBeInTheDocument();
@@ -60,7 +60,7 @@ describe('Sidebar', () => {
 
     it('shows no results message for empty search', () => {
         render(<Sidebar />);
-        const searchInput = screen.getByPlaceholderText('Search blocks...');
+        const searchInput = screen.getByPlaceholderText('Search blocks…');
         fireEvent.change(searchInput, { target: { value: 'zzzzz' } });
         expect(screen.getByText('No blocks found')).toBeInTheDocument();
     });

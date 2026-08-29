@@ -1,7 +1,7 @@
 import Ajv, { type ErrorObject } from 'ajv';
 import addFormats from 'ajv-formats';
 import type { FlowDocument, CommandNodeData, StepNodeData, ConditionNodeData } from '../types/flow';
-import { isValidJSIdentifier } from './identifiers';
+import { isValidJSIdentifier, sanitizeIdentifier } from './identifiers';
 import { t, tf } from '../i18n';
 
 /** Validation error. */
@@ -133,6 +133,42 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
             });
         } else {
             seenNames.set(name, node.id);
+        }
+    }
+
+    // DUPLICATE_SANITIZED_NAMES — разные имена блоков после санитизации для кодогена
+    // могут совпасть («my cmd» и «my-cmd» → оба my_cmd). Тогда два addStep с одним
+    // именем: второй перетирает первый, навигация thisIntentName уходит не туда.
+    {
+        const sanitizedToOwners = new Map<string, { name: string; id: string }[]>();
+        for (const node of doc.nodes) {
+            if (node.type === 'end') continue;
+            const role = (node as { role?: string }).role;
+            if (role === 'welcome' || role === 'help' || role === 'fallback') continue;
+            const name = (node as { name?: string }).name;
+            if (!name) continue;
+            const safeName = sanitizeIdentifier(name);
+            const owners = sanitizedToOwners.get(safeName) ?? [];
+            owners.push({ name, id: node.id });
+            sanitizedToOwners.set(safeName, owners);
+        }
+        for (const [safeName, owners] of sanitizedToOwners) {
+            if (owners.length < 2) continue;
+            const first = owners[0];
+            if (!first) continue;
+            // Ошибка вешается на каждый узел конфликта, кроме первого (как DUPLICATE_NAMES)
+            for (const owner of owners.slice(1)) {
+                errors.push({
+                    code: 'DUPLICATE_SANITIZED_NAMES',
+                    message: tf('validation.v.dupSanitizedNames', {
+                        name: owner.name,
+                        target: safeName,
+                        other: first.name,
+                    }),
+                    nodeId: owner.id,
+                    field: 'name',
+                });
+            }
         }
     }
 

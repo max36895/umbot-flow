@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import StatusBar from '../components/StatusBar/StatusBar';
 import useFlowStore from '../store/flowStore';
 import useUiStore from '../store/uiStore';
@@ -30,10 +30,24 @@ describe('StatusBar', () => {
         expect(useUiStore.getState().exportDialogOpen).toBe(true);
     });
 
-    it('shows saved indicator after changes settle', async () => {
-        useFlowStore.getState().addNode('command', { x: 0, y: 0 });
+    it('shows saving indicator while pending, saved after write', async () => {
+        useFlowStore.setState({ saveState: 'saving' });
         render(<StatusBar />);
-        // Initially "Saving…", then transitions to "Saved"
-        expect(screen.getByText(/Saving|Saved/)).toBeInTheDocument();
+        expect(screen.getByText(/Saving/)).toBeInTheDocument();
+
+        act(() => {
+            useFlowStore.setState({ saveState: 'saved' });
+        });
+        expect(screen.getByText(/Saved/)).toBeInTheDocument();
+    });
+
+    it('shows save-error warning with export action when storage fails', () => {
+        useFlowStore.setState({ saveState: 'error' });
+        render(<StatusBar />);
+        // Краткий текст ошибки + tooltip с деталями, клик открывает экспорт
+        const btn = screen.getByRole('button', { name: /Not saved/ });
+        expect(btn).toBeInTheDocument();
+        fireEvent.click(btn);
+        expect(useUiStore.getState().exportDialogOpen).toBe(true);
     });
 });

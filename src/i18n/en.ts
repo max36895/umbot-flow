@@ -26,7 +26,7 @@ export default {
     'sidebar.howToUse': 'How to use',
     'sidebar.added': 'Added',
     'sidebar.alreadyAdded': 'Already on canvas',
-    'sidebar.searchPlaceholder': 'Search blocks...',
+    'sidebar.searchPlaceholder': 'Search blocks…',
     'sidebar.noResults': 'No blocks found',
     'sidebar.tip1': 'Drag a block to the canvas',
     'sidebar.tip2': 'Click a block to edit properties',
@@ -237,7 +237,7 @@ export default {
     'help.shortcutPaste': 'Paste block',
     'help.shortcutDuplicate': 'Duplicate block',
     'help.shortcutDelete': 'Delete block or connection',
-    'help.close': 'Got it',
+    'help.close': 'Close',
     'help.docsLink': 'Full documentation',
 
     // Node badges
@@ -283,7 +283,7 @@ export default {
     'variable.global': 'Global variables',
 
     // Command palette
-    'palette.placeholder': 'Search blocks... (Ctrl+K)',
+    'palette.placeholder': 'Search blocks… (Ctrl+K)',
     'palette.noResults': 'No results',
     'palette.navHint': '↑↓ navigate',
     'palette.selectHint': 'Enter to select',

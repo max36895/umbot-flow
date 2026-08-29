@@ -3,86 +3,86 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://flow.maxim-m.ru/</loc>
-        <changefreq>weekly</changefreq>
+        <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs" />
+        <loc>https://flow.maxim-m.ru/docs/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/quick-start</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start" />
+        <loc>https://flow.maxim-m.ru/docs/quick-start/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start/" />
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/blocks</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks" />
+        <loc>https://flow.maxim-m.ru/docs/blocks/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/json-format</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format" />
+        <loc>https://flow.maxim-m.ru/docs/json-format/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/faq</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq" />
+        <loc>https://flow.maxim-m.ru/docs/faq/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq/" />
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/en</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs" />
+        <loc>https://flow.maxim-m.ru/docs/en/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/en/quick-start</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start" />
+        <loc>https://flow.maxim-m.ru/docs/en/quick-start/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start/" />
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/en/blocks</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks" />
+        <loc>https://flow.maxim-m.ru/docs/en/blocks/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/en/json-format</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format" />
+        <loc>https://flow.maxim-m.ru/docs/en/json-format/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>https://flow.maxim-m.ru/docs/en/faq</loc>
-        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq" />
-        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq" />
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq" />
+        <loc>https://flow.maxim-m.ru/docs/en/faq/</loc>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq/" />
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>

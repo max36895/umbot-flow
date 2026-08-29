@@ -215,7 +215,7 @@ export default function HelpModal() {
             {/* Footer */}
             <div className="flex items-center justify-between border-t border-outline-variant px-6 py-3">
                 <a
-                    href={getLocale() === 'en' ? '/docs/en' : '/docs'}
+                    href={getLocale() === 'en' ? '/docs/en/' : '/docs/'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-info/80 transition-colors hover:text-info"

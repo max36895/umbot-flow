@@ -553,3 +553,83 @@ describe('ValidationError.field — для подсветки полей в UI',
         expect(err?.field).toBe('slots');
     });
 });
+
+describe('DUPLICATE_SANITIZED_NAMES (collisions after sanitizeIdentifier)', () => {
+    const node = (id: string, name: string) => ({
+        type: 'command' as const,
+        id,
+        name,
+        slots: ['x'],
+        isPattern: false,
+        response: { text: 'a', buttons: [], sounds: [] },
+    });
+
+    it('flags names that differ only by characters sanitized to underscore', () => {
+        // «my cmd» и «my-cmd» → оба становятся my_cmd в сгенерированном коде
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [node('c1', 'my cmd'), node('c2', 'my-cmd')],
+            edges: [],
+        };
+        const errors = validateGraph(doc).filter((e) => e.code === 'DUPLICATE_SANITIZED_NAMES');
+        expect(errors).toHaveLength(1);
+        expect(errors[0]?.nodeId).toBe('c2');
+        expect(errors[0]?.field).toBe('name');
+        expect(errors[0]?.message).toContain('my_cmd');
+    });
+
+    it('does not flag unique sanitized names', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [node('c1', 'my cmd'), node('c2', 'other')],
+            edges: [],
+        };
+        const errors = validateGraph(doc).filter((e) => e.code === 'DUPLICATE_SANITIZED_NAMES');
+        expect(errors).toHaveLength(0);
+    });
+
+    it('underscore in original name collides with space in another (my_cmd vs my cmd)', () => {
+        // sanitizeIdentifier сохраняет «_» и заменяет пробел на «_»: оба имени → my_cmd
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [node('c1', 'my cmd'), node('c2', 'my_cmd')],
+            edges: [],
+        };
+        const errors = validateGraph(doc).filter((e) => e.code === 'DUPLICATE_SANITIZED_NAMES');
+        expect(errors).toHaveLength(1);
+    });
+
+    it('cyrillic letters are preserved by sanitizer (no false collision with underscores)', () => {
+        // Кириллица — это \\p{L}: sanitizeIdentifier её сохраняет, «блок» ≠ «____»
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [node('c1', 'блок'), node('c2', '____')],
+            edges: [],
+        };
+        const errors = validateGraph(doc).filter((e) => e.code === 'DUPLICATE_SANITIZED_NAMES');
+        expect(errors).toHaveLength(0);
+    });
+
+    it('three-way collision reports each node after the first', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [node('c1', 'a b'), node('c2', 'a-b'), node('c3', 'a.b')],
+            edges: [],
+        };
+        const errors = validateGraph(doc).filter((e) => e.code === 'DUPLICATE_SANITIZED_NAMES');
+        expect(errors.map((e) => e.nodeId)).toEqual(['c2', 'c3']);
+    });
+
+    it('role nodes (welcome/help/fallback) are excluded from the check', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                { ...node('w1', 'welcome'), role: 'welcome' },
+                node('c1', 'welcome'), // обычная команда с тем же sanitized именем
+            ],
+            edges: [],
+        };
+        const errors = validateGraph(doc).filter((e) => e.code === 'DUPLICATE_SANITIZED_NAMES');
+        expect(errors).toHaveLength(0);
+    });
+});

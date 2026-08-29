@@ -211,6 +211,92 @@ function buildMessage(
     };
 }
 
+/** Найти ноду Welcome по role (или undefined). */
+function findWelcomeNode(doc: FlowDocument): CommandNodeData | undefined {
+    return doc.nodes.find(
+        (n) => n.type === 'command' && (n as CommandNodeData).role === 'welcome',
+    ) as CommandNodeData | undefined;
+}
+
+/**
+ * Начальный ход превью: проигрывает цепочку от Welcome-ноды, а не только её текст.
+ * Welcome связан рёбром next с первым блоком (например, Step «Как тебя зовут?»),
+ * поэтому превью обязано дойти до Step и встать в ожидание ввода — иначе первый
+ * ответ пользователя уйдёт в fallback, хотя бот спроектирован корректно.
+ * Если Welcome-ноды нет — показываем только текст welcome из metadata.
+ */
+export function buildInitialTurn(doc: FlowDocument): {
+    msgs: Message[];
+    waitStep: string | null;
+    vars: Record<string, string>;
+} {
+    const welcomeNode = findWelcomeNode(doc);
+    if (!welcomeNode) {
+        const text = doc.welcome?.text ?? '';
+        return {
+            msgs: text ? [{ role: 'bot', text }] : [],
+            waitStep: null,
+            vars: {},
+        };
+    }
+
+    // Прогоняем цепочку от Welcome: сам welcome-ответ + всё, что связано с ним next-рёбрами
+    const msgs: Message[] = [];
+    const vars: Record<string, string> = {};
+    let waitStep: string | null = null;
+
+    if (welcomeNode.actions) Object.assign(vars, executeActions(welcomeNode.actions, vars));
+    msgs.push(buildMessage(welcomeNode.response, vars));
+
+    // Следуем по next-рёбрам до Step/End (та же логика, что в processChain)
+    let currentId: string | null = findEdge(doc, welcomeNode.id);
+    let safety = 0;
+    while (currentId && safety < 50) {
+        safety++;
+        const node = doc.nodes.find((n) => n.id === currentId);
+        if (!node) break;
+
+        if (node.type === 'command') {
+            const cmd = node as CommandNodeData;
+            if (cmd.actions) Object.assign(vars, executeActions(cmd.actions, vars));
+            msgs.push(buildMessage(cmd.response, vars));
+            currentId = findEdge(doc, node.id);
+            continue;
+        }
+        if (node.type === 'response') {
+            msgs.push(buildMessage((node as ResponseNodeData).response, vars));
+            currentId = findEdge(doc, node.id);
+            continue;
+        }
+        if (node.type === 'step') {
+            const step = node as StepNodeData;
+            if (step.actions) Object.assign(vars, executeActions(step.actions, vars));
+            msgs.push(buildMessage(step.prompt, vars));
+            waitStep = step.id;
+            break;
+        }
+        if (node.type === 'action') {
+            const actionNode = node as ActionNodeData;
+            Object.assign(vars, executeActions(actionNode.actions, vars));
+            if (actionNode.text) {
+                msgs.push(buildMessage({ text: actionNode.text, buttons: actionNode.buttons }, vars));
+            }
+            currentId = findEdge(doc, node.id);
+            continue;
+        }
+        if (node.type === 'condition') {
+            // Условие в начальной цепочке: переменная ещё пуста — идём по branch_false,
+            // как это сделал бы боты при первом входе
+            currentId = findEdge(doc, node.id, 'branch_false');
+            continue;
+        }
+        if (node.type === 'end') break;
+        break;
+    }
+
+    return { msgs, waitStep, vars };
+}
+
 /** Найти команду, совпадающую с вводом (по слотам или regex-паттерну). */
 function matchCommand(doc: FlowDocument, text: string): CommandNodeData | null {
     const lower = text.toLowerCase();
@@ -273,19 +359,13 @@ export default function ChatPreview() {
         requestAnimationFrame(() => setAnimate(true));
     }, []);
 
-    // Показать приветственное сообщение при открытии чата
+    // Начальный ход при открытии чата: проигрываем цепочку от Welcome (не только текст),
+    // чтобы следующий за Welcome Step встал в ожидание ввода
     useEffect(() => {
-        const doc = toJSON();
-        // Ищем ноду Welcome — приоритет ноде, затем metadata
-        const welcomeNode = doc.nodes.find(
-            (n) => n.type === 'command' && (n as CommandNodeData).role === 'welcome',
-        );
-        const welcomeText = welcomeNode
-            ? (welcomeNode as CommandNodeData).response.text
-            : doc.welcome?.text ?? '';
-        if (welcomeText) {
-            setMessages([{ role: 'bot', text: welcomeText }]);
-        }
+        const turn = buildInitialTurn(toJSON());
+        setMessages(turn.msgs);
+        setWaitingForStep(turn.waitStep);
+        setVariables(turn.vars);
     }, []);
 
     // Устанавливаем активный шаг при ожидании ввода
@@ -300,24 +380,13 @@ export default function ChatPreview() {
         setTimeout(() => togglePreview(), 150);
     };
 
-    // Сброс превью к начальному состоянию (Welcome)
+    // Сброс превью к начальному состоянию — заново проигрываем цепочку от Welcome
     const handleReset = () => {
-        setVariables({});
-        setWaitingForStep(null);
+        const turn = buildInitialTurn(toJSON());
+        setMessages(turn.msgs);
+        setWaitingForStep(turn.waitStep);
+        setVariables(turn.vars);
         setInput('');
-        // Показываем Welcome снова
-        const doc = toJSON();
-        const welcomeNode = doc.nodes.find(
-            (n) => n.type === 'command' && (n as CommandNodeData).role === 'welcome',
-        );
-        const welcomeText = welcomeNode
-            ? (welcomeNode as CommandNodeData).response.text
-            : doc.welcome?.text ?? '';
-        if (welcomeText) {
-            setMessages([{ role: 'bot', text: welcomeText }]);
-        } else {
-            setMessages([]);
-        }
     };
 
     // Мемоизируем doc — пересоздаётся только при изменении nodes/edges

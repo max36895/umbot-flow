@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
 import { useValidationErrors } from '../../hooks/useValidationDoc';
@@ -12,21 +11,13 @@ import { NodeIcon } from '../ui/NodeIcons';
 export default function StatusBar() {
     const nodes = useFlowStore((s) => s.nodes);
     const edges = useFlowStore((s) => s.edges);
-    const metadata = useFlowStore((s) => s.metadata);
+    const saveState = useFlowStore((s) => s.saveState);
     const selectNode = useUiStore((s) => s.selectNode);
     const toggleExportDialog = useUiStore((s) => s.toggleExportDialog);
     const locale = useUiStore((s) => s.locale);
 
     const errors = useValidationErrors();
     const errorCount = errors.length;
-
-    // Индикатор автосохранения — используем nodes/edges/metadata как триггер изменения
-    const [savedState, setSavedState] = useState<'idle' | 'saving' | 'saved'>('idle');
-    useEffect(() => {
-        setSavedState('saving');
-        const timer = setTimeout(() => setSavedState('saved'), 600);
-        return () => clearTimeout(timer);
-    }, [nodes, edges, metadata]);
 
     // Склонение существительных в зависимости от языка
     const pluralize = (n: number): string => {
@@ -109,14 +100,27 @@ export default function StatusBar() {
 
             <div className="flex-1" />
 
-            <span
-                className={`flex items-center gap-1 text-[11px] transition-colors ${
-                    savedState === 'saved' ? 'text-success/60' : 'text-fg/40'
-                }`}
-            >
-                {savedState === 'saved' && <NodeIcon name="check" size={10} strokeWidth={2} />}
-                {savedState === 'saved' ? t('statusbar.saved') : t('statusbar.saving')}
-            </span>
+            {saveState === 'error' ? (
+                <button
+                    onClick={toggleExportDialog}
+                    className="flex cursor-pointer items-center gap-1 rounded bg-error/15 px-2 py-0.5 text-error transition-colors hover:bg-error/25"
+                    title={t('statusbar.saveError')}
+                >
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-error" />
+                    {t('statusbar.saveErrorShort')}
+                </button>
+            ) : (
+                <span
+                    className={`flex items-center gap-1 text-[11px] transition-colors ${
+                        saveState === 'saved' ? 'text-success/60' : 'text-fg/40'
+                    }`}
+                >
+                    {saveState === 'saved' && (
+                        <NodeIcon name="check" size={10} strokeWidth={2} />
+                    )}
+                    {saveState === 'saved' ? t('statusbar.saved') : t('statusbar.saving')}
+                </span>
+            )}
 
             <span className="text-fg/50">
                 {nodes.length} {t('export.nodes')} · {edges.length} {t('export.edges')}

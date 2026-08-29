@@ -8,13 +8,11 @@ import type {
 import {
     TEMPLATE_VAR_REGEX,
     REGEX_ESCAPE_CHARS,
-    NON_UNICODE_CHARS,
-    LEADING_DIGIT_REGEX,
     NON_ALPHANUMERIC_HYPHEN,
     MULTIPLE_HYPHENS,
     LEADING_TRAILING_HYPHENS,
 } from './regex';
-import { isValidJSIdentifier } from './identifiers';
+import { isValidJSIdentifier, sanitizeIdentifier } from './identifiers';
 
 /** Генерируемый файл. */
 export interface GeneratedFile {
@@ -53,12 +51,6 @@ function getCachedRegex(pattern: string): RegExp {
         regexCache.set(pattern, re);
     }
     return re;
-}
-
-/** Санитизация имени блока в валидный JS-идентификатор. Поддержка Unicode. */
-function sanitizeIdentifier(name: string): string {
-    if (!name) return 'unnamed';
-    return String(name).replace(NON_UNICODE_CHARS, '_').replace(LEADING_DIGIT_REGEX, '_$1');
 }
 
 /** Безопасное имя переменной — невалидные имена оборачиваем в скобки. */
@@ -268,36 +260,43 @@ function generateConditionCode(
     return lines;
 }
 
-/** Генерирует код инлайн-условия с ответами true/false веток. */
+/**
+ * Генерирует код инлайн-условия с ответами true/false веток.
+ * Каждое условие обёрнуто в собственный блок {}, чтобы несколько условий
+ * в одной ноде не порождали дубликаты const condVar/condVal/numA/numB/useNum/result.
+ */
 function generateInlineCondition(
     cond: FlowCondition,
     varNames: string[],
     indent = '    ',
 ): string[] {
     const lines: string[] = [];
-    lines.push(...generateConditionCode(cond, varNames, indent));
+    lines.push(`${indent}{`);
+    const inner = `${indent}    `;
+    lines.push(...generateConditionCode(cond, varNames, inner));
     if (cond.responseTrue) {
-        lines.push(`${indent}if (result) {`);
+        lines.push(`${inner}if (result) {`);
         if (cond.responseTrue.text)
-            lines.push(`${indent}    ${setTextExpr(cond.responseTrue.text)};`);
+            lines.push(`${inner}    ${setTextExpr(cond.responseTrue.text)};`);
         if (cond.responseTrue.buttons) {
             for (const btn of cond.responseTrue.buttons) {
-                lines.push(`${indent}    ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
+                lines.push(`${inner}    ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
             }
         }
-        lines.push(`${indent}}`);
+        lines.push(`${inner}}`);
     }
     if (cond.responseFalse) {
-        lines.push(`${indent}if (!result) {`);
+        lines.push(`${inner}if (!result) {`);
         if (cond.responseFalse.text)
-            lines.push(`${indent}    ${setTextExpr(cond.responseFalse.text)};`);
+            lines.push(`${inner}    ${setTextExpr(cond.responseFalse.text)};`);
         if (cond.responseFalse.buttons) {
             for (const btn of cond.responseFalse.buttons) {
-                lines.push(`${indent}    ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
+                lines.push(`${inner}    ctrl.buttons.addBtn('${escapeStr(btn.title)}');`);
             }
         }
-        lines.push(`${indent}}`);
+        lines.push(`${inner}}`);
     }
+    lines.push(`${indent}}`);
     return lines;
 }
 
@@ -385,6 +384,39 @@ function hasTTSInDoc(nodes: FlowDocument['nodes']): boolean {
         }
         return false;
     });
+}
+
+/**
+ * Собирает тексты role-нод (welcome/help/fallback) для setPlatformParams и FALLBACK_COMMAND.
+ * Нода на холсте приоритетнее metadata: пользователь, перетащивший ноду «Старт»,
+ * редактирует текст в ней, а не в настройках. Роль ноды несёт поле role.
+ */
+function collectRoleTexts(
+    doc: FlowDocument,
+    validNodes: FlowDocument['nodes'],
+): {
+    welcome: string;
+    help: string;
+    fallback: string;
+} {
+    let welcome = doc.welcome?.text ?? '';
+    let help = doc.helpText?.text ?? '';
+    let fallback = doc.fallback?.text ?? '';
+
+    for (const node of validNodes) {
+        if (node.type !== 'command') continue;
+        const cmd = node as CommandNodeData;
+        if (cmd.role !== 'welcome' && cmd.role !== 'help' && cmd.role !== 'fallback') continue;
+        // Текст ноды имеет приоритет, но пустой текст ноды не затирает
+        // непустой текст настроек (нода только что перетащена, текст ещё не редактировали)
+        if (cmd.response?.text) {
+            if (cmd.role === 'welcome') welcome = cmd.response.text;
+            else if (cmd.role === 'help') help = cmd.response.text;
+            else fallback = cmd.response.text;
+        }
+    }
+
+    return { welcome, help, fallback };
 }
 
 /** Рекурсивно проверяет, нужен ли async для блока (HTTP в нём или в связанных блоках). */
@@ -514,20 +546,27 @@ function generateIndexTs(doc: FlowDocument): string {
     lines.push(`});`);
     lines.push(``);
 
-    // Параметры платформ
-    const helpText = doc.helpText?.text || doc.fallback.text;
+    // Параметры платформ. Тексты берём из role-нод (welcome/help/fallback), если они есть
+    // на холсте — нода приоритетнее metadata (пользователь редактирует текст в ноде).
+    // help при отсутствии — fallback (та же логика, что в ChatPreview).
+    const roleTexts = collectRoleTexts(doc, validNodes);
+    const helpText = roleTexts.help || roleTexts.fallback;
     lines.push(`bot.setPlatformParams({`);
-    lines.push(`    welcome_text: '${escapeStr(doc.welcome.text)}',`);
+    lines.push(`    welcome_text: '${escapeStr(roleTexts.welcome)}',`);
     lines.push(`    help_text: '${escapeStr(helpText)}',`);
-    lines.push(`    empty_text: '${escapeStr(doc.fallback.text)}',`);
+    lines.push(`    empty_text: '${escapeStr(roleTexts.fallback)}',`);
     lines.push(`    intents: [],`);
     lines.push(`});`);
     lines.push(``);
 
-    // Регистрация команд
+    // Регистрация команд. Role-ноды (welcome/help/fallback) пропускаем — их тексты
+    // идут в setPlatformParams/FALLBACK_COMMAND через collectRoleTexts. Отдельный
+    // addCommand('welcome', …) был бы мёртвым кодом (срабатывает только на слово
+    // «welcome»), а addCommand('fallback') перетирался бы поздним FALLBACK_COMMAND.
     for (const node of validNodes) {
         if (node.type !== 'command') continue;
         const cmd = node as CommandNodeData;
+        if (cmd.role === 'welcome' || cmd.role === 'help' || cmd.role === 'fallback') continue;
 
         const slotsStr = cmd.slots.map((s) => `'${escapeStr(s)}'`).join(', ');
         const isPattern = cmd.isPattern ? ', true' : '';
@@ -764,9 +803,9 @@ function generateIndexTs(doc: FlowDocument): string {
         lines.push(``);
     }
 
-    // Фоллбэк
+    // Фоллбэк — текст из role-ноды fallback (если есть) или из metadata
     lines.push(`bot.addCommand(FALLBACK_COMMAND, [], (cmd, ctrl) => {`);
-    lines.push(`    setText(ctrl, '${escapeStr(doc.fallback.text)}');`);
+    lines.push(`    setText(ctrl, '${escapeStr(roleTexts.fallback)}');`);
     lines.push(`});`);
     lines.push(``);
 

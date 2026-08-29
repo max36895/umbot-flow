@@ -241,23 +241,27 @@ export default function PropertiesPanel() {
                         <NodeIcon name="chevronRight" size={16} />
                     </button>
                     <div className="min-w-0">
-                        <h2 className="truncate text-sm font-bold text-fg/90 flex items-center gap-1.5">
-                            {typeLabel[selectedNode.type ?? ''] ?? selectedNode.type?.toUpperCase()}
+                        <h2 className="flex items-center gap-2 truncate text-sm font-bold text-fg/90">
+                            <span className="truncate">
+                                {typeLabel[selectedNode.type ?? ''] ?? selectedNode.type?.toUpperCase()}
+                            </span>
                             {justSaved && (
-                                <span className="inline-flex items-center gap-0.5 text-[11px] text-success font-normal">
+                                <span
+                                    className="inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-success/15 text-success"
+                                    title={t('statusbar.saved')}
+                                >
                                     <svg
                                         width="10"
                                         height="10"
                                         viewBox="0 0 16 16"
                                         fill="none"
                                         stroke="currentColor"
-                                        strokeWidth="2"
+                                        strokeWidth="2.5"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                     >
                                         <path d="M3 8l3 3 7-7" />
                                     </svg>
-                                    {t('statusbar.saved')}
                                 </span>
                             )}
                         </h2>

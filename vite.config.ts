@@ -1,19 +1,27 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import { resolve } from 'path';
 
 export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './src'),
+            '@': resolve(__dirname, './src'),
         },
     },
     server: {
         port: 3001,
     },
     build: {
+        // Мультистраничность: / — статический лендинг (index.html),
+        // /app — SPA-редактор (app.html). Docs-страницы и прочая статика
+        // из public/ копируются в dist/ как есть (publicDir по умолчанию):
+        // в них нет JS-бандлов, прогон через Rollup не нужен.
         rollupOptions: {
+            input: {
+                main: resolve(__dirname, 'index.html'),
+                app: resolve(__dirname, 'app.html'),
+            },
             output: {
                 // Разбиваем вендоров на отдельные чанки — они кэшируются браузером
                 // независимо от кода приложения. Function-форма надёжнее object-формы:

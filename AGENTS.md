@@ -2,7 +2,12 @@
 
 ## Overview
 
-Visual flow editor for building umbot chatbots. Users create bots by placing blocks on a canvas and connecting them. The editor generates JSON which can be converted to a complete umbot project via CLI.
+Visual flow editor for building umbot chatbots. Users create bots by placing blocks on a canvas and connecting them. The editor generates JSON which can be converted to a complete umbot project via CLI (`npx umbot create from-flow flow.json`).
+
+**Два входа** (не забыть при деплое и тестах):
+- `/` — статический лендинг (`index.html`, ~1400 строк, без React)
+- `/app` — React-редактор (`app.html`, монтируется в `#root`)
+Локальная проверка редактора: `npm run dev` → http://localhost:3001/app (не `/`!).
 
 ## Architecture
 
@@ -21,77 +26,37 @@ Visual flow editor for building umbot chatbots. Users create bots by placing blo
 ### Project Structure
 
 ```
-repos/umbot-flow-editor/
-├── src/
-│   ├── i18n/                        # Translations (ru.ts, en.ts)
-│   ├── types/
-│   │   └── flow.ts                  # TypeScript types for flow nodes
-│   ├── store/
-│   │   ├── flowStore.ts             # Graph state (nodes, edges, metadata)
-│   │   └── uiStore.ts               # UI state (selection, locale, modals)
-│   ├── components/
-│   │   ├── Canvas/
-│   │   │   ├── FlowCanvas.tsx       # Main canvas with React Flow
-│   │   │   ├── ContextMenu.tsx      # Right-click context menu
-│   │   │   ├── ValidationSync.tsx   # Единый прогон валидации → validationStore
-│   │   │   ├── nodes/               # Node renderers (Command, Step, Action, etc.)
-│   │   │   │   ├── nodeColors.ts    # Единый источник цветов нод (CSS-переменные)
-│   │   │   │   ├── useNodeClasses.ts # Классы/стили нод по состоянию
-│   │   │   │   ├── useNodeErrors.tsx # Hook ошибок ноды + бейдж
-│   │   │   │   └── RoundTerminalNode.tsx # Общий круглый узел (Start/End)
-│   │   │   └── edges/               # Edge renderers
-│   │   ├── Sidebar/
-│   │   │   └── Sidebar.tsx          # Node palette for drag-and-drop
-│   │   ├── Properties/
-│   │   │   ├── PropertiesPanel.tsx   # Main panel (docked/floating)
-│   │   │   ├── CommandProps.tsx      # Command node properties
-│   │   │   ├── StepProps.tsx         # Step node properties
-│   │   │   ├── ActionProps.tsx       # Action node properties (STANDALONE)
-│   │   │   ├── ConditionProps.tsx    # Condition node properties
-│   │   │   ├── ResponseProps.tsx     # Response node properties
-│   │   │   ├── ActionEditor.tsx      # Inline action editor (for Command/Step)
-│   │   │   ├── ConditionEditor.tsx   # Inline condition editor (for Command/Step)
-│   │   │   ├── CardEditor.tsx        # Card/gallery editor
-│   │   │   └── shared/              # Shared components
-│   │   │       ├── Field.tsx         # Label + help wrapper
-│   │   │       ├── ResponseText.tsx  # VariablePicker with label
-│   │   │       ├── TTSField.tsx      # TTS textarea
-│   │   │       ├── VariableConfig.tsx # Variable name + comment + presets
-│   │   │       ├── HttpConfig.tsx    # HTTP method/URL/saveResponseTo
-│   │   │       ├── ActionBlockEditor.tsx # Общий редактор блоков действий (shared)
-│   │   │       └── AdvancedSettings.tsx # Collapsible advanced options
-│   │   ├── Preview/
-│   │   │   ├── ChatPreview.tsx       # Chat simulator
-│   │   │   └── MessageBubble.tsx     # Message rendering
-│   │   ├── Toolbar/
-│   │   │   ├── Toolbar.tsx           # Top toolbar
-│   │   │   ├── ProjectsMenu.tsx      # Recent projects dropdown
-│   │   │   └── ExportDialog.tsx      # Export modal (на базе ui/Modal)
-│   │   ├── Settings/
-│   │   │   └── BotSettingsModal.tsx   # Bot settings modal (тексты, БД, режим, токены)
-│   │   ├── Help/
-│   │   │   └── HelpModal.tsx         # Help documentation (на базе ui/Modal)
-│   │   ├── StatusBar/
-│   │   │   └── StatusBar.tsx         # Ошибки валидации + индикатор автосохранения
-│   │   ├── Palette/
-│   │   │   └── CommandPalette.tsx    # Ctrl+K быстрый поиск по нодам
-│   │   ├── ErrorBoundary.tsx         # Глобальный перехват ошибок рендера
-│   │   └── ui/
-│   │       ├── Modal.tsx              # Единый модальный контейнер (overlay+анимация+ESC)
-│   │       ├── PrimaryButton.tsx      # Градиентная CTA-кнопка (accent→info)
-│   │       ├── AlertDialog.tsx        # Alert на базе Modal + PrimaryButton
-│   │       ├── TagInput.tsx           # Tag-style input
-│   │       ├── HelpButton.tsx         # "?" help button (popover, не модалка)
-│   │       ├── VariablePicker.tsx     # Variable picker dropdown
-│   │       ├── NodeSelector.tsx       # Node selector dropdown
-│   │       └── PlatformSelector.tsx   # Platform multi-select
-│   ├── utils/
-│   │   ├── validator.ts              # JSON schema + graph validation
-│   │   └── templateGenerator.ts      # JSON → umbot project code
-│   ├── schemas/
-│   │   └── flow.schema.json          # JSON Schema
-│   └── __tests__/                    # Unit tests
-└── package.json
+umbot-flow/
+├── index.html                      # Лендинг (статика, без React)
+├── app.html                        # Редактор: точка монтирования React (#root)
+├── public/docs/                    # Статическая документация (ru/en)
+├── ROADMAP.md                      # Хотелки/доработки (приоритизировано)
+├── UX_AUDIT.md                     # Прошлый UX-аудит (большинство пунктов закрыто)
+├── BUGREPORT_cli_step_lowercase.md # Открытый баг CLI фреймворка (регистр ввода)
+└── src/
+    ├── main.tsx                    # Монтирование React (ErrorBoundary + StrictMode)
+    ├── App.tsx                     # Layout + глобальные хоткеи + flushSave на pagehide
+    ├── i18n/                       # ru.ts, en.ts (406+ ключей, полная парность), hook.ts
+    ├── types/
+    │   ├── flow.ts                 # Типы нод/документа + DEFAULT_METADATA
+    │   ├── nodes.ts                # to/fromReactFlowEdge
+    │   └── operators.ts            # Пресеты условий
+    ├── store/
+    │   ├── flowStore.ts            # Граф + undo/redo + автосейв (см. State Management)
+    │   ├── uiStore.ts              # UI-состояние (persist middleware)
+    │   └── validationStore.ts      # Ошибки валидации по nodeId
+    ├── hooks/                      # useDebouncedValue, useNodeFieldErrors, useValidationDoc
+    ├── utils/
+    │   ├── validator.ts            # AJV-схема + графовые проверки (DUPLICATE_SANITIZED_NAMES и др.)
+    │   ├── templateGenerator.ts    # JSON → TypeScript-код проекта
+    │   ├── identifiers.ts          # isValidJSIdentifier + sanitizeIdentifier (единый источник!)
+    │   ├── projectsStore.ts        # Недавние проекты + evictProjectsForSpace (квота)
+    │   ├── starterDoc.ts           # Демо-флоу (локализуется по локали!)
+    │   ├── safeMath.ts             # Парсер арифметики без eval
+    │   └── regex.ts                # Общие константы регулярок
+    ├── components/                  # (структура ниже)
+    ├── schemas/flow.schema.json    # JSON Schema (schemaVersion: const "1.0")
+    └── __tests__/                   # Vitest: generator, validator, storage, previewScenario, ...
 ```
 
 ## Key Component Relationships
@@ -174,6 +139,22 @@ Both MUST use the same VariableConfig component for consistency.
 - **uiStore.ts** — selectedNodeId, selectedEdgeId, propertiesPanelMode (docked/floating), activePreviewNodeId, botSettingsOpen, minimapVisible, theme (dark/light через `data-theme`), locale
 - **validationStore.ts** — результат единого прогона валидации (`nodeErrors` по id узла); заполняется в `Canvas/ValidationSync.tsx`, читается нодами (`useNodeErrors`), панелью свойств и StatusBar
 
+### Автосохранение (честный индикатор)
+
+- **`saveState`**: `'idle' | 'saving' | 'saved' | 'error'` — состояние **по факту записи** в localStorage, не по факту изменения. StatusBar подписан на него; при `'error'` показывает красное «Не сохранено» с кликом → экспорт.
+- **`persistNow()`** — синхронная запись. При `QuotaExceededError` вызывает `evictProjectsForSpace(bytes, currentProjectName)` из `projectsStore.ts`: удаляет самые старые снапшоты истории недавних проектов (текущий проект защищён), затем повторяет запись. Только после неудачной эвикции — `saveState: 'error'`.
+- **`flushSave()`** — немедленная запись без debounce, вешается на `pagehide` и `visibilitychange→hidden` в App.tsx. Пишет только если есть pending-дебаунс (иначе no-op).
+- **Undo-история** — модульные массивы вне стора (50 шагов), коалесцинг правок одной ноды одной формы патча в пределах 1 сек (`COALESCE_WINDOW_MS`) — один шаг undo на ввод текста. **Не переживает перезагрузку** (в ROADMAP).
+- **`normalizeMetadata()`** — «чужой» документ без fallback/welcome/database не должен ронять UI: структурные дефолты из DEFAULT_METADATA, пользовательские тексты — пустые.
+- **schemaVersion** — при несовпадении с `CURRENT_SCHEMA_VERSION` localStorage сбрасывается (миграций пока нет — см. ROADMAP #4).
+
+### Превью (ChatPreview)
+
+- **`buildInitialTurn(doc)`** (экспортируется, тестируется) — начальный ход: проигрывает цепочку от Welcome-ноды по next-рёбрам до первого Step, возвращает `{msgs, waitStep, vars}`. Используется при открытии превью и в handleReset. **Инвариант**: если Welcome связан со Step, превью обязано встать в ожидание ввода — иначе первый ответ пользователя уйдёт в fallback (это был баг, покрыт тестами в `previewScenario.test.ts`).
+- Внутри начальной цепочки Condition всегда идёт по `branch_false` (переменные ещё пусты).
+- Предохранитель от циклов: `safety < 50` и в `buildInitialTurn`, и в `processChain`.
+- HTTP в превью — честная заглушка: сообщение «(имитация)» + мок-значение в saveResponseTo.
+
 ## How umbot Works (for code generation)
 
 ### Two Handler Types Only
@@ -197,21 +178,42 @@ Response, Action, Condition узлы, подключённые через edges 
 1. **setTTS импорт** — только если хотя бы один узел (command, step, standalone response) имеет `tts`. Проверяется через `hasTTSInDoc()`.
 2. **Text импорт** — только если есть conditions с isSayTrue/isSayFalse/isUrl операторами.
 3. **rand импорт** — только если есть `random_number` действия.
-4. **sanitizeIdentifier** — имена блоков с пробелами/спецсимволами/кириллицей заменяются на `_`. Цифры в начале — префикс `_`.
-5. **safeVar** — имена переменных, начинающиеся с цифры, оборачиваются в скобки: `ctrl.userData['123']`.
-6. **resolveVars** — сортировка по длине (длинные имена первые) + `escapeRegExp` для предотвращения partial match (user/userName).
-7. **HTTP body с {{variables}}** — передаётся как template literal, а НЕ через JSON.parse.
-8. **filterValidNodes** — null/undefined узлы фильтруются перед обработкой.
-9. **Package name** — начинается с буквы, без спецсимволов, валидный npm identifier.
-10. **random_number min/max** — используют `??` (nullish coalescing), а не `||`, чтобы `min: 0` работал корректно.
+4. **sanitizeIdentifier** — импортируется из `utils/identifiers.ts` (ЕДИНЫЙ источник для генератора и валидатора; локальные копии запрещены). Имена блоков с пробелами/спецсимволами заменяются на `_`, кириллица сохраняется (`\p{L}`), цифры в начале — префикс `_`.
+5. **Коллизии санитизированных имён** — валидатор ловит кодом `DUPLICATE_SANITIZED_NAMES` («my cmd» и «my-cmd» → оба `my_cmd`). Role-ноды (welcome/help/fallback) исключены из проверки.
+6. **Инлайн-условия** — каждое условие внутри ноды оборачивается в собственный блок `{}` (регрессия: дубль `const condVar` ломал компиляцию при 2+ условиях; тесты в templateGenerator.test.ts).
+7. **Role-ноды (welcome/help/fallback)** — НЕ генерируют `addCommand`: их тексты идут в `setPlatformParams`/`FALLBACK_COMMAND` через `collectRoleTexts(doc, validNodes)` (нода приоритетнее metadata; пустой текст ноды не затирает непустой текст настроек). Отдельный `addCommand('welcome')` был мёртвым кодом, `addCommand('fallback')` перетирался поздним `FALLBACK_COMMAND`.
+8. **safeVar** — имена переменных, начинающиеся с цифры, оборачиваются в скобки: `ctrl.userData['123']`.
+9. **resolveVars** — сортировка по длине (длинные имена первые) + `escapeRegExp` для предотвращения partial match (user/userName).
+10. **HTTP body с {{variables}}** — передаётся как template literal, а НЕ через JSON.parse.
+11. **filterValidNodes** — null/undefined узлы фильтруются перед обработкой (ВСЕ циклы генератора и валидатора должны идти по validNodes — включая новые хелперы!).
+12. **Package name** — начинается с буквы, без спецсимволов, валидный npm identifier.
+13. **random_number min/max** — используют `??` (nullish coalescing), а не `||`, чтобы `min: 0` работал корректно.
+
+### Известное расхождение с CLI фреймворка
+
+CLI (`universal_bot-ts/cli/flowGenerator.js`) — **отдельная реализация** от нашего `templateGenerator.ts`. Известный баг CLI: для `saveAs: 'original'` генерирует `ctrl.userCommand` (нижний регистр от адаптеров) вместо `ctrl.originalUserCommand` — см. `BUGREPORT_cli_step_lowercase.md`. Редактор это обойти не может, фикс на стороне фреймворка.
 
 ## Testing
 
 ```bash
 npm run build    # TypeScript + Vite build
-npm run test     # Vitest tests
+npm run test     # Vitest tests (~215)
 npm run lint     # ESLint
 ```
+
+Наборы тестов (`src/__tests__/`):
+- `templateGenerator.test.ts` — кодоген (включая регрессии: блоки-обёртки условий, role-ноды)
+- `validator.test.ts` — схема + граф (включая DUPLICATE_SANITIZED_NAMES)
+- `storage.test.ts` — saveState, эвикция при квоте, flushSave
+- `previewScenario.test.ts` — buildInitialTurn (welcome-цепочка) + локализация стартера
+- `flowStore.test.ts`, `safeMath.test.ts`, `performance.test.ts`, UI-смоуки
+
+Правила:
+- Новый фикс сопровождается тестом, ловящим регрессию (см. блоки `{}` у инлайн-условий).
+- Тесты стора требуют `vi.useFakeTimers()` для debounce-логики (SAVE_DELAY=300 мс);
+  при fake timers у `Date.now()` одинаковые метки — учитывается тай-брейком эвикции.
+- Тесты UI-обновлений Zustand вне React-событий оборачивать в `act()`.
+- E2E (Playwright) пока нет — ROADMAP #2.
 
 ## File Naming Convention
 
@@ -219,3 +221,16 @@ npm run lint     # ESLint
 - Utils: camelCase (e.g., `templateGenerator.ts`)
 - Tests: `*.test.ts`
 - i18n keys: dot notation (e.g., `sidebar.command.label`)
+- i18n: **полная парность RU/EN ключей обязательна** (сейчас 406+; проверять при добавлении)
+
+## Критичные инварианты (не нарушать)
+
+1. **Позиции нод не входят в `toJSON()`** — FlowDocument без layout; `fromJSON` перестраивает авто-раскладкой. Изменение формата — только с миграцией (ROADMAP #5).
+2. **Демо-контент локализуется**: `buildStarterDocument(locale)` —RU/EN тексты задаются вместе, иначе EN-пользователь получает русское демо.
+3. **Превью должно проигрывать welcome-цепочку** (`buildInitialTurn`) — добавление новых типов нод требует поддержки и в `processChain`, и в `buildInitialTurn`, и в `templateGenerator` (три места дублируют логику обхода).
+4. **Экранирование U+2028/U+2029** в `escapeStr` обязательно — эти символы реально ломают JS-строки.
+5. **Кириллица — валидная часть имён блоков** (`\p{L}`): не «санитизировать в _», а честно обрабатывать (генерируется валидный TS).
+6. **Clipboard может быть недоступен** (http-контекст) — все `navigator.clipboard.writeText` идут с `?.` и `.catch()` + fallback через localStorage (см. App.tsx Ctrl+C/V/X).
+7. **`window.confirm`/`alert` запрещены** — только `ui/ConfirmDialog`/`ui/AlertDialog` (единый вид модалок).
+8. **Не хардкодить hex цветов нод** — только `NODE_COLORS[type].cssVar`/`nodeColorAlpha()`.
+9. **Фреймворк приводит `userCommand` к нижнему регистру** — превью и генератор редактора сохраняют оригинальный регистр; расхождение с CLI-генератором до фикса багрепорта (см. выше).

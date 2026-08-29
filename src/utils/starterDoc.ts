@@ -1,15 +1,25 @@
 import type { FlowDocument } from '../types/flow';
 import { DEFAULT_METADATA } from '../types/flow';
+import { getLocale, type Locale } from '../i18n';
 
 /**
  * Стартовый пример флоу — показывается при первом запуске.
  * Демонстрирует основные блоки и связи: Welcome → Step (имя) → Condition (проверка) → Response.
+ * Тексты демо-бота следуют текущей локали интерфейса, чтобы англоязычный пользователь
+ * получил демо-контент на понятном языке.
  */
-export function buildStarterDocument(): FlowDocument {
+export function buildStarterDocument(locale: Locale = getLocale()): FlowDocument {
+    const isRu = locale === 'ru';
+    const t = (ru: string, en: string) => (isRu ? ru : en);
+
     return {
         ...DEFAULT_METADATA,
         name: 'my-first-bot',
-        description: 'Пример бота: приветствие и знакомство',
+        description: t(
+            'Пример бота: приветствие и знакомство',
+            'Example bot: greeting and getting acquainted',
+        ),
+        fallback: { text: t('Извините, я вас не понял.', "Sorry, I didn't understand.") },
         nodes: [
             {
                 type: 'command',
@@ -18,7 +28,7 @@ export function buildStarterDocument(): FlowDocument {
                 slots: [],
                 isPattern: false,
                 response: {
-                    text: 'Привет! Я демо-бот. Как тебя зовут?',
+                    text: t('Привет! Я демо-бот. Как тебя зовут?', "Hi! I'm a demo bot. What's your name?"),
                     buttons: [],
                     sounds: [],
                 },
@@ -29,7 +39,7 @@ export function buildStarterDocument(): FlowDocument {
                 id: 'ask_name',
                 name: 'ask_name',
                 prompt: {
-                    text: 'Напишите ваше имя:',
+                    text: t('Напишите ваше имя:', 'Please enter your name:'),
                     buttons: [],
                 },
                 saveTo: 'userName',
@@ -48,15 +58,15 @@ export function buildStarterDocument(): FlowDocument {
                 id: 'greet_user',
                 name: 'greet_user',
                 response: {
-                    text: 'Приятно познакомиться, {{userName}}! Этот бот создан в Umbot Flow Editor. Откройте любой блок справа чтобы изменить его.',
+                    text: t(
+                        'Приятно познакомиться, {{userName}}! Этот бот создан в Umbot Flow Editor. Откройте любой блок справа чтобы изменить его.',
+                        'Nice to meet you, {{userName}}! This bot was created in Umbot Flow Editor. Open any block on the right to change it.',
+                    ),
                     buttons: [],
                     sounds: [],
                 },
             },
-            {
-                type: 'end',
-                id: 'end_final',
-            },
+            { type: 'end', id: 'end_final' },
         ],
         edges: [
             { from: 'welcome', to: 'ask_name', type: 'next' },
