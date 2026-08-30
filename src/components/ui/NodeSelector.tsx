@@ -16,10 +16,9 @@ export default function NodeSelector({
 }: NodeSelectorProps) {
     const nodes = useFlowStore((s) => s.nodes);
 
-    // Фильтруем ноды: исключаем текущую и тип end
-    const availableNodes = nodes.filter(
-        (n) => n.id !== excludeId && n.type !== 'end' && n.type !== 'start',
-    );
+    // Исключаем текущую ноду и стартовую: End — легитимная цель
+    // («после этого шага завершить диалог»). Welcome остаётся в списке.
+    const availableNodes = nodes.filter((n) => n.id !== excludeId && n.type !== 'start');
 
     return (
         <select
@@ -43,7 +42,9 @@ export default function NodeSelector({
                               ? '[act]'
                               : n.type === 'response'
                                 ? '[resp]'
-                                : '';
+                                : n.type === 'end'
+                                  ? '[end]'
+                                  : '';
                 return (
                     <option key={n.id} value={n.id}>
                         {typeLabel} {label}

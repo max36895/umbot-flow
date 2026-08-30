@@ -15,6 +15,21 @@ import { useLocale } from './i18n/hook';
 import useFlowStore from './store/flowStore';
 import { buildStarterDocument } from './utils/starterDoc';
 
+/** Короткое уведомление внизу по центру (автосейв/экспорт/копирование). */
+function Toast() {
+    const toast = useUiStore((s) => s.toast);
+    if (!toast) return null;
+    return (
+        <div
+            key={toast.id}
+            role="status"
+            className="pointer-events-none fixed bottom-12 left-1/2 z-alert -translate-x-1/2 rounded-lg border border-success/30 bg-surface-modal/95 px-4 py-2 text-xs text-fg shadow-[0_4px_24px_rgba(0,0,0,0.4)] backdrop-blur-md animate-[toastIn_.2s_ease-out]"
+        >
+            {toast.message}
+        </div>
+    );
+}
+
 export default function App() {
     const previewOpen = useUiStore((s) => s.previewOpen);
     const exportDialogOpen = useUiStore((s) => s.exportDialogOpen);
@@ -209,6 +224,7 @@ export default function App() {
                 {helpOpen && <HelpModal />}
                 {botSettingsOpen && <BotSettingsModal />}
                 {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
+                <Toast />
             </div>
         </ReactFlowProvider>
     );

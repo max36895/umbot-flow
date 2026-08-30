@@ -214,10 +214,12 @@ export default function Toolbar() {
                 return;
             }
 
-            // Ctrl+S — экспорт JSON
+            // Ctrl+S — экспорт JSON (проект и так автосохранён в браузере —
+            // говорим об этом явно, иначе Ctrl+S выглядит как «только сейчас сохранилось»)
             if (mod && key === 's') {
                 e.preventDefault();
                 handleExportJSON();
+                useUiStore.getState().showToast(t('toast.exported'));
                 return;
             }
 
@@ -302,7 +304,13 @@ export default function Toolbar() {
                     onChange={handleImportJSON}
                     className="hidden"
                 />
-                <ToolBtn onClick={handleExportJSON} title={t('toolbar.exportJson')}>
+                <ToolBtn
+                    onClick={() => {
+                        handleExportJSON();
+                        useUiStore.getState().showToast(t('toast.exported'));
+                    }}
+                    title={t('toolbar.exportJson')}
+                >
                     <IconExport />
                 </ToolBtn>
                 <ToolBtn onClick={handleExportPNGFull} title={t('toolbar.exportPng')}>

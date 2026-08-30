@@ -29,6 +29,7 @@ const SAVE_TO_PRESETS = [
 export function StepProps({ nodeId }: Props) {
     const node = useFlowStore((s) => s.nodes.find((n) => n.id === nodeId));
     const updateNodeData = useFlowStore((s) => s.updateNodeData);
+    const setNextTarget = useFlowStore((s) => s.setNextTarget);
     const fieldErrors = useNodeFieldErrors(nodeId);
     if (!node) return null;
 
@@ -90,7 +91,7 @@ export function StepProps({ nodeId }: Props) {
             <Field label={t('props.nextStep')} help={t('props.nextStepHelp')}>
                 <NodeSelector
                     value={data.next ?? ''}
-                    onChange={(val) => update({ next: val || undefined })}
+                    onChange={(val) => setNextTarget(nodeId, val || null)}
                     excludeId={nodeId}
                     className="w-full"
                 />

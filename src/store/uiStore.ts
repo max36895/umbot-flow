@@ -47,6 +47,8 @@ interface UIStore {
     botSettingsOpen: boolean;
     /** Состояние раскрытия расширенных настроек для каждой ноды. Ключ — nodeId. */
     advancedExpanded: Record<string, boolean>;
+    /** Текст короткого уведомления (toast). null — скрыто. В persist не сохраняется. */
+    toast: { message: string; id: number } | null;
 
     selectNode: (id: string | null) => void;
     selectEdge: (id: string | null) => void;
@@ -63,6 +65,8 @@ interface UIStore {
     toggleBotSettings: () => void;
     /** Установить состояние раскрытия расширенных настроек для ноды. */
     setAdvancedExpanded: (nodeId: string, expanded: boolean) => void;
+    /** Показать toast на 2.5 с (id — для анимации при повторных показах). */
+    showToast: (message: string) => void;
 }
 
 const useUiStore = create<UIStore>()(
@@ -85,6 +89,7 @@ const useUiStore = create<UIStore>()(
             activePreviewNodeId: null,
             botSettingsOpen: false,
             advancedExpanded: {},
+            toast: null,
 
             selectNode: (id) => set({ selectedNodeId: id, selectedEdgeId: null }),
             selectEdge: (id) => set({ selectedEdgeId: id, selectedNodeId: null }),
@@ -131,6 +136,13 @@ const useUiStore = create<UIStore>()(
                 set((s) => ({
                     advancedExpanded: { ...s.advancedExpanded, [nodeId]: expanded },
                 })),
+            showToast: (message) => {
+                set({ toast: { message, id: Date.now() } });
+                setTimeout(() => {
+                    // Гасим только свой toast — к моменту таймаута мог показаться другой
+                    set((s) => (s.toast?.message === message ? { toast: null } : s));
+                }, 2500);
+            },
         }),
         {
             name: 'umbot-flow-editor-ui',

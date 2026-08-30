@@ -197,6 +197,18 @@ body,
         0 4px 12px -2px rgba(0, 0, 0, 0.3);
 }
 
+/* Toast — появление короткого уведомления */
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 8px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
 /* Energy Pulse — пульсация активного блока в чате */
 @keyframes nodeActivePulse {
     0% {

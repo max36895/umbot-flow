@@ -5,6 +5,7 @@ import type {
     FlowMetadata,
     FlowNodeData as NodeData,
     CommandNodeData,
+    EdgeType,
 } from '../types/flow';
 import { DEFAULT_METADATA } from '../types/flow';
 import { toReactFlowEdge, fromReactFlowEdge } from '../types/nodes';
@@ -46,6 +47,12 @@ interface FlowStore {
     addEdge: (edge: Edge) => void;
     /** Remove an edge by id. */
     removeEdge: (id: string) => void;
+    /**
+     * Установить следующий блок для step-ноды (поле «Следующий блок» в панели свойств).
+     * Синхронизирует data.next И ребро next на холсте: поле — зеркало ребра,
+     * единый источник правды. targetId = null удаляет и поле, и ребро.
+     */
+    setNextTarget: (nodeId: string, targetId: string | null) => void;
     /** Set nodes directly (used by React Flow). */
     setNodes: (nodes: Node[]) => void;
     /** Set edges directly (used by React Flow). */
@@ -118,6 +125,70 @@ let idCounter = 0;
 function generateNodeId(): string {
     idCounter += 1;
     return `node_${Date.now()}_${idCounter}`;
+}
+
+/**
+ * Зеркальная синхронизация data.next ↔ ребро next для step-нод.
+ * Ребро — единственный источник правды: поле в панели свойств всегда
+ * отражает текущее ребро (или пусто, если ребра нет). Покрывает все пути
+ * удаления/замены рёбер, включая applyEdgeChanges из React Flow.
+ */
+function syncNextMirrors(nodes: Node[], edges: Edge[]): Node[] {
+    const nextBySource = new Map<string, string>();
+    for (const e of edges) {
+        const ed = e.data as { edgeType?: EdgeType } | undefined;
+        if (ed?.edgeType === 'next') nextBySource.set(e.source, e.target);
+    }
+    let changed = false;
+    const result = nodes.map((n) => {
+        const data = n.data as { type?: string; next?: string };
+        if (data?.type !== 'step') return n;
+        const mirror = nextBySource.get(n.id);
+        if ((data.next ?? undefined) !== mirror) {
+            changed = true;
+            const next = { ...(n.data as Record<string, unknown>) };
+            if (mirror) next.next = mirror;
+            else delete next.next;
+            return { ...n, data: next as NodeData };
+        }
+        return n;
+    });
+    return changed ? result : nodes;
+}
+
+/**
+ * Полная нормализация переходов step при загрузке сохранённого состояния
+ * (autoLoad) и внешнего документа (fromJSON):
+ * 1. data.next без ребра (старые сохранения/ручные JSON) → создаём ребро,
+ *    иначе переход молча не работал в превью и генераторе;
+ * 2. затем data.next приводится к зеркалу рёбер (висячие цели очищаются).
+ */
+function normalizeNextState(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
+    const newEdges = [...edges];
+    let counter = newEdges.length;
+    for (const n of nodes) {
+        const data = n.data as { type?: string; next?: string };
+        if (data?.type !== 'step' || !data.next) continue;
+        if (!nodes.some((t) => t.id === data.next)) continue;
+        const hasEdge = newEdges.some((e) => {
+            const ed = e.data as { edgeType?: EdgeType } | undefined;
+            return e.source === n.id && ed?.edgeType === 'next';
+        });
+        if (!hasEdge) {
+            newEdges.push({
+                id: `e-${n.id}-${data.next}-sync-${++counter}`,
+                source: n.id,
+                target: data.next,
+                type: 'flowEdge',
+                data: { edgeType: 'next', label: '' },
+                animated: false,
+            });
+        }
+    }
+    // Всегда возвращаем СВЕЖИЕ массивы: fromJSON мутирует flowNodes/flowEdges
+    // через length=0/push — общая ссылка с входом приводила бы к потере данных.
+    const mirrored = syncNextMirrors(nodes, newEdges);
+    return { nodes: [...mirrored], edges: newEdges };
 }
 
 const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит текущее состояние в undo-историю и очищает redo. */
@@ -203,9 +274,10 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
         const { nodes, edges } = get();
         pushHistoryEntry();
 
+        const nextEdges = edges.filter((e) => e.source !== id && e.target !== id);
         set({
-            nodes: nodes.filter((n) => n.id !== id),
-            edges: edges.filter((e) => e.source !== id && e.target !== id),
+            nodes: syncNextMirrors(nodes.filter((n) => n.id !== id), nextEdges),
+            edges: nextEdges,
         });
         get().autoSave();
     },
@@ -217,11 +289,12 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
 
         const nodeSet = new Set(nodeIds);
         const edgeSet = new Set(edgeIds);
+        const nextEdges = edges.filter(
+            (e) => !edgeSet.has(e.id) && !nodeSet.has(e.source) && !nodeSet.has(e.target),
+        );
         set({
-            nodes: nodes.filter((n) => !nodeSet.has(n.id)),
-            edges: edges.filter(
-                (e) => !edgeSet.has(e.id) && !nodeSet.has(e.source) && !nodeSet.has(e.target),
-            ),
+            nodes: syncNextMirrors(nodes.filter((n) => !nodeSet.has(n.id)), nextEdges),
+            edges: nextEdges,
         });
         get().autoSave();
     },
@@ -272,12 +345,16 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
         pushHistoryEntry();
 
         const newId = generateNodeId();
+        const cloned = structuredClone(data) as Record<string, unknown>;
+        // Вставленный шаг не наследует переход оригинала: его data.next указывал
+        // бы на чужую цель без ребра, а ребро — источник правды (поле = зеркало).
+        delete cloned.next;
         const newNode: Node = {
             id: newId,
             type: data.type as NodeData['type'],
             position,
             data: {
-                ...structuredClone(data),
+                ...cloned,
                 id: newId,
             } as NodeData,
         };
@@ -302,10 +379,40 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
     },
 
     removeEdge: (id) => {
-        const { edges } = get();
+        const { edges, nodes } = get();
         pushHistoryEntry();
 
-        set({ edges: edges.filter((e) => e.id !== id) });
+        const nextEdges = edges.filter((e) => e.id !== id);
+        set({ nodes: syncNextMirrors(nodes, nextEdges), edges: nextEdges });
+        get().autoSave();
+    },
+
+    setNextTarget: (nodeId, targetId) => {
+        const { nodes, edges } = get();
+        const node = nodes.find((n) => n.id === nodeId);
+        if (!node || node.type !== 'step') return;
+        pushHistoryEntry();
+
+        // Шаг может иметь только один переход next: убираем старое ребро, ставим новое.
+        // data.next пересчитает syncNextMirrors — поле всегда зеркало ребра.
+        const cleanedEdges = edges.filter((e) => {
+            const data = e.data as { edgeType?: EdgeType } | undefined;
+            return !(e.source === nodeId && data?.edgeType === 'next');
+        });
+
+        const newEdges = [...cleanedEdges];
+        if (targetId) {
+            newEdges.push({
+                id: `e-${nodeId}-${targetId}-${Date.now()}`,
+                source: nodeId,
+                target: targetId,
+                type: 'flowEdge',
+                data: { edgeType: 'next', label: '' },
+                animated: false,
+            });
+        }
+
+        set({ nodes: syncNextMirrors(nodes, newEdges), edges: newEdges });
         get().autoSave();
     },
 
@@ -315,7 +422,8 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
     },
 
     setEdges: (edges) => {
-        set({ edges });
+        const { nodes } = get();
+        set({ nodes: syncNextMirrors(nodes, edges), edges });
         get().autoSave();
     },
 
@@ -437,6 +545,14 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
 
         const flowEdges: Edge[] = doc.edges.map((e, i) => toReactFlowEdge(e, i)).filter(Boolean);
 
+        // Нормализация переходов step: data.next без ребра → создаём ребро,
+        // затем поле приводится к зеркалу рёбер (общая логика с autoLoad).
+        const normalized = normalizeNextState(flowNodes, flowEdges);
+        flowNodes.length = 0;
+        flowNodes.push(...normalized.nodes);
+        flowEdges.length = 0;
+        flowEdges.push(...normalized.edges);
+
         // Auto-layout: simple force-directed approximation
         // Sort by topological position for better layout
         const adjacency = new Map<string, string[]>();
@@ -544,9 +660,12 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
                     localStorage.removeItem(STORAGE_KEY);
                     return;
                 }
+                // Нормализация переходов из старых сохранений: data.next без ребра
+                // → создаём ребро (как fromJSON), затем поле — зеркало рёбер.
+                const restored = normalizeNextState(data.nodes, data.edges);
                 set({
-                    nodes: data.nodes,
-                    edges: data.edges,
+                    nodes: restored.nodes,
+                    edges: restored.edges,
                     metadata: normalizeMetadata(data.metadata),
                 });
             }

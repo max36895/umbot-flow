@@ -73,7 +73,7 @@ export default {
     'props.varCommentHelp': 'Описание назначения переменной (видно в панели данных)',
     'props.nextStep': 'Следующий блок',
     'props.nextStepHelp':
-        'То же, что стрелка на холсте: куда перейти после этого шага. Оставьте пустым, чтобы завершить диалог.',
+        'Куда перейти после этого шага. Это то же самое, что стрелка на холсте: выбор здесь рисует стрелку, а стрелка на холсте заполняет это поле. Оставьте «—», чтобы завершить диалог.',
     'props.operator': 'Оператор',
     'props.variable': 'Проверяемая переменная',
     'props.variableHelp': 'Имя переменной для проверки.',
@@ -89,7 +89,6 @@ export default {
     'tooltip.responseText':
         'Текст, который увидит пользователь.\nВставляйте переменные через {{имя}}.',
     'props.delete': 'Удалить',
-    'props.deleteConfirm': 'Удалить этот блок? Все связанные связи также будут удалены.',
     'props.namePlaceholder': 'напр. приветствие',
     'props.fieldPlaceholder': 'напр. имя_пользователя',
     'props.httpUrl': 'URL',
@@ -128,6 +127,8 @@ export default {
     'export.copyJson': 'Копировать JSON',
     'export.download': 'Скачать flow.json',
     'export.copied': 'Скопировано в буфер обмена',
+    'toast.exported':
+        'Файл flow.json скачан. Проект также автосохранён в браузере.',
     'export.nodes': 'узлов',
     'statusbar.ok': 'Готов к экспорту',
     'statusbar.errors': 'Есть ошибки',
@@ -274,7 +275,6 @@ export default {
     'props.conditions': 'Условия (ветвление логики)',
     'props.addCondition': 'Добавить условие',
     'props.condition': 'Условие',
-    'db.title': 'НАСТРОЙКИ БД И РЕЖИМА',
     'db.texts': 'Тексты бота',
     'db.welcome': 'Текст приветствия',
     'db.fallback': 'Текст «не понял»',

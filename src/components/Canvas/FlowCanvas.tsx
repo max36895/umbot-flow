@@ -143,9 +143,8 @@ export default function FlowCanvas() {
         (connection: Connection) => {
             if (!connection.source || !connection.target) return;
 
-            const sourceNode = useFlowStore
-                .getState()
-                .nodes.find((n) => n.id === connection.source);
+            const state = useFlowStore.getState();
+            const sourceNode = state.nodes.find((n) => n.id === connection.source);
             let edgeType = 'next';
             if (sourceNode?.type === 'condition') {
                 edgeType = connection.sourceHandle === 'true' ? 'branch_true' : 'branch_false';
@@ -158,6 +157,13 @@ export default function FlowCanvas() {
                 data: { edgeType, label: '' },
                 animated: edgeType === 'branch_true' || edgeType === 'branch_false',
             };
+
+            // Шаг может иметь только один переход next: новое ребро next заменяет старое
+            // через setNextTarget (он же синхронизирует поле «Следующий блок» в панели свойств)
+            if (edgeType === 'next' && sourceNode?.type === 'step') {
+                state.setNextTarget(connection.source, connection.target);
+                return;
+            }
 
             addEdgeToStore(newEdge);
         },

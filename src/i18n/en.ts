@@ -74,7 +74,7 @@ export default {
     'props.varCommentHelp': 'Description of the variable purpose (visible in data panel)',
     'props.nextStep': 'Next block',
     'props.nextStepHelp':
-        'Same as an arrow on the canvas: where to go after this step. Leave empty to end the dialog.',
+        'Where to go after this step. This is the same as an arrow on the canvas: picking a block here draws the arrow, and drawing an arrow fills this field. Leave "—" to end the dialog.',
     'props.operator': 'Operator',
     'props.variable': 'Variable',
     'props.variableHelp': 'Variable name to check',
@@ -89,7 +89,6 @@ export default {
     'tooltip.field': 'Name of the field to store the result',
     'tooltip.responseText': 'Text the user will see. Use {{name}} to insert variables',
     'props.delete': 'Delete',
-    'props.deleteConfirm': 'Delete this block? All connected edges will also be removed.',
     'props.namePlaceholder': 'e.g. greeting',
     'props.fieldPlaceholder': 'e.g. userName',
     'props.httpUrl': 'URL',
@@ -138,6 +137,8 @@ export default {
     'export.copyJson': 'Copy JSON',
     'export.download': 'Download flow.json',
     'export.copied': 'Copied to clipboard',
+    'toast.exported':
+        'flow.json downloaded. The project is also auto-saved in your browser.',
     'export.nodes': 'blocks',
 
     // Status bar
@@ -305,7 +306,6 @@ export default {
     'props.condition': 'Condition',
 
     // Database settings
-    'db.title': 'DATABASE & MODE',
     'db.texts': 'Bot texts',
     'db.welcome': 'Welcome text',
     'db.fallback': 'Fallback text',

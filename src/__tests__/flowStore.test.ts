@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import useFlowStore from '../store/flowStore';
-import type { FlowDocument } from '../types/flow';
+import type { FlowDocument, FlowNodeData as NodeData } from '../types/flow';
 
 // Reset store between tests
 beforeEach(() => {
@@ -210,5 +210,276 @@ describe('flowStore', () => {
         useFlowStore.getState().addNode('command', { x: 0, y: 0 });
         useFlowStore.getState().removeSelection([], []);
         expect(useFlowStore.getState().nodes).toHaveLength(1);
+    });
+
+    // --- Синхронизация поля «Следующий блок» ↔ ребро next (data.next — зеркало ребра) ---
+
+    it('setNextTarget создаёт ребро next и поле data.next', () => {
+        const step = useFlowStore.getState().addNode('step', { x: 0, y: 0 });
+        const target = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
+
+        useFlowStore.getState().setNextTarget(step, target);
+
+        const edges = useFlowStore.getState().edges;
+        expect(edges).toHaveLength(1);
+        expect(edges[0]?.source).toBe(step);
+        expect(edges[0]?.target).toBe(target);
+        expect(
+            (edges[0]?.data as { edgeType?: string } | undefined)?.edgeType,
+        ).toBe('next');
+        const stepData = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        expect(stepData.next).toBe(target);
+    });
+
+    it('setNextTarget заменяет существующий переход (шаг = один next)', () => {
+        const step = useFlowStore.getState().addNode('step', { x: 0, y: 0 });
+        const first = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
+        const second = useFlowStore.getState().addNode('response', { x: 600, y: 0 });
+
+        useFlowStore.getState().setNextTarget(step, first);
+        useFlowStore.getState().setNextTarget(step, second);
+
+        const edges = useFlowStore.getState().edges;
+        expect(edges).toHaveLength(1);
+        expect(edges[0]?.target).toBe(second);
+        const stepData = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        expect(stepData.next).toBe(second);
+    });
+
+    it('setNextTarget(null) удаляет ребро и очищает поле', () => {
+        const step = useFlowStore.getState().addNode('step', { x: 0, y: 0 });
+        const target = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
+
+        useFlowStore.getState().setNextTarget(step, target);
+        useFlowStore.getState().setNextTarget(step, null);
+
+        expect(useFlowStore.getState().edges).toHaveLength(0);
+        const stepData = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        expect(stepData.next).toBeUndefined();
+    });
+
+    it('удаление ребра next (setEdges) очищает зеркальное data.next', () => {
+        const step = useFlowStore.getState().addNode('step', { x: 0, y: 0 });
+        const target = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
+        useFlowStore.getState().setNextTarget(step, target);
+        expect(useFlowStore.getState().edges).toHaveLength(1);
+
+        // React Flow удаляет рёбра через applyEdgeChanges → setEdges([])
+        useFlowStore.getState().setEdges([]);
+
+        const stepData = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        expect(stepData.next).toBeUndefined();
+    });
+
+    it('удаление целевой ноды очищает data.next у ссылающегося шага', () => {
+        const step = useFlowStore.getState().addNode('step', { x: 0, y: 0 });
+        const target = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
+        useFlowStore.getState().setNextTarget(step, target);
+
+        useFlowStore.getState().removeNode(target);
+
+        const stepData = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        expect(stepData.next).toBeUndefined();
+        expect(useFlowStore.getState().edges).toHaveLength(0);
+    });
+
+    it('fromJSON восстанавливает ребро из data.next без ребра (старые документы)', () => {
+        const stepId = 'step_1';
+        const respId = 'resp_1';
+        const doc: FlowDocument = {
+            schemaVersion: '1.0',
+            name: 'legacy',
+            version: '1.0.0',
+            description: '',
+            platforms: ['telegram'],
+            database: { type: 'file', config: {} },
+            mode: 'dev',
+            isLocalStorage: true,
+            fallback: { text: '' },
+            welcome: { text: '', buttons: [] },
+            helpText: { text: '' },
+            variables: {},
+            nodes: [
+                {
+                    type: 'step',
+                    id: stepId,
+                    name: 'ask',
+                    prompt: { text: 'q', buttons: [] },
+                    saveTo: 'x',
+                    saveAs: 'original',
+                    next: respId,
+                },
+                {
+                    type: 'response',
+                    id: respId,
+                    name: 'answer',
+                    response: { text: 'a', buttons: [], sounds: [] },
+                },
+            ],
+            edges: [],
+        };
+
+        useFlowStore.getState().fromJSON(doc);
+
+        const edges = useFlowStore.getState().edges;
+        expect(edges).toHaveLength(1);
+        expect(edges[0]?.source).toBe(stepId);
+        expect(edges[0]?.target).toBe(respId);
+        expect(
+            (edges[0]?.data as { edgeType?: string } | undefined)?.edgeType,
+        ).toBe('next');
+    });
+
+    it('undo откатывает и ребро, и поле data.next (единый шаг истории)', () => {
+        const step = useFlowStore.getState().addNode('step', { x: 0, y: 0 });
+        const target = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
+
+        useFlowStore.getState().setNextTarget(step, target);
+        useFlowStore.getState().undo();
+
+        expect(useFlowStore.getState().edges).toHaveLength(0);
+        const stepData = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        expect(stepData.next).toBeUndefined();
+    });
+
+    it('autoLoad нормализует data.next без ребра из старых сохранений', () => {
+        // Имитируем сохранение ДО фикса: data.next есть, ребра нет
+        useFlowStore.setState({
+            nodes: [
+                {
+                    id: 's1',
+                    type: 'step',
+                    position: { x: 0, y: 0 },
+                    data: {
+                        type: 'step',
+                        id: 's1',
+                        name: 'ask',
+                        prompt: { text: 'q', buttons: [] },
+                        saveTo: 'x',
+                        saveAs: 'original',
+                        next: 'r1',
+                    },
+                },
+                {
+                    id: 'r1',
+                    type: 'response',
+                    position: { x: 300, y: 0 },
+                    data: {
+                        type: 'response',
+                        id: 'r1',
+                        name: 'answer',
+                        response: { text: 'a', buttons: [], sounds: [] },
+                    },
+                },
+            ],
+            edges: [],
+        });
+        localStorage.setItem(
+            'umbot-flow-editor',
+            JSON.stringify({
+                nodes: useFlowStore.getState().nodes,
+                edges: [],
+                metadata: {
+                    schemaVersion: '1.0',
+                    name: 'legacy',
+                    version: '1.0.0',
+                    description: '',
+                    platforms: ['telegram'],
+                    database: { type: 'file', config: {} },
+                    mode: 'dev',
+                    isLocalStorage: true,
+                    fallback: { text: '' },
+                    welcome: { text: '', buttons: [] },
+                    helpText: { text: '' },
+                    variables: {},
+                },
+            }),
+        );
+
+        useFlowStore.setState({ nodes: [], edges: [] });
+        useFlowStore.getState().autoLoad();
+
+        // Ребро восстановлено из data.next — переход снова работает в превью
+        const edges = useFlowStore.getState().edges;
+        expect(edges).toHaveLength(1);
+        expect(edges[0]?.source).toBe('s1');
+        expect(edges[0]?.target).toBe('r1');
+    });
+
+    it('autoLoad очищает data.next с висячей целью (нода удалена в другом месте)', () => {
+        useFlowStore.setState({
+            nodes: [
+                {
+                    id: 's1',
+                    type: 'step',
+                    position: { x: 0, y: 0 },
+                    data: {
+                        type: 'step',
+                        id: 's1',
+                        name: 'ask',
+                        prompt: { text: 'q', buttons: [] },
+                        saveTo: 'x',
+                        saveAs: 'original',
+                        next: 'ghost',
+                    },
+                },
+            ],
+            edges: [],
+        });
+        localStorage.setItem(
+            'umbot-flow-editor',
+            JSON.stringify({
+                nodes: useFlowStore.getState().nodes,
+                edges: [],
+                metadata: {
+                    schemaVersion: '1.0',
+                    name: 'legacy',
+                    version: '1.0.0',
+                    description: '',
+                    platforms: ['telegram'],
+                    database: { type: 'file', config: {} },
+                    mode: 'dev',
+                    isLocalStorage: true,
+                    fallback: { text: '' },
+                    welcome: { text: '', buttons: [] },
+                    helpText: { text: '' },
+                    variables: {},
+                },
+            }),
+        );
+
+        useFlowStore.setState({ nodes: [], edges: [] });
+        useFlowStore.getState().autoLoad();
+
+        const stepData = useFlowStore.getState().nodes[0]?.data as { next?: string };
+        expect(stepData.next).toBeUndefined();
+    });
+
+    it('pasteNode не наследует data.next оригинала', () => {
+        const step = useFlowStore.getState().addNode('step', { x: 0, y: 0 });
+        const target = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
+        useFlowStore.getState().setNextTarget(step, target);
+
+        const sourceData = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === step)?.data as NodeData;
+        const newId = useFlowStore.getState().pasteNode(sourceData, { x: 100, y: 100 });
+
+        const pasted = useFlowStore
+            .getState()
+            .nodes.find((n) => n.id === newId)?.data as { next?: string };
+        expect(pasted.next).toBeUndefined();
     });
 });
