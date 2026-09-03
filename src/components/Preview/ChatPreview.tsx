@@ -264,7 +264,11 @@ export function buildInitialTurn(doc: FlowDocument): {
             continue;
         }
         if (node.type === 'response') {
-            msgs.push(buildMessage((node as ResponseNodeData).response, vars));
+            // Standalone response может нести actions (счёт игр и т.п.) —
+            // выполняем до рендера текста, чтобы {{you}} показывал уже новый счёт
+            const resp = node as ResponseNodeData;
+            if (resp.actions) Object.assign(vars, executeActions(resp.actions, vars));
+            msgs.push(buildMessage(resp.response, vars));
             currentId = findEdge(doc, node.id);
             continue;
         }
@@ -429,6 +433,8 @@ export default function ChatPreview() {
 
                 if (node.type === 'response') {
                     const resp = node as ResponseNodeData;
+                    // Actions standalone-респонса (счёт игр) — до текста
+                    if (resp.actions) Object.assign(vars, executeActions(resp.actions, vars));
                     msgs.push(buildMessage(resp.response, vars));
                     currentId = findEdge(doc, currentId);
                     continue;
@@ -691,7 +697,7 @@ export default function ChatPreview() {
 
     return (
         <div
-            className={`absolute bottom-4 right-4 z-preview flex h-[480px] w-80 flex-col rounded-xl border border-glass-border bg-surface-dim/95 shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-150 ${animate ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+            className={`absolute bottom-6 right-4 z-preview flex h-[480px] w-80 flex-col rounded-xl border border-glass-border bg-surface-dim/95 shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-150 ${animate ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
         >
             <div className="flex items-center justify-between rounded-t-xl bg-gradient-to-r from-accent to-info px-4 py-2">
                 <span className="text-sm font-bold text-white">{t('preview.title')}</span>

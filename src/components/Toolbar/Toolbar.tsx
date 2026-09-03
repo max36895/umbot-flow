@@ -51,6 +51,27 @@ export default function Toolbar() {
     const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
     const [confirmNewOpen, setConfirmNewOpen] = useState(false);
 
+    // Пасхалка: 10 кликов по лого-марке → служебный терминал UM-13 (/secret.html)
+    const logoClicksRef = useRef(0);
+    const logoResetTimerRef = useRef<number | undefined>(undefined);
+    const [logoWiggle, setLogoWiggle] = useState(false);
+    const handleLogoClick = useCallback(() => {
+        logoClicksRef.current += 1;
+        window.clearTimeout(logoResetTimerRef.current);
+        // окно внимания 4 сек — как на лендинге, между кликами можно чуть подумать
+        logoResetTimerRef.current = window.setTimeout(() => {
+            logoClicksRef.current = 0;
+            setLogoWiggle(false);
+        }, 4000);
+        if (logoClicksRef.current >= 7 && logoClicksRef.current < 10) setLogoWiggle(true);
+        if (logoClicksRef.current >= 10) {
+            logoClicksRef.current = 0;
+            setLogoWiggle(false);
+            window.clearTimeout(logoResetTimerRef.current);
+            window.location.href = '/secret.html';
+        }
+    }, []);
+
     // Бургер-меню для узких экранов: показываем, когда тулбар переполнен
     const toolbarRef = useRef<HTMLDivElement>(null);
     const [isOverflowing, setIsOverflowing] = useState(false);
@@ -260,6 +281,27 @@ export default function Toolbar() {
     return (
         <>
         <div className="absolute left-[10px] right-[10px] top-[10px] z-toolbar flex items-center gap-2">
+            {/* Лого-марка (клик 10 раз — пасхалка, см. handleLogoClick) */}
+            <button
+                type="button"
+                onClick={handleLogoClick}
+                title="Umbot Flow Editor"
+                aria-label="Umbot Flow Editor"
+                className={`flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[9px] border border-glass-border bg-gradient-to-br from-info to-accent shadow-md transition-transform duration-200 ${
+                    logoWiggle ? 'animate-pulse' : 'hover:scale-105'
+                }`}
+            >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                    <path
+                        d="M5 7h5M5 12h9M5 17h13"
+                        stroke="#051015"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                    />
+                    <circle cx="19" cy="7" r="2.2" fill="#051015" />
+                </svg>
+            </button>
+
             {/* Название бота — всегда видно, не скроллится */}
             <div className="relative flex-shrink-0">
                 <input

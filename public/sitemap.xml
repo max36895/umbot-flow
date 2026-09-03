@@ -7,6 +7,16 @@
         <priority>1.0</priority>
     </url>
     <url>
+        <loc>https://flow.maxim-m.ru/skynet/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://flow.maxim-m.ru/confession/</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
         <loc>https://flow.maxim-m.ru/docs/</loc>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />

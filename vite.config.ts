@@ -17,10 +17,16 @@ export default defineConfig({
         // /app — SPA-редактор (app.html). Docs-страницы и прочая статика
         // из public/ копируются в dist/ как есть (publicDir по умолчанию):
         // в них нет JS-бандлов, прогон через Rollup не нужен.
+        // /secret.html — пасхалка-терминал UM-13 (клик 10 раз по лого).
+        // /sky-net.html — пасхалка «СОБЕРИ СКУНЕТ» (Konami-код на лендинге).
         rollupOptions: {
             input: {
                 main: resolve(__dirname, 'index.html'),
                 app: resolve(__dirname, 'app.html'),
+                secret: resolve(__dirname, 'secret.html'),
+                skynet: resolve(__dirname, 'sky-net.html'),
+                confession: resolve(__dirname, 'confession.html'),
+                queue: resolve(__dirname, 'queue.html'),
             },
             output: {
                 // Разбиваем вендоров на отдельные чанки — они кэшируются браузером

@@ -220,6 +220,8 @@ export interface ResponseNodeData {
     id: string;
     name: string;
     response: FlowResponse;
+    /** Inline action blocks (used by games: score counters etc). */
+    actions?: ActionBlock[];
     [key: string]: unknown;
 }
 

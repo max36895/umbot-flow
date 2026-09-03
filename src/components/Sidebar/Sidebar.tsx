@@ -5,6 +5,7 @@ import { t } from '../../i18n';
 import { useState } from 'react';
 import { NodeIcon, type NodeIconName } from '../ui/NodeIcons';
 import { NODE_COLORS, nodeColorAlpha, type NodeTypeKey } from '../Canvas/nodes/nodeColors';
+import { um13NameFor, um13BaptismLine } from '../../utils/um13Names';
 
 const NODE_TYPES: {
     type: FlowNodeData['type'] | 'welcome' | 'help' | 'fallback';
@@ -124,6 +125,27 @@ export default function Sidebar() {
         }
         const newId = addNode(type as FlowNodeData['type'], { x, y });
         setTimeout(() => selectNode(newId), 50);
+
+        // Пасхалка «UM-13 крестит ноды»: 1 раз из 3 призрак даёт ноде
+        // своё имя вместо скучного дефолта (command/command_2/…)
+        if (!role && Math.random() < 0.34) {
+            const store = useFlowStore.getState();
+            const taken = new Set(
+                store.nodes
+                    .map((n) => (n.data as { name?: string })?.name)
+                    .filter(Boolean) as string[],
+            );
+            const name = um13NameFor(type as FlowNodeData['type'], taken);
+            const node = store.nodes.find((n) => n.id === newId);
+            const data = node?.data as { name?: string } | undefined;
+            const isDefaultName =
+                !!data?.name &&
+                /^(command|step|condition|action|response|end)(_\d+)?$/.test(data.name);
+            if (name && node && data && isDefaultName) {
+                store.updateNodeData(newId, { name });
+                useUiStore.getState().showToast(um13BaptismLine(name));
+            }
+        }
     };
 
     const onDragStart = (

@@ -138,7 +138,8 @@
                 "id": { "type": "string" },
                 "type": { "type": "string", "const": "response" },
                 "name": { "type": "string" },
-                "response": { "$ref": "#/$defs/Response" }
+                "response": { "$ref": "#/$defs/Response" },
+                "actions": { "type": "array", "items": { "$ref": "#/$defs/ActionBlock" } }
             }
         },
         "ActionNode": {

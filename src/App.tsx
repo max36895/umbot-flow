@@ -9,8 +9,12 @@ import HelpModal from './components/Help/HelpModal';
 import BotSettingsModal from './components/Settings/BotSettingsModal';
 import StatusBar from './components/StatusBar/StatusBar';
 import CommandPalette from './components/Palette/CommandPalette';
+import KonamiGhost from './components/Easter/KonamiGhost';
+import SleepingUm13 from './components/Easter/SleepingUm13';
+import Um13Watches from './components/Easter/Um13Watches';
+import { useKonami } from './hooks/useKonami';
 import useUiStore from './store/uiStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocale } from './i18n/hook';
 import useFlowStore from './store/flowStore';
 import { buildStarterDocument } from './utils/starterDoc';
@@ -36,10 +40,19 @@ export default function App() {
     const helpOpen = useUiStore((s) => s.helpOpen);
     const botSettingsOpen = useUiStore((s) => s.botSettingsOpen);
     const [paletteOpen, setPaletteOpen] = useState(false);
+    // Пасхалка: Konami-код (↑↑↓↓←→←→BA или WASD) запускает сцену «UM-13 строит себе тело»
+    const [konamiActive, setKonamiActive] = useState(false);
+    useKonami(() => setKonamiActive(true));
     // Подписка на locale — триггерит перерендер всего дерева при переключении языка
     useLocale();
 
+    // StrictMode монтирует эффекты дважды: autoLoad во втором проходе вернул бы
+    // сохранённый документ поверх инжекта исповедальни. Гард-ref решает.
+    const bootstrappedRef = useRef(false);
     useEffect(() => {
+        if (bootstrappedRef.current) return;
+        bootstrappedRef.current = true;
+
         const store = useFlowStore.getState();
         store.autoLoad();
         // Если после загрузки холст пуст и localStorage не содержит данных — засеем starter-пример
@@ -47,6 +60,22 @@ export default function App() {
         const hasSavedData = localStorage.getItem('umbot-flow-editor') !== null;
         if (!hasSavedData && state.nodes.length === 0) {
             state.fromJSON(buildStarterDocument());
+        }
+
+        // Пасхалка «Исповедальня UM-13» (confession.html) передаёт собранного
+        // «внутреннего бота» через sessionStorage + ?inject=1 — загружаем его
+        // в редактор поверх старта, чтобы человек сразу увидел себя на холсте
+        if (new URLSearchParams(window.location.search).has('inject')) {
+            try {
+                const raw = sessionStorage.getItem('umbot-inject-flow');
+                if (raw) {
+                    sessionStorage.removeItem('umbot-inject-flow');
+                    useFlowStore.getState().fromJSON(JSON.parse(raw));
+                    useUiStore.getState().showToast('UM-13: вот твой внутренний бот');
+                }
+            } catch {
+                /* повреждённый payload — тихо игнорируем */
+            }
         }
     }, []);
 
@@ -216,6 +245,9 @@ export default function App() {
                     <div className="relative h-full pb-7">
                         <FlowCanvas />
                         {previewOpen && <ChatPreview />}
+                        {/* Пасхалки: UM-13 засыпает без действий и наблюдает за тобой */}
+                        <SleepingUm13 />
+                        <Um13Watches />
                     </div>
                     <StatusBar />
                 </div>
@@ -224,6 +256,7 @@ export default function App() {
                 {helpOpen && <HelpModal />}
                 {botSettingsOpen && <BotSettingsModal />}
                 {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
+                <KonamiGhost active={konamiActive} />
                 <Toast />
             </div>
         </ReactFlowProvider>

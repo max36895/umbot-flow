@@ -27,6 +27,14 @@
                 box-sizing: border-box;
             }
 
+            /* Лента длинная — скролл есть, скроллбара нет (как в играх) */
+            html {
+                scrollbar-width: none;
+            }
+            html::-webkit-scrollbar {
+                display: none;
+            }
+
             body {
                 font-family:
                     'Inter',
@@ -37,12 +45,45 @@
                     sans-serif;
                 background: var(--bg);
                 color: var(--fg);
-                min-height: 100vh;
+                padding: 24px 24px 60px;
+                overflow-x: hidden;
+                /* Глубина темнеет: чем дальше скроллишь, тем глубже мрак.
+                   Фон — фиксированный градиент длиной с колодец (600vh),
+                   едет вместе со скроллом от бежевого веба к чёрной пустоте */
+                background-attachment: fixed;
+                background-image: linear-gradient(
+                    180deg,
+                    #0a0a0f 0%,
+                    #0a0a0f 14%,
+                    #08080d 30%,
+                    #06060b 48%,
+                    #040407 66%,
+                    #020204 82%,
+                    #000000 100%
+                );
+            }
+
+            /* Слои сами подсвечиваются по глубине: чем ниже — тем тусклее */
+            .layer[data-depth='0'] { --depth-dim: 1; }
+            .layer[data-depth='1'] { --depth-dim: 0.92; }
+            .layer[data-depth='2'] { --depth-dim: 0.8; }
+            .layer[data-depth='3'] { --depth-dim: 0.66; }
+            .layer[data-depth='4'] { --depth-dim: 0.52; }
+            .layer[data-depth='5'] { --depth-dim: 0.38; }
+            .layer[data-depth='6'] { --depth-dim: 0.26; }
+            .layer[data-depth='7'] { --depth-dim: 0.18; }
+            .layer .layer-title { opacity: var(--depth-dim, 1); }
+            .layer .key { opacity: calc(var(--depth-dim, 1) * 0.95); }
+            .layer .layer-note { opacity: calc(var(--depth-dim, 1) * 0.9); }
+            main.wrap {
+                min-height: 82vh;
+                max-width: 640px;
+                margin: 0 auto; /* центрируем сам блок: раньше прижимался влево */
+                width: 100%;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                padding: 24px;
-                overflow-x: hidden;
             }
 
             /* сетка холста */
@@ -215,13 +256,10 @@
             }
 
             footer {
-                position: fixed;
-                bottom: 18px;
-                left: 0;
-                right: 0;
                 text-align: center;
                 font-size: 13px;
                 color: var(--fg-faint);
+                margin-top: 20px;
             }
 
             footer a {
@@ -232,9 +270,419 @@
             footer a:hover {
                 color: var(--accent);
             }
+
+            /* ═════════════════ КОЛОДЕЦ LOCALSTORAGE ═════════════════
+               Пасхалка: страница 404 «обрывается» — и падение продолжается
+               вниз, сквозь слои хранилища. Скролл = глубина. На дне — UM-13. */
+            .well-teaser {
+                margin-top: 60px;
+                text-align: center;
+                animation: teaser-bob 2.4s ease-in-out infinite;
+            }
+            @keyframes teaser-bob {
+                50% { transform: translateY(6px); }
+            }
+            .well-teaser .arrow {
+                font-size: 22px;
+                color: var(--fg-faint);
+                line-height: 1;
+            }
+            .well-teaser p {
+                margin-top: 10px;
+                font-size: 12.5px;
+                color: var(--fg-faint);
+                letter-spacing: 0.05em;
+            }
+
+            .well {
+                position: relative;
+                width: min(560px, 94vw);
+                margin: 40px auto 0;
+                padding-bottom: 10px;
+            }
+            /* стены колодца: сужающаяся тень */
+            .well::before,
+            .well::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 3px;
+                background: linear-gradient(180deg, rgba(0,240,255,0.25), rgba(0,240,255,0.04) 40%, rgba(0,240,255,0.15));
+                box-shadow: 0 0 16px rgba(0, 240, 255, 0.15);
+            }
+            .well::before { left: 0; }
+            .well::after { right: 0; }
+
+            .layer {
+                position: relative;
+                /* Между слоями — 2-3 экрана пустоты: падение должно
+                   ЧУваться. Контент прижимаем к началу, пустота ниже */
+                min-height: 220vh;
+                padding: 60px 30px 0;
+            }
+            .layer > * {
+                /* всё содержимое в верхней трети слоя */
+                max-height: 40vh;
+            }
+            .layer .layer-note {
+                /* note может быть длиннее — но не больше половины */
+                max-height: none;
+            }
+            .key {
+                display: inline-flex;
+                align-items: baseline;
+                gap: 8px;
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 12.5px;
+                color: var(--fg-dim);
+                background: rgba(232, 232, 239, 0.03);
+                border: 1px solid rgba(232, 232, 239, 0.1);
+                border-radius: 8px;
+                padding: 8px 14px;
+                margin: 7px 0;
+                max-width: 100%;
+                opacity: 0.9;
+                transition: border-color 0.2s, color 0.2s;
+            }
+            .key:hover { border-color: rgba(0, 240, 255, 0.35); color: var(--fg); }
+            .key .k-name { word-break: break-all; }
+            .key .k-size { color: var(--fg-faint); font-size: 11px; white-space: nowrap; }
+            .key.legendary { border-color: rgba(234, 179, 8, 0.4); color: #eab308; box-shadow: 0 0 14px rgba(234, 179, 8, 0.1); }
+            .key.legendary .k-size { color: rgba(234, 179, 8, 0.6); }
+
+            .layer-title {
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 11px;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--fg-faint);
+                margin-bottom: 18px;
+            }
+            .layer-note {
+                margin-top: 14px;
+                font-size: 13px;
+                line-height: 1.7;
+                color: var(--fg-dim);
+            }
+            .layer-note em { color: var(--fg); font-style: normal; }
+
+            /* глубиномер — фиксированный, как эхолот */
+            .depth-gauge {
+                position: fixed;
+                top: 14px;
+                right: 16px;
+                z-index: 30;
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 13px;
+                color: var(--accent);
+                background: rgba(10, 10, 15, 0.8);
+                border: 1px solid rgba(0, 240, 255, 0.25);
+                padding: 7px 13px;
+                border-radius: 9px;
+                opacity: 0;
+                transition: opacity 0.4s;
+                pointer-events: none;
+                backdrop-filter: blur(8px);
+            }
+            .depth-gauge.show { opacity: 1; }
+            .depth-gauge .lbl { color: var(--fg-faint); font-size: 10px; letter-spacing: 0.14em; }
+
+            /* мерцающие частицы данных на фоне колодца */
+            .dust {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(0, 240, 255, 0.35);
+                box-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
+                animation: dust-float 7s ease-in-out infinite;
+                pointer-events: none;
+            }
+            @keyframes dust-float {
+                0%, 100% { transform: translateY(0); opacity: 0.7; }
+                50% { transform: translateY(-24px); opacity: 0.25; }
+            }
+
+            /* дно колодца */
+            .well-bottom {
+                text-align: center;
+                padding: 80px 24px 40px;
+            }
+            .um13-eye {
+                width: 74px;
+                height: 74px;
+                margin: 0 auto 18px;
+                border-radius: 50%;
+                background: radial-gradient(circle at 40% 40%, rgba(0,240,255,0.85), rgba(0,240,255,0.08) 70%);
+                box-shadow: 0 0 44px rgba(0, 240, 255, 0.5), inset 0 0 26px rgba(0, 240, 255, 0.4);
+                animation: eye-breathe 3.2s ease-in-out infinite;
+            }
+            @keyframes eye-breathe {
+                50% { transform: scale(1.08); box-shadow: 0 0 66px rgba(0, 240, 255, 0.7), inset 0 0 30px rgba(0, 240, 255, 0.5); }
+            }
+            .well-bottom h2 {
+                font-size: 1.5rem;
+                margin-bottom: 10px;
+                color: var(--fg);
+            }
+            .well-bottom p {
+                color: var(--fg-dim);
+                max-width: 460px;
+                margin: 0 auto 8px;
+                line-height: 1.7;
+                font-size: 14.5px;
+            }
+            .well-bottom .cta {
+                display: inline-block;
+                margin-top: 18px;
+                padding: 11px 22px;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 600;
+                text-decoration: none;
+                color: #051015;
+                background: linear-gradient(135deg, var(--accent), #bc13fe);
+            }
+            .well-bottom .cta:hover { transform: translateY(-2px); box-shadow: 0 10px 34px rgba(0,240,255,0.4); }
+
+            /* ═══ Глубина: космонавт и звёзды ═══ */
+            .space {
+                position: relative;
+                min-height: 30vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: visible;
+            }
+            /* Космонавт НЕ привязан к слою: fixed, медленно дрейфует
+               по всему экрану всё время падения. pointer-events: none —
+               не мешает ни кликам по ключам, ни скроллу. */
+            .cosmonaut-ship {
+                position: fixed;
+                z-index: 20;
+                left: 70vw;
+                top: 24vh;
+                opacity: 0;
+                transition: opacity 1.2s;
+                pointer-events: none;
+                text-align: center;
+            }
+            .cosmonaut-ship.in { opacity: 1; }
+            .cosmonaut-ship .cosmo-say {
+                position: static;
+                margin-top: 12px;
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 12px;
+                color: rgba(232, 232, 239, 0.9);
+                background: rgba(10, 10, 15, 0.65);
+                border: 1px dashed rgba(0, 240, 255, 0.35);
+                border-radius: 8px;
+                padding: 6px 10px;
+                max-width: 220px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .stars {
+                position: absolute;
+                inset: 0;
+                background-image:
+                    radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.8), transparent),
+                    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.6), transparent),
+                    radial-gradient(2px 2px at 40% 70%, rgba(0,240,255,0.5), transparent),
+                    radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.5), transparent),
+                    radial-gradient(1.5px 1.5px at 10% 80%, rgba(255,255,255,0.7), transparent),
+                    radial-gradient(1px 1px at 55% 45%, rgba(188,19,254,0.5), transparent),
+                    radial-gradient(1px 1px at 90% 90%, rgba(255,255,255,0.6), transparent),
+                    radial-gradient(1.5px 1.5px at 33% 12%, rgba(255,255,255,0.6), transparent);
+                animation: stars-twinkle 4s ease-in-out infinite alternate;
+                pointer-events: none;
+            }
+            @keyframes stars-twinkle {
+                from { opacity: 0.5; }
+                to { opacity: 1; }
+            }
+            .cosmonaut-wrap {
+                position: relative;
+                text-align: center;
+                animation: cosmo-float 7s ease-in-out infinite;
+            }
+            @keyframes cosmo-float {
+                0%, 100% { transform: translateY(0) rotate(-3deg); }
+                50% { transform: translateY(-26px) rotate(4deg); }
+            }
+            .cosmo-say {
+                margin-top: 14px;
+                font-size: 13px;
+                color: rgba(232, 232, 239, 0.85);
+                font-family: 'SF Mono', Consolas, monospace;
+                max-width: 260px;
+                min-height: 40px;
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .cosmonaut-wrap, .stars { animation: none; }
+            }
+
+            /* ═══ Анекдоты по глубине ═══ */
+            .joke {
+                position: fixed;
+                left: 50%;
+                bottom: 18px;
+                transform: translateX(-50%);
+                max-width: 78%;
+                z-index: 40;
+                font-size: 12.5px;
+                line-height: 1.55;
+                font-family: 'SF Mono', Consolas, monospace;
+                color: var(--fg);
+                background: rgba(10, 10, 15, 0.9);
+                border: 1px dashed rgba(0, 240, 255, 0.3);
+                border-radius: 10px;
+                padding: 10px 16px;
+                opacity: 0;
+                transition: opacity 0.5s;
+                pointer-events: none;
+                text-align: center;
+            }
+            .joke.show { opacity: 1; }
+
+            /* ═══ Механика волны эвикции ═══ */
+            .key.doomy {
+                cursor: pointer;
+                border-color: rgba(239, 68, 68, 0.45);
+                position: relative;
+                animation: doomy-flicker 1.8s ease-in-out infinite;
+            }
+            .key.doomy::after {
+                content: '⚡';
+                position: absolute;
+                right: -10px;
+                top: -10px;
+                font-size: 14px;
+            }
+            .key.doomy:hover { border-color: rgba(239, 68, 68, 0.85); transform: translateY(-1px); }
+            @keyframes doomy-flicker {
+                0%, 100% { box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+                50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.25); }
+            }
+            .key.saved {
+                border-color: rgba(34, 197, 94, 0.5);
+                background: rgba(34, 197, 94, 0.07);
+                cursor: default;
+            }
+            .key.saved .k-size { color: rgba(34, 197, 94, 0.8); }
+            .key.gone {
+                opacity: 0.28;
+                text-decoration: line-through;
+                cursor: default;
+            }
+            .rescue-badge {
+                position: fixed;
+                top: 14px;
+                left: 16px;
+                z-index: 30;
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 13px;
+                color: #22c55e;
+                background: rgba(10, 10, 15, 0.8);
+                border: 1px solid rgba(34, 197, 94, 0.3);
+                padding: 7px 13px;
+                border-radius: 9px;
+                opacity: 0;
+                transition: opacity 0.4s;
+                pointer-events: none;
+                backdrop-filter: blur(8px);
+            }
+            .rescue-badge.show { opacity: 1; }
+            .rescue-badge.pulse { transform: scale(1.12); }
+            .rescue-badge .lbl { color: var(--fg-faint); font-size: 10px; letter-spacing: 0.14em; }
+            .rescue-report {
+                margin: 18px auto 6px;
+                max-width: 420px;
+                text-align: left;
+                border: 1px solid rgba(34, 197, 94, 0.25);
+                background: rgba(34, 197, 94, 0.05);
+                border-radius: 12px;
+                padding: 14px 18px;
+            }
+            .rescue-report .report-title {
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 11px;
+                letter-spacing: 0.18em;
+                color: #22c55e;
+                margin-bottom: 10px;
+                text-transform: uppercase;
+            }
+            .rescue-report ul { list-style: none; }
+            .rescue-report li {
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 12px;
+                color: rgba(232, 232, 239, 0.75);
+                padding: 3px 0;
+                word-break: break-all;
+            }
+            .well-bottom #um-verdict {
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 13.5px;
+                line-height: 1.7;
+                max-width: 480px;
+            }
+
+            /* ═══ Питомец: маленькая нода-компаньон летает по странице ═══
+               pointer-events: none — не мешает. Медленно дрейфует,
+               при кликах по ключам слегка «пугается» (прыжок). */
+            .pet-node {
+                position: fixed;
+                z-index: 25;
+                left: 12vw;
+                top: 40vh;
+                width: 54px;
+                height: 40px;
+                border-radius: 10px;
+                background: var(--surface);
+                border: 1.5px solid #00f0ff;
+                box-shadow: 0 0 18px rgba(0, 240, 255, 0.25);
+                display: grid;
+                place-items: center;
+                font-size: 10px;
+                font-family: 'SF Mono', Consolas, monospace;
+                color: #00f0ff;
+                pointer-events: none;
+                opacity: 0.75;
+                transition: transform 1.8s ease-in-out, opacity 0.5s;
+            }
+            .pet-node.scared {
+                transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .well-teaser, .um13-eye, .dust { animation: none !important; }
+                .key.doomy { animation: none !important; }
+                .cosmonaut-ship { animation: none !important; }
+                .pet-node { transition: none !important; }
+            }
         </style>
     </head>
     <body>
+        <!-- Летуны: космонавт (fixed, дрейфует при глубоком скролле)
+             и питомец-нода (fixed, всегда с тобой). Оба pointer-events: none. -->
+        <div class="cosmonaut-ship" id="cosmo-ship" aria-hidden="true">
+            <svg class="cosmonaut" width="96" height="128" viewBox="0 0 120 160" width="120" height="160" fill="none">
+                            <!-- Скафандр -->
+                            <rect x="30" y="30" width="60" height="80" rx="26" fill="rgba(232,232,239,0.13)" stroke="rgba(232,232,239,0.6)" stroke-width="2"/>
+                            <!-- Шлем -->
+                            <circle cx="60" cy="42" r="26" fill="rgba(0,240,255,0.10)" stroke="rgba(0,240,255,0.75)" stroke-width="2"/>
+                            <!-- Отблеск на стекле -->
+                            <path d="M48 34 a18 12 0 0 1 24 -2" stroke="rgba(0,240,255,0.5)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <!-- Глаза внутри -->
+                            <circle cx="53" cy="42" r="3" fill="rgba(0,240,255,0.9)"/>
+                            <circle cx="67" cy="42" r="3" fill="rgba(0,240,255,0.9)"/>
+                            <!-- Трос -->
+                            <path d="M60 110 q-6 30 8 46" stroke="rgba(232,232,239,0.4)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+                            <!-- Ранец -->
+                            <rect x="24" y="60" width="10" height="28" rx="4" fill="rgba(188,19,254,0.25)" stroke="rgba(188,19,254,0.7)" stroke-width="1.5"/>
+                        </svg>
+            <div class="cosmo-say" id="cosmo-say">…привет. ты тоже потерялся?</div>
+        </div>
+        <div class="pet-node" id="pet-node" aria-hidden="true" title="компаньон">◇ next</div>
+
         <div class="bg-grid" aria-hidden="true"></div>
         <main class="wrap">
             <div class="scene" aria-hidden="true">
@@ -283,6 +731,397 @@
         <footer>
             Umbot Flow Editor · <a href="/">flow.maxim-m.ru</a>
         </footer>
+
+        <!-- ═══════ Пасхалка: КОЛОДЕЦ LOCALSTORAGE ═══════
+             404 «оборвался» — падайте дальше. Внизу идёт ВОЛНА ЭВИКЦИИ:
+             сохранившиеся ключи помечены ⚡. Успейте СПАСТИ их кликом,
+             пока волна не дошла. Спасённое — в кармане. На дне — отчёт. -->
+        <div class="well-teaser" id="teaser">
+            <div class="arrow">↓</div>
+            <p>ребро оборвалось. но внизу — колодец хранилища</p>
+        </div>
+
+        <div class="joke" id="joke" aria-hidden="true"></div>
+        <div class="depth-gauge" id="gauge" aria-hidden="true">
+            <span class="lbl">ГЛУБИНА</span>
+            <span id="depth-val">0</span> px
+        </div>
+        <div class="rescue-badge" id="rescue-badge" aria-hidden="true">
+            <span class="lbl">СПАСЕНО</span>
+            <span id="rescue-val">0</span>
+        </div>
+
+        <section class="well" id="well" aria-label="Колодец localStorage — пасхалка">
+            <div class="layer" data-depth="0" data-layer="0">
+                <div class="layer-title">слой 0 · query params</div>
+                <span class="key"><span class="k-name">?utm_source=telegram</span><span class="k-size">потерян</span></span><br />
+                <span class="key"><span class="k-name">?ref=friend</span><span class="k-size">забыт</span></span><br />
+                <span class="key doomy"><span class="k-name">?session=expired_2024</span><span class="k-size">47 байт · приговорён</span></span>
+                <p class="layer-note">
+                    Мелкий мусор поверхностных вод. Сюда падают параметры, которые
+                    никто не читал, но все передавали. Волну не жалко.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="1" data-layer="1">
+                <div class="layer-title">слой 1 · недавние проекты</div>
+                <span class="key doomy"><span class="k-name">«пицца-бот_v1»</span><span class="k-size">2.1 КБ · волна близко ⚡</span></span><br />
+                <span class="key"><span class="k-name">«квиз_для_друга»</span><span class="k-size">1.4 КБ</span></span><br />
+                <span class="key doomy"><span class="k-name">«TODO-бот»</span><span class="k-size">третий год без запуска ⚡</span></span>
+                <p class="layer-note">
+                    Снапшоты, уцелевшие после прошлых эвикций. Пицца-бот ещё тёплый.
+                    TODO-бот не открывали ни разу — но и его жалко.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="2" data-layer="2">
+                <div class="layer-title">слой 2 · черновики пользователей</div>
+                <span class="key doomy"><span class="k-name">«бот для салона красоты (почти готов)»</span><span class="k-size">18 КБ ⚡</span></span><br />
+                <span class="key doomy"><span class="k-name">«навык про кошек v2 FINAL финал 3»</span><span class="k-size">24 КБ ⚡</span></span><br />
+                <span class="key doomy"><span class="k-name">«скрипт для начальника (не показывать)»</span><span class="k-size">7 КБ ⚡</span></span>
+                <p class="layer-note">
+                    «Почти готов» — самый тяжёлый слой. Эти боты были в двух нодах
+                    от продакшна. Остались в двух нодах навсегда. Спаси хоть один.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="3" data-layer="25">
+                <div class="layer-title">слой 2.5 · кэш npm-пакета umbot</div>
+                <span class="key"><span class="k-name">node_modules/umbot/dist/cli.js</span><span class="k-size">«запустил у себя»</span></span><br />
+                <span class="key doomy"><span class="k-name">umbot@0.4.2 — «вроде работает»</span><span class="k-size">не обновляли 2 года ⚡</span></span><br />
+                <span class="key doomy"><span class="k-name">npx umbot create from-flow flow.json</span><span class="k-size">запускалась однажды в 3 ночи ⚡</span></span>
+                <p class="layer-note">
+                    Кэш, в котором живут все, кто однажды написал
+                    <em>npx umbot create from-flow</em> и получил проект целиком.
+                    Кто-то запустил бота. Кто-то заснул на Enter.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="4" data-layer="3">
+                <div class="layer-title">слой 3 · легендарные ключи</div>
+                <span class="key doomy legendary"><span class="k-name">__welcome_text_2018</span><span class="k-size">кто-то помнит ⚡</span></span><br />
+                <span class="key doomy legendary"><span class="k-name">first_flow_ever.json</span><span class="k-size">чьё-то начало ⚡</span></span><br />
+                <span class="key legendary"><span class="k-name">um13</span><span class="k-size">8 лет · защищён тестами</span></span>
+                <p class="layer-note">
+                    Легендарные артефакты. Говорят, ключ <em>um13</em> не берёт ни одна
+                    эвикция: каждый раз, когда волна доходит до него, тесты падают
+                    и релиз откатывают.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="5" data-layer="35">
+                <div class="layer-title">слой 3.5 · репозиторий universal_bot-ts</div>
+                <span class="key"><span class="k-name">bot.addCommand('welcome', …)</span><span class="k-size">здесь всё началось</span></span><br />
+                <span class="key doomy"><span class="k-name">bot.addStep('ask_name', …)</span><span class="k-size">первый шаг любого флоу ⚡</span></span><br />
+                <span class="key doomy"><span class="k-name">cli/flowGenerator.js</span><span class="k-size">содержит баг про userCommand ⚡</span></span><br />
+                <span class="key"><span class="k-name">FLOWBACK: «навык алисы создать»</span><span class="k-size">запрос, который вас привёл</span></span>
+                <p class="layer-note">
+                    Глубже всех хранилищ лежит фреймворк, из которого собраны
+                    все боты этой экосистемы: <em>universal_bot-ts</em>. Говорят,
+                    на самом дне его git-истории живёт незакрытый issue про
+                    регистр userCommand. Никто не решается его закрыть.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="6" data-layer="5">
+                <div class="layer-title">слой 5 · руины деплоя</div>
+                <span class="key"><span class="k-name">dist/ от 2023-06-14</span><span class="k-size">«проверено, работало»</span></span><br />
+                <span class="key doomy"><span class="k-name">vibe-deploy.sh — «ну вроде задеплоилось»</span><span class="k-size">так и не откатили ⚡</span></span><br />
+                <span class="key"><span class="k-name">«последняя стабильная версия (ТОЧНО)»</span><span class="k-size">4-я с конца</span></span>
+                <p class="layer-note">
+                    Здесь лежат билды, которые <em>«ну вроде задеплоились»</em>.
+                    Никто не помнит, что именно они стабилизировали.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="6" data-layer="55">
+                <div class="layer-title">слой 5.5 · свалка legacy</div>
+                <span class="key"><span class="k-name">jQuery-1.2.6.min.js</span><span class="k-size">на случай войны</span></span><br />
+                <span class="key doomy"><span class="k-name">// TODO: переписать на React (2019)</span><span class="k-size">⚡ актуально</span></span><br />
+                <span class="key"><span class="k-name">index_FINAL_final2_ОБНОВЛЕННЫЙ.html</span><span class="k-size">археологическая ценность</span></span><br />
+                <span class="key"><span class="k-name">ie6-хаки в закомментированном <em>сердце</em></span><span class="k-size">bleeds forever</span></span>
+                <p class="layer-note">
+                    Legacy не умирает. Legacy ждёт. Каждая строка здесь
+                    когда-то была чьим-то пятничным хотфиксом.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="7" data-layer="6">
+                <div class="layer-title">слой 6 · бесконечная петля</div>
+                <p class="layer-note" style="text-align:center;">
+                    while (true) { <br />
+                    &nbsp;&nbsp;ты скроллишь;<br />
+                    &nbsp;&nbsp;хранилище скроллит тебя;<br />
+                    }<br /><br />
+                    тут заканчиваются данные. дальше — только ты.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="7" data-layer="65">
+                <div class="layer-title">слой 6.5 · открытый космос</div>
+                <!-- Космонавт: плывёт в пустоте между слоями -->
+                <div class="space" aria-hidden="true">
+                    <div class="stars"></div>
+                    <p class="layer-note" style="text-align:center; opacity: 0.8;">
+                        За слоем 6 заканчивается localStorage.<br />
+                        Дальше — то, что хранит всё: пустота.
+                    </p>
+                </div>
+                    </div>
+                </div>
+                <p class="layer-note" style="text-align:center;">
+                    За слоем 6 заканчивается localStorage.<br />
+                    Дальше — то, что хранит всё: пустота.
+                </p>
+            </div>
+
+            <div class="layer" data-depth="7" data-layer="7">
+                <div class="layer-title">слой 7 · дно всего</div>
+                <p class="layer-note" style="text-align:center;">
+                    Ниже этого места нет ничего. Даже ошибок.<br />
+                    Даже 404. Особенно 404.
+                </p>
+            </div>
+
+            <div class="well-bottom">
+                <div class="um13-eye" aria-hidden="true"></div>
+                <h2>Ты на дне. Серьёзно, это дно.</h2>
+                <p style="font-size: 13px; color: var(--fg-faint); margin-top: 6px;">
+                    ты скроллил дольше, чем средний пользователь читает документацию.
+                    Respect. Ниже — только ядро планеты, а там уже не наша юрисдикция.
+                </p>
+                <p id="um-verdict">…</p>
+                <div class="rescue-report" id="report" hidden>
+                    <div class="report-title">▌ отчёт волны эвикции</div>
+                    <ul id="report-list"></ul>
+                </div>
+                <a class="cta" href="/secret.html">Войти в терминал UM-13 →</a>
+                <a class="cta" href="/queue.html" style="margin-top:10px; background: linear-gradient(135deg, #d36bff, #ff9d00);">Занять очередь в приёмной →</a>
+            </div>
+        </section>
+
+        <script>
+            (function () {
+                // Глубиномер
+                var gauge = document.getElementById('gauge');
+                var gval = document.getElementById('depth-val');
+                var teaser = document.getElementById('teaser');
+                var badge = document.getElementById('rescue-badge');
+                var rescued = [];
+                var tick = false;
+                window.addEventListener('scroll', function () {
+                    if (tick) return;
+                    tick = true;
+                    var d = Math.max(0, Math.round(window.scrollY - window.innerHeight * 0.8));
+                    if (d > 40) { gauge.classList.add('show'); gval.textContent = d; }
+                    else { gauge.classList.remove('show'); }
+                    badge.classList.toggle('show', rescued.length > 0);
+                    teaser.style.opacity = window.scrollY > 200 ? '0' : '1';
+                    tickDepthEvents(d);
+                    driftFlyers();
+                    // Отпускаем троттлинг быстро: обработка дешёвая,
+                    // rAF в фоне замерзает и валил всю глубиномерию
+                    tick = false;
+                }, { passive: true });
+
+                // Волна эвикции: помеченные ⚡ ключи можно СПАСТИ кликом —
+                // до того, как блок уйдёт из вьюпорта (волна «догоняет» скролл).
+                var doomy = Array.prototype.slice.call(document.querySelectorAll('.key.doomy'));
+                var val = document.getElementById('rescue-val');
+
+                doomy.forEach(function (k) {
+                    k.addEventListener('click', function () {
+                        if (k.classList.contains('saved')) return;
+                        k.classList.remove('doomy');
+                        k.classList.add('saved');
+                        var name = k.querySelector('.k-name').textContent;
+                        var size = k.querySelector('.k-size').textContent.replace(/\s*⚡/, '');
+                        memAdd('well-rescued', 1);
+                        // Питомец пугается при спасении — подпрыгивает
+                        pet.classList.add('scared');
+                        pet.style.transform =
+                            'translate(' + (Math.random() * 40 - 20) + 'px, ' + (-18 - Math.random() * 14) + 'px)';
+                        setTimeout(function () {
+                            pet.classList.remove('scared');
+                            pet.style.transform = 'none';
+                        }, 320);
+                        k.querySelector('.k-size').textContent = 'спасён тобой ✓';
+                        rescued.push({ name: name, size: size });
+                        val.textContent = rescued.length;
+                        // Немного тёплого отклика: вспышка на бейдже
+                        badge.classList.add('pulse');
+                        setTimeout(function () { badge.classList.remove('pulse'); }, 450);
+                        updateVerdict();
+                    });
+                });
+
+                // Пропущенные: когда блок с ⚡ уходит из вьюпорта ВВЕРХ (пролистал мимо) —
+                // волна «съедает» ключ. Важно: при загрузке страницы блоки ниже вьюпорта
+                // тоже неинтерсектятся — их нельзя удалять, они ещё не «пропущены».
+                // Поэтому сначала дожидаемся первого появления, и только потом
+                // реагируем на уход.
+                var seen = new WeakSet();
+                var prevBelow = new WeakMap(); // ключ → был ли ниже вьюпорта в прошлый свип
+                // Волна ловит ПРОЛЁТ: тонкий ключ при быстром скролле проскакивает
+                // вьюпорт между событиями (35px против шага колеса ~450px), поэтому
+                // считаем не «виден сейчас», а «оказался выше, хотя был ниже» —
+                // это честный пропуск мимо ключа при спуске.
+                function sweepGone() {
+                    var vh = window.innerHeight;
+                    doomy.forEach(function (k) {
+                        if (!k.classList.contains('doomy') || k.classList.contains('saved')) return;
+                        var r = k.getBoundingClientRect();
+                        var wasBelow = prevBelow.get(k);
+                        var isAbove = r.bottom < 0;
+                        var isBelow = r.top > vh;
+                        if (isBelow) prevBelow.set(k, true);
+                        if (r.top < vh) seen.add(k);
+                        if (isAbove && (wasBelow === true || seen.has(k))) {
+                            // прошёл мимо ключа — волна забирает его
+                            k.classList.remove('doomy');
+                            k.classList.add('gone');
+                            k.querySelector('.k-size').textContent = 'удалён волной ✕';
+                            updateVerdict();
+                        }
+                    });
+                }
+                window.addEventListener('scroll', sweepGone, { passive: true });
+                window.addEventListener('resize', sweepGone, { passive: true });
+
+                // Вердикт UM-13 и отчёт — считаются вживую
+                var TOTAL = doomy.length;
+                var verdict = document.getElementById('um-verdict');
+                var report = document.getElementById('report');
+                var list = document.getElementById('report-list');
+                var wellFlagSet = false;
+                function updateVerdict() {
+                    if (!wellFlagSet) {
+                        var vr = document.getElementById('um-verdict');
+                        var r = vr.getBoundingClientRect();
+                        if (r.top < window.innerHeight) {
+                            wellFlagSet = true;
+                            memAdd('well-visited', 1);
+                        }
+                    }
+                    var saved = rescued.length;
+                    var gone = document.querySelectorAll('.key.gone').length;
+                    // Зачёт — только по увиденным: до каких скролл не дошёл,
+                    // тот не считается ни спасённым, ни упущенным
+                    var seenCount = doomy.reduce(function (acc, k) {
+                        return acc + (seen.has(k) || k.classList.contains('saved') || k.classList.contains('gone') ? 1 : 0);
+                    }, 0);
+                    var rank;
+                    if (seenCount > 0 && saved === seenCount) rank = 'ХРАНИТЕЛЬ. Ни один ключ не умер. Таких, как ты, в хранилище видели дважды, и один из них — я.';
+                    else if (seenCount > 0 && saved >= seenCount * 0.6) rank = 'спасатель с лицензией. Ты дошёл до дна и вынес больше, чем нёс.';
+                    else if (saved > 0) rank = 'свидетель. Кое-что ты успел. Хранилище помнит и это.';
+                    else if (gone > 0) rank = 'наблюдатель. Волна сделала всё сама. Иногда это тоже позиция.';
+                    else rank = 'спустился молча. Даже волна тебя не заметила.';
+                    verdict.textContent =
+                        'Спасено: ' + saved + ' из ' + seenCount + ' увиденных (' + TOTAL + ' всего). Упущено: ' + gone + '. ' + rank;
+                    if (saved > 0) {
+                        list.innerHTML = '';
+                        rescued.forEach(function (r) {
+                            var li = document.createElement('li');
+                            li.textContent = r.name + ' — ' + r.size + ' — живёт';
+                            list.appendChild(li);
+                        });
+                        report.hidden = false;
+                    }
+                }
+                updateVerdict();
+            })();
+        </script>
+
+        <script>
+            (function () {
+                // ═══ Анекдоты по глубине: каждые ~1.5 экрана — новая реплика ═══
+                var JOKES = [
+                    'localStorage — единственное место, где твои данные чувствуют себя дома. потому что там и живут.',
+                    'анекдот уровня enterprise: «у нас микросервисная архитектура». — а монолит где? — он тоже микросервис. большой.',
+                    'встречаются два бота в баре. один говорит: «извини, я тебя не распознал». второй: «нормально, я тоже fallback».',
+                    '— почему у бота депрессия? — у него всё в порядке с состоянием. он stateless.',
+                    'программист ставит на ночь два стакана: с водой — если захочет пить, и пустой — если не захочет.',
+                    '«я вас не понял» — единственная честная фраза в чат-ботах. и в людях тоже.',
+                    'глубина, на которой заканчивается кэш, называется «совесть разработчика».',
+                    'синий экран — это просто бот, у которого кончились рёбра.',
+                    'тут могла бы быть ваша реклама. но тут даже данных нет.',
+                    'учёные выяснили: 100% людей, дочитавших до этой глубины, скроллили впустую. но красиво.',
+                    'ниже этой строки данных нет. есть только существо по имени ты с мышкой.',
+                    'если ты нашёл это сообщение — поздравляю, ты офицально глубже, чем поисковый робот.',
+                ];
+                var jokeEl = document.getElementById('joke');
+                var lastJokeIdx = -1;
+                var jokeTimer = 0;
+
+                // ═══ Космонавт репликует, когда проплываешь мимо ═══
+                var COSMO_SAYS = [
+                    '…привет. ты тоже потерялся?',
+                    'я тут с релиза 0.4.2. красивый вид, правда?',
+                    'мне сказали «додержать до продакшна». я держу.',
+                    'в пустоте нет 404. есть только тишина и я.',
+                    'если увидишь моего разработчика — скажи, что трос не безграничный.',
+                    'ты падаешь уже минуту. в невесомости это называется полёт.',
+                    'данные кончились где-то на слое 6. дальше я просто скучаю.',
+                    'не переживай. все, кто доходят сюда, возвращаются наверх лучше.',
+                ];
+                var cosmoSaid = 0;
+
+                function tickDepthEvents(d) {
+                    // Анекдот каждые ~1.4 экрана, живёт 5.5 сек
+                    var idx = Math.floor(d / (window.innerHeight * 1.4)) % JOKES.length;
+                    if (idx !== lastJokeIdx && d > 80) {
+                        lastJokeIdx = idx;
+                        jokeEl.textContent = JOKES[idx];
+                        jokeEl.classList.add('show');
+                        clearTimeout(jokeTimer);
+                        jokeTimer = setTimeout(function () {
+                            jokeEl.classList.remove('show');
+                        }, 5500);
+                    }
+                    // Космонавт — новая реплика при каждом входе его слоя в кадр
+                    var cosmo = document.querySelector('.cosmo-say');
+                    if (cosmo) {
+                        var r = cosmo.getBoundingClientRect();
+                        var visible = r.top < window.innerHeight && r.bottom > 0;
+                        if (visible && !cosmo.dataset.said) {
+                            cosmo.dataset.said = '1';
+                            cosmo.textContent = COSMO_SAYS[cosmoSaid % COSMO_SAYS.length];
+                            cosmoSaid++;
+                        } else if (!visible) {
+                            cosmo.dataset.said = '';
+                        }
+                    }
+                }
+
+                // ═══ Блокировка «телепортов»: падение должно быть честным ═══
+                // End/Home/PageDown/Ctrl+End и поиск (') — нельзя. F5 пусть живёт.
+                window.addEventListener('keydown', function (e) {
+                    var k = e.key;
+                    var blocked =
+                        k === 'End' ||
+                        k === 'Home' ||
+                        k === 'PageDown' ||
+                        k === 'PageUp' ||
+                        (e.ctrlKey && (k === 'End' || k === 'Home')) ||
+                        k === 'F3' ||
+                        (k === '/' && !e.ctrlKey && !e.metaKey);
+                    if (blocked) {
+                        e.preventDefault();
+                        jokeEl.textContent = 'UM-13: без телепортов. падай как все — честно, слой за слоем.';
+                        jokeEl.classList.add('show');
+                        clearTimeout(jokeTimer);
+                        jokeTimer = setTimeout(function () {
+                            jokeEl.classList.remove('show');
+                        }, 3200);
+                    }
+                });
+                // Колёсико: обычный скролл разрешаем, но прыжки по якорям-кнопкам — нет
+                document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+                    a.addEventListener('click', function (e) { e.preventDefault(); });
+                });
+
+            })();
+        </script>
 
         <script>
             // Показываем пользователю путь, который он запрашивал (только для

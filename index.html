@@ -1563,6 +1563,88 @@
         </footer>
 
         <script>
+            // Пасхалка №1: 10 кликов по логотипу → служебный терминал UM-13 (/secret.html).
+            // Лого — ссылка на «/», поэтому каждый клик перехватываем: копим счётчик
+            // и на 10-м открываем секретную страницу. Обычный переход по лого
+            // («на главную») выполняем сами по ОДИНАРНОМУ клику через отложенный
+            // таймер — если пользователь кликнул второй раз, значит он «копает».
+            (function () {
+                var logo = document.querySelector('.site-header .logo');
+                if (!logo) return;
+                var clicks = 0;
+                var resetTimer = null;
+                var navTimer = null;
+                logo.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    clicks++;
+                    clearTimeout(resetTimer);
+                    // окно внимания: 4 сек между кликами — иначе счётчик сбрасывается
+                    resetTimer = setTimeout(function () {
+                        clicks = 0;
+                    }, 4000);
+                    if (clicks >= 7 && clicks < 10) {
+                        // мягкая подсказка тем, кто уже близко
+                        logo.style.transform = 'rotate(' + (clicks - 6) * 2 + 'deg)';
+                    }
+                    if (clicks >= 10) {
+                        clearTimeout(resetTimer);
+                        clearTimeout(navTimer);
+                        clicks = 0;
+                        logo.style.transform = '';
+                        window.location.href = '/secret.html';
+                        return;
+                    }
+                    if (clicks === 1) {
+                        // одиночный клик через 350 мс тишь = обычный переход «на главную».
+                        // Если мы уже на главной — перезагружать страницу бессмысленно
+                        clearTimeout(navTimer);
+                        navTimer = setTimeout(function () {
+                            if (clicks < 2) {
+                                var href = logo.getAttribute('href') || '/';
+                                if (location.pathname === href) {
+                                    // уже здесь: прокрутим наверх, как честная ссылка на главную
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    clicks = 0;
+                                } else {
+                                    window.location.href = href;
+                                }
+                            }
+                        }, 350);
+                    } else {
+                        clearTimeout(navTimer);
+                    }
+                });
+            })();
+
+            // Пасхалка №2: Konami-код (↑↑↓↓←→←→BA или WASD) → «СОБЕРИ СКУНЕТ» (/sky-net.html).
+            // Suika-мерджер: сливай чат-ботов, собирай СКУНЕТ. В полях ввода не срабатывает.
+            (function () {
+                var KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+                var WASD = { w: 'ArrowUp', s: 'ArrowDown', a: 'ArrowLeft', d: 'ArrowRight' };
+                var pos = 0;
+                var fired = false;
+                window.addEventListener('keydown', function (e) {
+                    if (fired) return;
+                    var t = e.target;
+                    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+                    if (e.metaKey || e.ctrlKey || e.altKey) return;
+                    var key = e.key;
+                    // WASD — только в стрелочной части (финал кода — буквы b/a)
+                    if (key.length === 1 && pos < 8) key = WASD[key.toLowerCase()] || key.toLowerCase();
+                    else if (key.length === 1) key = key.toLowerCase();
+                    var expected = KONAMI[pos];
+                    if (key === expected || (key.length === 1 && key.toLowerCase() === expected)) {
+                        pos++;
+                        if (pos === KONAMI.length) {
+                            fired = true;
+                            window.location.href = '/skynet/';
+                        }
+                    } else {
+                        pos = key === KONAMI[0] ? 1 : 0;
+                    }
+                });
+            })();
+
             // Появление секций при скролле
             (function () {
                 var els = document.querySelectorAll('.reveal');
