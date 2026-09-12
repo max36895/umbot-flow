@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <title>Документация — Umbot Flow Editor</title>
         <meta
             name="description"
@@ -20,6 +21,10 @@
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://flow.maxim-m.ru/docs/" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="ru_RU" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+
         <style>
             * {
                 margin: 0;
@@ -106,6 +111,20 @@
                 color: #00f0ff;
                 border-color: rgba(0, 240, 255, 0.3);
             }
+            @media (max-width: 480px) {
+                body { padding: 0; }
+                .container { padding: 24px 14px; }
+                h1 { font-size: 1.5rem; }
+                h2 { font-size: 1.15rem; }
+                .step { flex-direction: column; gap: 10px; }
+                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
+                table { font-size: 0.8rem; }
+                th, td { padding: 6px 8px; }
+                pre { font-size: 0.75rem; padding: 12px; }
+                code { font-size: 0.8em; }
+                .topbar { flex-wrap: wrap; gap: 8px; }
+            }
+
         </style>
     </head>
     <body>
@@ -117,25 +136,41 @@
             <h1>Документация</h1>
             <p class="subtitle">Всё что нужно знать для работы с Umbot Flow Editor</p>
 
+            <p style="color: #888; font-size: 0.95rem; margin-bottom: 28px">
+                Umbot Flow Editor — визуальный конструктор чат-ботов: сценарий собирается блоками на
+                холсте, редактор проверяет его и превращает в готовый TypeScript-проект для
+                Telegram, Алисы, VK и других платформ. Ниже — четыре раздела: начните с быстрого
+                старта, а справочники держите под рукой.
+            </p>
+
             <div class="cards">
                 <a class="card" href="/docs/quick-start/">
                     <h2>Быстрый старт</h2>
-                    <p>Пошаговая инструкция: от открытия редактора до запуска бота за 15 минут.</p>
+                    <p>
+                        Пошаговая инструкция с примерами и скриншотами: от первого блока на холсте
+                        до запущенного бота — примерно за 15 минут.
+                    </p>
                 </a>
                 <a class="card" href="/docs/blocks/">
                     <h2>Типы блоков</h2>
                     <p>
-                        Подробное описание каждого типа блока: команды, шаги, условия, действия,
-                        ответы.
+                        Подробное описание каждого типа блока: команды со словами-триггерами, шаги
+                        ввода, условия, действия, ответы и завершение. С примерами настройки.
                     </p>
                 </a>
                 <a class="card" href="/docs/json-format/">
                     <h2>JSON-формат</h2>
-                    <p>Полная спецификация JSON-конфигурации. Структура, типы узлов, примеры.</p>
+                    <p>
+                        Референс flow.json: структура документа, все типы узлов и связей, операторы
+                        условий и подстановка переменных. Для ручной правки конфигурации.
+                    </p>
                 </a>
                 <a class="card" href="/docs/faq/">
                     <h2>FAQ</h2>
-                    <p>Ответы на часто задаваемые вопросы: бесплатность, платформы, запуск бота.</p>
+                    <p>
+                        Ответы на частые вопросы: бесплатность и лицензия, поддержка платформ,
+                        запуск сгенерированного бота на своём сервере.
+                    </p>
                 </a>
             </div>
         </div>

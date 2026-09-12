@@ -16,6 +16,10 @@ export default function ExportDialog() {
     const [commandCopied, setCommandCopied] = useState(false);
     const [jsonCopied, setJsonCopied] = useState(false);
 
+    // Демо-флоу UM-13 (inject из исповедальни) содержит намеренных
+    // блоков-сирот: без подсказки «2 ошибки» при первом заходе выглядят
+    // как «я что-то сломал». Показываем разъяснение только для демо-имени.
+    const isUm13Demo = doc.name === 'um-13' && errors.length > 0;
     // Безопасное имя файла: пробелы/спецсимволы ломают shell-команду — подменяем на _
     const safeFileName = (doc.name || 'flow').replace(/[^a-zA-Z0-9_-]+/g, '_');
     const command = `npx umbot create from-flow ${safeFileName}.json --output ./my-bot`;
@@ -30,6 +34,10 @@ export default function ExportDialog() {
         a.download = `${(doc.name || 'flow').replace(/[^a-zA-Z0-9_-]+/g, '_')}.json`;
         a.click();
         URL.revokeObjectURL(url);
+        // Экспорт = спасение флоу из хранилища: UM-13 благословляет
+        // единственную лодку с корабля квот (центральная метафора лора).
+        // Зарегистрированное событие — призрак сам решает, как ответить.
+        (window as unknown as { UM13Ghost?: { react(e: string): void } }).UM13Ghost?.react('flow-export');
     };
 
     const handleCopy = () => {
@@ -94,6 +102,11 @@ export default function ExportDialog() {
                                     </li>
                                 ))}
                             </ul>
+                            {isUm13Demo && (
+                                <p className="mt-2 rounded-lg bg-fg/5 p-2 text-[11px] text-fg/60">
+                                    {t('export.demoHint')}
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>

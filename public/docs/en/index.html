@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <title>Documentation — Umbot Flow Editor</title>
         <meta
             name="description"
@@ -20,6 +21,10 @@
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+
         <style>
             * {
                 margin: 0;
@@ -101,6 +106,20 @@
                 color: #00f0ff;
                 border-color: rgba(0, 240, 255, 0.3);
             }
+            @media (max-width: 480px) {
+                body { padding: 0; }
+                .container { padding: 24px 14px; }
+                h1 { font-size: 1.5rem; }
+                h2 { font-size: 1.15rem; }
+                .step { flex-direction: column; gap: 10px; }
+                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
+                table { font-size: 0.8rem; }
+                th, td { padding: 6px 8px; }
+                pre { font-size: 0.75rem; padding: 12px; }
+                code { font-size: 0.8em; }
+                .topbar { flex-wrap: wrap; gap: 8px; }
+            }
+
         </style>
     </head>
     <body>
@@ -112,25 +131,42 @@
             <h1>Documentation</h1>
             <p class="subtitle">Everything you need to work with Umbot Flow Editor</p>
 
+            <p style="color: #888; font-size: 0.95rem; margin-bottom: 28px">
+                Umbot Flow Editor is a visual chatbot builder: you assemble the scenario with blocks
+                on a canvas, the editor validates it and turns it into a ready TypeScript project
+                for Telegram, Alisa, VK and other platforms. Four sections below: start with the
+                quick start guide and keep the references handy.
+            </p>
+
             <div class="cards">
                 <a class="card" href="/docs/en/quick-start/">
                     <h2>Quick Start</h2>
-                    <p>Step-by-step guide: from opening the editor to launching a bot in 15 minutes.</p>
+                    <p>
+                        A step-by-step guide with examples and screenshots: from the first block on
+                        the canvas to a running bot — in about 15 minutes.
+                    </p>
                 </a>
                 <a class="card" href="/docs/en/blocks/">
                     <h2>Block Types</h2>
                     <p>
-                        Detailed description of each block type: commands, steps, conditions,
-                        actions, responses.
+                        A detailed description of every block type: commands with trigger words,
+                        input steps, conditions, actions, responses and end. With setup examples.
                     </p>
                 </a>
                 <a class="card" href="/docs/en/json-format/">
                     <h2>JSON Format</h2>
-                    <p>Full specification of the JSON configuration. Structure, node types, examples.</p>
+                    <p>
+                        The flow.json reference: document structure, all node and edge types,
+                        condition operators and variable substitution. For editing the config by
+                        hand.
+                    </p>
                 </a>
                 <a class="card" href="/docs/en/faq/">
                     <h2>FAQ</h2>
-                    <p>Answers to frequently asked questions: pricing, platforms, launching a bot.</p>
+                    <p>
+                        Answers to common questions: pricing and license, platform support,
+                        launching the generated bot on your own server.
+                    </p>
                 </a>
             </div>
         </div>

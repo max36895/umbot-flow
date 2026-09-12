@@ -64,6 +64,9 @@ export function Modal({
             onClick={handleClose}
         >
             <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={title}
                 className={`flex w-full ${MAX_WIDTH_CLASS[maxWidth]} ${maxHeightClass} flex-col rounded-xl border border-glass-border bg-surface-modal shadow-modal backdrop-blur-xl transition-all duration-150 ${animate ? 'scale-100 opacity-100' : 'scale-95 opacity-0'} ${panelClassName}`}
                 onClick={(e) => e.stopPropagation()}
             >

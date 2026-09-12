@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <title>Block Types — Umbot Flow Editor</title>
         <meta
             name="description"
@@ -20,6 +21,10 @@
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/blocks/" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+
         <style>
             * {
                 margin: 0;
@@ -168,6 +173,20 @@
             a {
                 color: #00f0ff;
             }
+            @media (max-width: 480px) {
+                body { padding: 0; }
+                .container { padding: 24px 14px; }
+                h1 { font-size: 1.5rem; }
+                h2 { font-size: 1.15rem; }
+                .step { flex-direction: column; gap: 10px; }
+                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
+                table { font-size: 0.8rem; }
+                th, td { padding: 6px 8px; }
+                pre { font-size: 0.75rem; padding: 12px; }
+                code { font-size: 0.8em; }
+                .topbar { flex-wrap: wrap; gap: 8px; }
+            }
+
         </style>
     </head>
     <body>

@@ -109,7 +109,7 @@ export default function StatusBar() {
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-error" />
                     {t('statusbar.saveErrorShort')}
                 </button>
-            ) : (
+            ) : saveState !== 'idle' ? (
                 <span
                     className={`flex items-center gap-1 text-[11px] transition-colors ${
                         saveState === 'saved' ? 'text-success/60' : 'text-fg/40'
@@ -120,7 +120,7 @@ export default function StatusBar() {
                     )}
                     {saveState === 'saved' ? t('statusbar.saved') : t('statusbar.saving')}
                 </span>
-            )}
+            ) : null}
 
             <span className="text-fg/50">
                 {nodes.length} {t('export.nodes')} · {edges.length} {t('export.edges')}

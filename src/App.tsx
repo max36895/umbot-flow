@@ -10,12 +10,12 @@ import BotSettingsModal from './components/Settings/BotSettingsModal';
 import StatusBar from './components/StatusBar/StatusBar';
 import CommandPalette from './components/Palette/CommandPalette';
 import KonamiGhost from './components/Easter/KonamiGhost';
-import SleepingUm13 from './components/Easter/SleepingUm13';
 import Um13Watches from './components/Easter/Um13Watches';
 import { useKonami } from './hooks/useKonami';
 import useUiStore from './store/uiStore';
 import { useEffect, useRef, useState } from 'react';
 import { useLocale } from './i18n/hook';
+import { getLocale } from './i18n';
 import useFlowStore from './store/flowStore';
 import { buildStarterDocument } from './utils/starterDoc';
 
@@ -46,6 +46,30 @@ export default function App() {
     // Подписка на locale — триггерит перерендер всего дерева при переключении языка
     useLocale();
 
+    // Мост к призраку (/um13-ghost.js, режим editor): сообщаем «занят ли»
+    // интерфейс. Занят = открыт диалог/превью/палитра/сцена Konami —
+    // призрак не прилетает спать на холст, пока человек в диалоге.
+    // На время Konami-сцены резидентного призрака ещё и прячем:
+    // в сцене летит его «курсорная» ипостась — двух UM-13 на экране не бывает.
+    // show() НЕ показывает сразу: он только снимает запрет — в editor-режиме
+    // призрак всё равно приходит лишь после 30с тишины (editorLoop).
+    useEffect(() => {
+        const env = (window as unknown as { __UM13_ENV__?: { setBusy: (b: boolean) => void } }).__UM13_ENV__;
+        env?.setBusy(
+            previewOpen ||
+                exportDialogOpen ||
+                helpOpen ||
+                botSettingsOpen ||
+                paletteOpen ||
+                konamiActive,
+        );
+        const g = (window as unknown as { UM13Ghost?: { hide(): void; show(): void } }).UM13Ghost;
+        if (!g) return;
+        if (konamiActive) g.hide();
+        else g.show(); // снимает запрет hide(); в editor НЕ материализует —
+        // show() понимает режим: после Konami призрак снова придёт по простою
+    }, [previewOpen, exportDialogOpen, helpOpen, botSettingsOpen, paletteOpen, konamiActive]);
+
     // StrictMode монтирует эффекты дважды: autoLoad во втором проходе вернул бы
     // сохранённый документ поверх инжекта исповедальни. Гард-ref решает.
     const bootstrappedRef = useRef(false);
@@ -71,7 +95,14 @@ export default function App() {
                 if (raw) {
                     sessionStorage.removeItem('umbot-inject-flow');
                     useFlowStore.getState().fromJSON(JSON.parse(raw));
-                    useUiStore.getState().showToast('UM-13: вот твой внутренний бот');
+                    // Учебный характер демо: две ноды-сироты намеренно
+                    // некорректны — иначе «ошибки» при первом заходе
+                    // читаются как «я что-то сломал».
+                    useUiStore.getState().showToast(
+                        getLocale() === 'ru'
+                            ? 'UM-13: вот твой внутренний бот. Два блока специально не подключены — потренируйся на валидации или удали их.'
+                            : 'UM-13: here is your inner bot. Two blocks are intentionally left unconnected — practice with validation or delete them.',
+                    );
                 }
             } catch {
                 /* повреждённый payload — тихо игнорируем */
@@ -245,8 +276,8 @@ export default function App() {
                     <div className="relative h-full pb-7">
                         <FlowCanvas />
                         {previewOpen && <ChatPreview />}
-                        {/* Пасхалки: UM-13 засыпает без действий и наблюдает за тобой */}
-                        <SleepingUm13 />
+                        {/* UM-13: сон/побудка/полёты живут в /um13-ghost.js
+                            (режим editor) — тот же призрак, что на всех страницах */}
                         <Um13Watches />
                     </div>
                     <StatusBar />

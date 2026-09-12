@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <title>Быстрый старт — Umbot Flow Editor</title>
         <meta
             name="description"
@@ -20,6 +21,10 @@
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://flow.maxim-m.ru/docs/quick-start/" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="ru_RU" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+
         <style>
             * {
                 margin: 0;
@@ -147,6 +152,28 @@
             .note strong {
                 color: #00f0ff;
             }
+            .doc-shot {
+                display: block;
+                width: 100%;
+                height: auto;
+                border: 1px solid rgba(0, 240, 255, 0.15);
+                border-radius: 10px;
+                margin: 12px 0 4px;
+            }
+            @media (max-width: 480px) {
+                body { padding: 0; }
+                .container { padding: 24px 14px; }
+                h1 { font-size: 1.5rem; }
+                h2 { font-size: 1.15rem; }
+                .step { flex-direction: column; gap: 10px; }
+                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
+                table { font-size: 0.8rem; }
+                th, td { padding: 6px 8px; }
+                pre { font-size: 0.75rem; padding: 12px; }
+                code { font-size: 0.8em; }
+                .topbar { flex-wrap: wrap; gap: 8px; }
+            }
+
         </style>
     </head>
     <body>
@@ -156,26 +183,39 @@
                 <a class="lang" href="/docs/en/quick-start/">EN</a>
             </div>
             <h1>Быстрый старт</h1>
-            <p class="subtitle">От открытия редактора до запуска бота за 15 минут</p>
+            <p class="subtitle">От открытия редактора до работающего бота за 15 минут — без регистрации</p>
 
             <div class="step">
                 <div class="step-num">1</div>
                 <div class="step-content">
                     <h3>Откройте редактор</h3>
                     <p>
-                        Перейдите на <a href="/">главную страницу</a> и начните собирать бота.
-                        Перетащите блок "Команда" на холст.
+                        На <a href="/">главной странице</a> нажмите «Открыть редактор». Редактор
+                        работает прямо в браузере: слева — палитра блоков, в центре — холст, сверху —
+                        панель инструментов. Проект автоматически сохраняется, файл конфигурации
+                        можно забрать в любой момент.
                     </p>
+                    <img
+                        class="doc-shot"
+                        loading="lazy"
+                        decoding="async"
+                        src="/docs/img/quick-start-overview.png"
+                        width="1440"
+                        height="900"
+                        alt="Редактор Umbot Flow Editor: палитра блоков слева, холст с блоками сценария бота в центре и панель инструментов сверху"
+                    />
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-num">2</div>
                 <div class="step-content">
-                    <h3>Настройте бота</h3>
+                    <h3>Поставьте блок команды</h3>
                     <p>
-                        Нажмите на блок и заполните слова-триггеры (слова, на которые бот реагирует)
-                        и текст ответа. Добавьте кнопки, условия и другие блоки по необходимости.
+                        Перетащите блок «Команда» из палитры на холст. Команда — это реакция на слова
+                        пользователя: он пишет «привет», бот отвечает настроенным текстом. Демо-блоки,
+                        которые уже стоят на холсте, можно удалить — выделите блок и нажмите Delete —
+                        или собрать свой сценарий рядом с ними.
                     </p>
                 </div>
             </div>
@@ -183,21 +223,34 @@
             <div class="step">
                 <div class="step-num">3</div>
                 <div class="step-content">
-                    <h3>Экспортируйте конфигурацию</h3>
+                    <h3>Настройте триггеры и ответ</h3>
                     <p>
-                        Нажмите "Проверить и экспортировать" в верхней панели. Скачайте файл
-                        <code>flow.json</code>.
+                        Нажмите на блок — откроется панель свойств. Заполните слова-триггеры
+                        («привет», «здравствуй») и текст ответа («Привет! Я бот книжного магазина.
+                        Как вас зовут?»). У каждого поля есть подсказка, которая объясняет значение.
                     </p>
+                    <img
+                        class="doc-shot"
+                        loading="lazy"
+                        decoding="async"
+                        src="/docs/img/quick-start-props.png"
+                        width="1440"
+                        height="900"
+                        alt="Панель свойств блока редактора: поля имени блока, слов-триггеров и текста ответа"
+                    />
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-num">4</div>
                 <div class="step-content">
-                    <h3>Установите Node.js</h3>
+                    <h3>Сохраните ответ пользователя в переменную</h3>
                     <p>
-                        Если у вас ещё не установлен Node.js, скачайте и установите версию 18 или
-                        выше с <a href="https://nodejs.org" target="_blank">nodejs.org</a>.
+                        Добавьте блок «Шаг» и протяните связь от первого блока ко второму. В шаге
+                        напишите вопрос «Как вас зовут?» и укажите «Сохранить в: userName» — ответ
+                        пользователя сохранится в переменную. Подставьте её в любой следующий текст
+                        через <code>{{userName}}</code>, а блок «Условие» проверит значение и поведёт
+                        диалог по одной из двух ветвей.
                     </p>
                 </div>
             </div>
@@ -205,37 +258,90 @@
             <div class="step">
                 <div class="step-num">5</div>
                 <div class="step-content">
-                    <h3>Сгенерируйте проект</h3>
-                    <p>Откройте терминал в папке с файлом <code>flow.json</code> и выполните:</p>
-                    <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
-                    <p>Готовый проект с кодом появится в папке <code>my-bot</code>.</p>
+                    <h3>Проверьте сценарий в превью</h3>
+                    <p>
+                        Нажмите «Предпросмотр чата» на верхней панели и напишите «привет». Превью
+                        проигрывает сценарий так же, как это сделает платформа: показывает
+                        приветствие, реагирует на слова-триггеры, сохраняет переменные. Ошибки
+                        подсвечиваются прямо на блоках — вы увидите проблему до запуска бота.
+                    </p>
                 </div>
-            </div>
-
-            <div class="note">
-                <strong>Не знаете что делать с кодом?</strong> Отправьте папку
-                <code>my-bot</code> вашему разработчику — он запустит бота за вас.
             </div>
 
             <div class="step">
                 <div class="step-num">6</div>
                 <div class="step-content">
-                    <h3>Запустите бота</h3>
-                    <p>Откройте папку <code>my-bot</code> и следуйте инструкциям в файле README.</p>
+                    <h3>Экспортируйте конфигурацию</h3>
+                    <p>
+                        Нажмите «Проверить и экспортировать». Редактор проверит сценарий (пустые
+                        ответы, потерянные блоки, дубли имён) и предложит скачать файл
+                        <code>flow.json</code> — это весь ваш бот в одном файле. Его можно править
+                        вручную и загружать обратно в редактор.
+                    </p>
                 </div>
             </div>
 
-            <h2>Следующие шаги</h2>
+            <div class="note">
+                <strong>Не хотите разбираться с кодом?</strong> Файл <code>flow.json</code> —
+                законченная постановка задачи: передайте его разработчику, и он запустит бота за вас.
+            </div>
+
+            <div class="step">
+                <div class="step-num">7</div>
+                <div class="step-content">
+                    <h3>Установите Node.js</h3>
+                    <p>
+                        Для запуска бота нужен Node.js версии 18 или новее — скачайте его с
+                        <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a>.
+                        Если Node.js уже установлен, проверьте версию командой <code>node -v</code>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">8</div>
+                <div class="step-content">
+                    <h3>Сгенерируйте проект</h3>
+                    <p>Откройте терминал в папке с файлом <code>flow.json</code> и выполните:</p>
+                    <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
+                    <p>
+                        Команда создаст готовый TypeScript-проект: исходный код бота
+                        (<code>src/index.ts</code>, <code>src/utils.ts</code>), <code>package.json</code>
+                        и <code>tsconfig.json</code>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">9</div>
+                <div class="step-content">
+                    <h3>Запустите бота</h3>
+                    <p>Установите зависимости, соберите проект и запустите бота:</p>
+                    <pre><code>cd my-bot
+npm install
+npm run build
+npm start</code></pre>
+                    <p>
+                        Бот поднимется на <code>localhost:3000</code>. Платформы (Telegram, Алиса,
+                        VK, Маруся и другие) подключаются адаптерами в <code>src/index.ts</code> —
+                        токены вы задаёте на своей стороне.
+                    </p>
+                </div>
+            </div>
+
+            <h2>Что дальше</h2>
             <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
                 <li>
-                    <a href="/docs/blocks/">Описание блоков</a> — узнаете как работают команды,
-                    шаги, условия
+                    <a href="/docs/blocks/">Типы блоков</a> — как работают команды, шаги, условия
+                    и действия
                 </li>
                 <li>
-                    <a href="/docs/json-format/">JSON-формат</a> — полная спецификация
-                    конфигурации
+                    <a href="/docs/json-format/">JSON-формат</a> — референс конфигурации со всеми
+                    полями и операторами
                 </li>
-                <li><a href="/docs/faq/">FAQ</a> — ответы на частые вопросы</li>
+                <li>
+                    <a href="/docs/faq/">FAQ</a> — ответы на частые вопросы о редакторе и запуске
+                </li>
             </ul>
         </div>
     </body>

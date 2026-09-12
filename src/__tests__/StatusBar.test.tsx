@@ -41,6 +41,13 @@ describe('StatusBar', () => {
         expect(screen.getByText(/Saved/)).toBeInTheDocument();
     });
 
+    it('shows no save indicator when idle (nothing to save)', () => {
+        // Регрессия: idle раньше рисовался как «Saving…» и выглядел как вечная запись
+        useFlowStore.setState({ saveState: 'idle' });
+        render(<StatusBar />);
+        expect(screen.queryByText(/Saving|Saved/)).not.toBeInTheDocument();
+    });
+
     it('shows save-error warning with export action when storage fails', () => {
         useFlowStore.setState({ saveState: 'error' });
         render(<StatusBar />);

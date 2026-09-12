@@ -23,7 +23,7 @@ export default {
     'sidebar.response.label': 'Ответ',
     'sidebar.response.desc': 'Показать текст с переменными, без ввода',
     'sidebar.howToUse': 'Как пользоваться',
-    'sidebar.added': 'Добавлен',
+    'sidebar.added': 'На холсте',
     'sidebar.alreadyAdded': 'Уже на холсте',
     'sidebar.searchPlaceholder': 'Поиск блоков…',
     'sidebar.noResults': 'Блоки не найдены',
@@ -124,6 +124,8 @@ export default {
     'export.validation': 'Проверка',
     'export.valid': 'Флоу валиден. Готов к экспорту.',
     'export.errors': 'найдено ошибок:',
+    'export.demoHint':
+        'Это учебный пример: ошибки в блоках-сиротах — намеренные, чтобы показать валидацию. Подключите их к флоу или удалите — и бот будет готов к экспорту.',
     'export.copyJson': 'Копировать JSON',
     'export.download': 'Скачать flow.json',
     'export.copied': 'Скопировано в буфер обмена',

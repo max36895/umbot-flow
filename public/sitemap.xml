@@ -3,21 +3,25 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://flow.maxim-m.ru/</loc>
+        <lastmod>2026-09-09</lastmod>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/skynet/</loc>
+        <lastmod>2026-09-08</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/confession/</loc>
+        <lastmod>2026-09-08</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
@@ -26,6 +30,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/quick-start/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start/" />
@@ -34,6 +39,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/blocks/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
@@ -42,6 +48,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/json-format/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
@@ -50,6 +57,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/faq/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq/" />
@@ -58,6 +66,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/en/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
@@ -66,6 +75,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/en/quick-start/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start/" />
@@ -74,6 +84,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/en/blocks/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
@@ -82,6 +93,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/en/json-format/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
@@ -90,6 +102,7 @@
     </url>
     <url>
         <loc>https://flow.maxim-m.ru/docs/en/faq/</loc>
+        <lastmod>2026-09-09</lastmod>
         <xhtml:link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/faq/" />
         <xhtml:link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/faq/" />
         <xhtml:link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/faq/" />

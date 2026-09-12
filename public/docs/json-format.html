@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <title>JSON-формат — Umbot Flow Editor</title>
         <meta
             name="description"
@@ -20,6 +21,10 @@
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://flow.maxim-m.ru/docs/json-format/" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="ru_RU" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+
         <style>
             * {
                 margin: 0;
@@ -46,6 +51,11 @@
                 font-size: 1.3rem;
                 margin: 32px 0 12px;
                 color: #00f0ff;
+            }
+            h3 {
+                font-size: 1rem;
+                margin: 20px 0 8px;
+                color: #fff;
             }
             .subtitle {
                 color: #888;
@@ -137,6 +147,20 @@
             .note strong {
                 color: #00f0ff;
             }
+            @media (max-width: 480px) {
+                body { padding: 0; }
+                .container { padding: 24px 14px; }
+                h1 { font-size: 1.5rem; }
+                h2 { font-size: 1.15rem; }
+                .step { flex-direction: column; gap: 10px; }
+                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
+                table { font-size: 0.8rem; }
+                th, td { padding: 6px 8px; }
+                pre { font-size: 0.75rem; padding: 12px; }
+                code { font-size: 0.8em; }
+                .topbar { flex-wrap: wrap; gap: 8px; }
+            }
+
         </style>
     </head>
     <body>
@@ -147,11 +171,18 @@
             </div>
             <h1>JSON-формат конфигурации</h1>
             <p class="subtitle">
-                Полная спецификация формата, который генерирует визуальный редактор
+                Референс flow.json — файла, который генерирует визуальный редактор
+            </p>
+
+            <p style="color: #888; font-size: 0.9rem">
+                flow.json описывает весь сценарий бота: узлы, связи между ними и настройки проекта.
+                Редактор валидирует файл по JSON Schema (<code>schemaVersion: "1.0"</code>), поэтому
+                любой экспортированный конфиг гарантированно читается обратно. Ручные правки тоже
+                безопасны: загрузите файл через «Импорт JSON», и редактор проверит его той же схемой.
             </p>
 
             <div class="note">
-                <strong>Совет:</strong> Полная спецификация с примерами кода доступна в
+                <strong>Совет:</strong> полная спецификация с примерами сгенерированного кода — в
                 <a
                     href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
                     >репозитории на GitHub</a
@@ -171,11 +202,62 @@
     "welcome": { "text": "Привет!" }
 }</code></pre>
 
+            <table>
+                <tr>
+                    <th>Поле</th>
+                    <th>Описание</th>
+                </tr>
+                <tr>
+                    <td>schemaVersion</td>
+                    <td>Версия формата, сейчас всегда <code>"1.0"</code></td>
+                </tr>
+                <tr>
+                    <td>name</td>
+                    <td>Имя проекта — используется в package.json и имени папки</td>
+                </tr>
+                <tr>
+                    <td>version</td>
+                    <td>Версия проекта (semver)</td>
+                </tr>
+                <tr>
+                    <td>platforms</td>
+                    <td>
+                        Список платформ: <code>telegram</code>, <code>alisa</code>,
+                        <code>marusia</code>, <code>vk</code>, <code>max_app</code>,
+                        <code>viber</code>, <code>smart_app</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>database</td>
+                    <td>Хранилище данных: <code>file</code>, <code>mongo</code> или <code>none</code></td>
+                </tr>
+                <tr>
+                    <td>nodes</td>
+                    <td>Все блоки сценария (см. типы ниже)</td>
+                </tr>
+                <tr>
+                    <td>edges</td>
+                    <td>Связи между блоками</td>
+                </tr>
+                <tr>
+                    <td>welcome</td>
+                    <td>Приветственное сообщение при старте диалога</td>
+                </tr>
+                <tr>
+                    <td>fallback</td>
+                    <td>Ответ на нераспознанный ввод</td>
+                </tr>
+                <tr>
+                    <td>variables</td>
+                    <td>Комментарии к переменным: имя → описание</td>
+                </tr>
+            </table>
+
             <h2>Типы узлов</h2>
             <table>
                 <tr>
                     <th>Тип</th>
-                    <th>Описание</th>
+                    <th>Назначение</th>
                 </tr>
                 <tr>
                     <td>command</td>
@@ -183,7 +265,7 @@
                 </tr>
                 <tr>
                     <td>step</td>
-                    <td>Шаг — запрашивает ввод и сохраняет</td>
+                    <td>Шаг — запрашивает ввод и сохраняет его в переменную</td>
                 </tr>
                 <tr>
                     <td>condition</td>
@@ -191,11 +273,11 @@
                 </tr>
                 <tr>
                     <td>action</td>
-                    <td>Действие — HTTP-запросы, переменные, числа</td>
+                    <td>Действие — HTTP-запросы, переменные, случайные числа</td>
                 </tr>
                 <tr>
                     <td>response</td>
-                    <td>Ответ — показывает текст и кнопки</td>
+                    <td>Ответ — показывает текст и кнопки без запроса ввода</td>
                 </tr>
                 <tr>
                     <td>end</td>
@@ -203,7 +285,92 @@
                 </tr>
             </table>
 
+            <h3>Command — команда</h3>
+            <pre><code>{
+    "type": "command",
+    "id": "node_123",
+    "name": "greeting",
+    "slots": ["привет", "здравствуй"],
+    "isPattern": false,
+    "saveTo": "lastGreeting",
+    "response": { "text": "Привет, {{userName}}!", "buttons": [] }
+}</code></pre>
+            <table>
+                <tr>
+                    <th>Поле</th>
+                    <th>Описание</th>
+                </tr>
+                <tr>
+                    <td>slots</td>
+                    <td>Слова-триггеры, регистр не важен</td>
+                </tr>
+                <tr>
+                    <td>isPattern</td>
+                    <td>Если <code>true</code> — слоты трактуются как регулярные выражения</td>
+                </tr>
+                <tr>
+                    <td>saveTo</td>
+                    <td>Сохранить ввод пользователя в переменную</td>
+                </tr>
+                <tr>
+                    <td>response</td>
+                    <td>Текст ответа, TTS, кнопки, карточка, завершение диалога</td>
+                </tr>
+            </table>
+
+            <h3>Step — шаг</h3>
+            <pre><code>{
+    "type": "step",
+    "id": "node_456",
+    "name": "ask_name",
+    "prompt": { "text": "Как вас зовут?" },
+    "saveTo": "userName",
+    "saveAs": "original"
+}</code></pre>
+            <p style="color: #888; font-size: 0.9rem">
+                <code>saveAs: "original"</code> сохраняет ввод как есть, <code>"lowercase"</code> —
+                в нижнем регистре. Куда идти дальше, определяется связью <code>next</code>.
+            </p>
+
+            <h3>Condition — условие</h3>
+            <pre><code>{
+    "type": "condition",
+    "id": "node_789",
+    "name": "check_age",
+    "variable": "age",
+    "operator": "gte",
+    "value": 18
+}</code></pre>
+            <p style="color: #888; font-size: 0.9rem">
+                Ветки «да»/«нет» задаются связями <code>branch_true</code> и
+                <code>branch_false</code>. value может быть числом, строкой или именем переменной.
+            </p>
+
+            <h4>Операторы сравнения</h4>
+            <table>
+                <tr>
+                    <th>Код</th>
+                    <th>Проверка</th>
+                </tr>
+                <tr><td>eq / neq</td><td>Равно / не равно</td></tr>
+                <tr><td>gt / gte / lt / lte</td><td>Больше / больше-или-равно / меньше / меньше-или-равно</td></tr>
+                <tr><td>contains</td><td>Строка содержит подстроку</td></tr>
+                <tr><td>isEmpty / isNotEmpty</td><td>Переменная пуста / не пуста</td></tr>
+                <tr><td>isSayTrue / isSayFalse</td><td>Пользователь ответил «да» / «нет» (естественный язык)</td></tr>
+                <tr><td>isUrl</td><td>Значение — корректный URL</td></tr>
+            </table>
+
+            <h3>Action — действие</h3>
+            <p style="color: #888; font-size: 0.9rem">
+                Три типа действий: <code>set_variable</code> (вычислить выражение и записать в
+                переменную), <code>random_number</code> (случайное число от min до max) и
+                <code>http_request</code> (GET/POST-запрос с заголовками, телом и сохранением ответа
+                в переменную). В URL, теле и выражениях работает подстановка
+                <code>{{переменная}}</code>.
+            </p>
+
             <h2>Связи (edges)</h2>
+            <pre><code>{ "from": "node_123", "to": "node_456", "type": "next" }</code></pre>
             <table>
                 <tr>
                     <th>Тип</th>
@@ -215,25 +382,39 @@
                 </tr>
                 <tr>
                     <td>branch_true</td>
-                    <td>Ветка "да" от условия</td>
+                    <td>Ветка «да» от условия</td>
                 </tr>
                 <tr>
                     <td>branch_false</td>
-                    <td>Ветка "нет" от условия</td>
+                    <td>Ветка «нет» от условия</td>
+                </tr>
+                <tr>
+                    <td>slot_match</td>
+                    <td>Переход при совпадении слота</td>
                 </tr>
             </table>
 
             <h2>Подстановка переменных</h2>
             <p style="color: #888; font-size: 0.9rem">
-                В тексте используйте <code>{{имя}}</code> — значение подставится автоматически.
+                В любом тексте используйте <code>{{имя}}</code> — значение подставится
+                автоматически:
             </p>
             <pre><code>"Привет, {{userName}}!"  →  setText(ctrl, `Привет, ${ctrl.userData.userName}!`)</code></pre>
 
+            <h2>Валидация и имена</h2>
+            <p style="color: #888; font-size: 0.9rem">
+                Имена блоков с пробелами и спецсимволами автоматически превращаются в корректные
+                идентификаторы (кириллица сохраняется). Редактор ловит типовые ошибки до экспорта:
+                пустые ответы, недостижимые блоки, дубли имён после санитизации, потерянные связи.
+                Условия внутри одного блока изолируются — два условия с одинаковой переменной в
+                одном блоке не конфликтуют.
+            </p>
+
             <h2>Дополнительно</h2>
             <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
-                <li><a href="/docs/blocks/">Описание блоков</a> — какие бывают типы узлов</li>
+                <li><a href="/docs/blocks/">Типы блоков</a> — какие бывают узлы и как их соединять</li>
                 <li>
-                    <a href="/docs/quick-start/">Быстрый старт</a> — как использовать редактор
+                    <a href="/docs/quick-start/">Быстрый старт</a> — от первого блока до запущенного бота
                 </li>
                 <li>
                     <a

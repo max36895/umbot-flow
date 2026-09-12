@@ -12,3 +12,6 @@
 /package-lock.json
 vite.log
 *.tsbuildinfo
+# QA-скрипты призрака (jsdom-проверки перед релизом — локальный инструмент)
+.qa_ghost/
+.patch-v4c.py

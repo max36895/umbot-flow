@@ -24,7 +24,7 @@ export default {
     'sidebar.response.label': 'Response',
     'sidebar.response.desc': 'Show text with variables, no input needed',
     'sidebar.howToUse': 'How to use',
-    'sidebar.added': 'Added',
+    'sidebar.added': 'On canvas',
     'sidebar.alreadyAdded': 'Already on canvas',
     'sidebar.searchPlaceholder': 'Search blocks…',
     'sidebar.noResults': 'No blocks found',
@@ -134,6 +134,8 @@ export default {
     'export.validation': 'Validation',
     'export.valid': 'Flow is valid. Ready to export.',
     'export.errors': 'error(s) found:',
+    'export.demoHint':
+        'This is a learning example: the orphan-block errors are intentional, to demo validation. Connect them to the flow or delete them — and the bot is ready to export.',
     'export.copyJson': 'Copy JSON',
     'export.download': 'Download flow.json',
     'export.copied': 'Copied to clipboard',

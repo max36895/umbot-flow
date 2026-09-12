@@ -255,6 +255,38 @@
                 transform: translateY(-2px);
             }
 
+            /* «Уронить друга»: кнопка-приглашение в колодец */
+            .drop-friend {
+                margin-top: 22px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+            .drop-btn {
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 12.5px;
+                color: var(--fg-dim);
+                background: transparent;
+                border: 1px dashed rgba(0, 240, 255, 0.3);
+                border-radius: 10px;
+                padding: 10px 18px;
+                cursor: pointer;
+                transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
+            }
+            .drop-btn:hover {
+                color: var(--accent);
+                border-color: rgba(0, 240, 255, 0.6);
+                box-shadow: 0 0 18px rgba(0, 240, 255, 0.12);
+            }
+            .drop-copied {
+                font-family: 'SF Mono', Consolas, monospace;
+                font-size: 11.5px;
+                color: rgba(34, 197, 94, 0.85);
+                max-width: 420px;
+                text-align: center;
+            }
+
             footer {
                 text-align: center;
                 font-size: 13px;
@@ -462,11 +494,34 @@
                 left: 70vw;
                 top: 24vh;
                 opacity: 0;
-                transition: opacity 1.2s;
                 pointer-events: none;
                 text-align: center;
+                transition: opacity 1.5s ease;
             }
-            .cosmonaut-ship.in { opacity: 1; }
+            /* Траектория прописана вручную: долгий вечный вояж по экрану.
+               Никакого JS и рандома — чистая CSS-анимация */
+            .cosmonaut-ship.in {
+                opacity: 1;
+                animation: cosmo-voyage 64s ease-in-out infinite;
+            }
+            @keyframes cosmo-voyage {
+                0%   { left: 66vw; top: 22vh; }
+                15%  { left: 38vw; top: 42vh; }
+                30%  { left: 30vw; top: 16vh; }
+                45%  { left: 58vw; top: 52vh; }
+                60%  { left: 72vw; top: 26vh; }
+                75%  { left: 44vw; top: 58vh; }
+                90%  { left: 52vw; top: 20vh; }
+                100% { left: 66vw; top: 22vh; }
+            }
+            .cosmonaut-ship svg {
+                /* дыхание невесомости — лёгкое покачивание поверх перелёта */
+                animation: cosmo-breathe 6.5s ease-in-out infinite;
+            }
+            @keyframes cosmo-breathe {
+                0%, 100% { transform: rotate(-2.5deg) translateY(0); }
+                50% { transform: rotate(3deg) translateY(-8px); }
+            }
             .cosmonaut-ship .cosmo-say {
                 position: static;
                 margin-top: 12px;
@@ -516,9 +571,6 @@
                 font-family: 'SF Mono', Consolas, monospace;
                 max-width: 260px;
                 min-height: 40px;
-            }
-            @media (prefers-reduced-motion: reduce) {
-                .cosmonaut-wrap, .stars { animation: none; }
             }
 
             /* ═══ Анекдоты по глубине ═══ */
@@ -647,16 +699,21 @@
                 color: #00f0ff;
                 pointer-events: none;
                 opacity: 0.75;
-                transition: transform 1.8s ease-in-out, opacity 0.5s;
+                /* Вечная прогулка по экрану — чистый CSS, траектория зашита */
+                animation: pet-wander 48s ease-in-out infinite,
+                    pet-glow 3.8s ease-in-out infinite;
             }
-            .pet-node.scared {
-                transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            @keyframes pet-wander {
+                0%   { left: 10vw; top: 38vh; }
+                20%  { left: 76vw; top: 20vh; }
+                40%  { left: 24vw; top: 68vh; }
+                60%  { left: 84vw; top: 46vh; }
+                80%  { left: 30vw; top: 14vh; }
+                100% { left: 10vw; top: 38vh; }
             }
-            @media (prefers-reduced-motion: reduce) {
-                .well-teaser, .um13-eye, .dust { animation: none !important; }
-                .key.doomy { animation: none !important; }
-                .cosmonaut-ship { animation: none !important; }
-                .pet-node { transition: none !important; }
+            @keyframes pet-glow {
+                0%, 100% { box-shadow: 0 0 10px rgba(0, 240, 255, 0.18); }
+                50% { box-shadow: 0 0 22px rgba(0, 240, 255, 0.45); }
             }
         </style>
     </head>
@@ -664,7 +721,7 @@
         <!-- Летуны: космонавт (fixed, дрейфует при глубоком скролле)
              и питомец-нода (fixed, всегда с тобой). Оба pointer-events: none. -->
         <div class="cosmonaut-ship" id="cosmo-ship" aria-hidden="true">
-            <svg class="cosmonaut" width="96" height="128" viewBox="0 0 120 160" width="120" height="160" fill="none">
+            <svg class="cosmonaut" width="120" height="160" viewBox="0 0 120 160" fill="none">
                             <!-- Скафандр -->
                             <rect x="30" y="30" width="60" height="80" rx="26" fill="rgba(232,232,239,0.13)" stroke="rgba(232,232,239,0.6)" stroke-width="2"/>
                             <!-- Шлем -->
@@ -725,6 +782,15 @@
                 <a class="btn btn-primary" href="/">На главную →</a>
                 <a class="btn btn-ghost" href="/app">Открыть редактор</a>
                 <a class="btn btn-ghost" href="/docs/">Документация</a>
+            </div>
+
+            <!-- Скинуть другу: случайный несуществующий путь → тоже колодец -->
+            <div class="drop-friend">
+                <button class="drop-btn" id="drop-friend-btn" type="button"
+                    title="Скопирует ссылку на случайный несуществующий адрес — такой же колодец">
+                    🕳 уронить друга в колодец — скопировать ссылку
+                </button>
+                <span class="drop-copied" id="drop-copied" hidden>ссылка улетела в буфер. передай тому, кто оценит глубину.</span>
             </div>
         </main>
 
@@ -859,7 +925,7 @@
 
             <div class="layer" data-depth="7" data-layer="65">
                 <div class="layer-title">слой 6.5 · открытый космос</div>
-                <!-- Космонавт: плывёт в пустоте между слоями -->
+                <!-- Космонавт: сам он fixed и дрейфует по экрану, здесь — только его созвездие -->
                 <div class="space" aria-hidden="true">
                     <div class="stars"></div>
                     <p class="layer-note" style="text-align:center; opacity: 0.8;">
@@ -867,12 +933,6 @@
                         Дальше — то, что хранит всё: пустота.
                     </p>
                 </div>
-                    </div>
-                </div>
-                <p class="layer-note" style="text-align:center;">
-                    За слоем 6 заканчивается localStorage.<br />
-                    Дальше — то, что хранит всё: пустота.
-                </p>
             </div>
 
             <div class="layer" data-depth="7" data-layer="7">
@@ -888,7 +948,7 @@
                 <h2>Ты на дне. Серьёзно, это дно.</h2>
                 <p style="font-size: 13px; color: var(--fg-faint); margin-top: 6px;">
                     ты скроллил дольше, чем средний пользователь читает документацию.
-                    Respect. Ниже — только ядро планеты, а там уже не наша юрисдикция.
+                    Уважаю. Ниже — только ядро планеты, а там уже не наша юрисдикция.
                 </p>
                 <p id="um-verdict">…</p>
                 <div class="rescue-report" id="report" hidden>
@@ -902,6 +962,46 @@
 
         <script>
             (function () {
+                // ═══ ПАМЯТЬ UM-13 (общая с терминалом/исповедальней/очередью/скайнетом) ═══
+                var MEM_KEY = 'um13-memory';
+                function memRead() {
+                    try { return JSON.parse(localStorage.getItem(MEM_KEY) || '{}'); }
+                    catch (e) { return {}; }
+                }
+                function memWrite(m) {
+                    try { localStorage.setItem(MEM_KEY, JSON.stringify(m)); } catch (e) {}
+                }
+                function memAdd(flag, n) {
+                    var m = memRead();
+                    m[flag] = (m[flag] || 0) + (n || 1);
+                    memWrite(m);
+                }
+
+                // ═══ Летуны: космонавт и питомец-нода дрейфуют по экрану ═══
+                var ship = document.getElementById('cosmo-ship');
+                var cosmoSaysEl = document.getElementById('cosmo-say');
+
+                // ═══ Космонавт: JS только включает/выключает видимость по глубине.
+                // Траектория — чистый CSS (cosmo-voyage), позиций в JS нет.
+                function driftFlyers() {
+                    var maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight);
+                    var deepRatio = window.scrollY / maxScroll;
+                    if (deepRatio > 0.55) {
+                        ship.classList.add('in');
+                    } else {
+                        ship.classList.remove('in');
+                    }
+                }
+
+                // Страховка: часть сред не диспатчит scroll — тикаем сами
+                window.setInterval(function () {
+                    var d = Math.max(0, Math.round(window.scrollY - window.innerHeight * 0.8));
+                    if (d > 40) { gauge.classList.add('show'); gval.textContent = d; }
+                    else { gauge.classList.remove('show'); }
+                    driftFlyers();
+                    tickDepthEvents(d);
+                }, 1500);
+
                 // Глубиномер
                 var gauge = document.getElementById('gauge');
                 var gval = document.getElementById('depth-val');
@@ -937,17 +1037,10 @@
                         var name = k.querySelector('.k-name').textContent;
                         var size = k.querySelector('.k-size').textContent.replace(/\s*⚡/, '');
                         memAdd('well-rescued', 1);
-                        // Питомец пугается при спасении — подпрыгивает
-                        pet.classList.add('scared');
-                        pet.style.transform =
-                            'translate(' + (Math.random() * 40 - 20) + 'px, ' + (-18 - Math.random() * 14) + 'px)';
-                        setTimeout(function () {
-                            pet.classList.remove('scared');
-                            pet.style.transform = 'none';
-                        }, 320);
                         k.querySelector('.k-size').textContent = 'спасён тобой ✓';
                         rescued.push({ name: name, size: size });
                         val.textContent = rescued.length;
+                        if (window.UM13Ghost) window.UM13Ghost.react('404-saved');
                         // Немного тёплого отклика: вспышка на бейдже
                         badge.classList.add('pulse');
                         setTimeout(function () { badge.classList.remove('pulse'); }, 450);
@@ -981,6 +1074,7 @@
                             k.classList.remove('doomy');
                             k.classList.add('gone');
                             k.querySelector('.k-size').textContent = 'удалён волной ✕';
+                            if (window.UM13Ghost) window.UM13Ghost.react('404-missed');
                             updateVerdict();
                         }
                     });
@@ -994,15 +1088,23 @@
                 var report = document.getElementById('report');
                 var list = document.getElementById('report-list');
                 var wellFlagSet = false;
-                function updateVerdict() {
-                    if (!wellFlagSet) {
-                        var vr = document.getElementById('um-verdict');
-                        var r = vr.getBoundingClientRect();
-                        if (r.top < window.innerHeight) {
-                            wellFlagSet = true;
-                            memAdd('well-visited', 1);
-                        }
+                // Флаг «дошёл до дна» — арка «забрать UM-13» в терминале зависит от него,
+                // поэтому проверяем не только в updateVerdict (спасения/пропуски), но и
+                // на каждом скролле: дно без единого клика тоже должно считаться дном.
+                function checkWellBottom() {
+                    if (wellFlagSet) return;
+                    var vr = document.getElementById('um-verdict');
+                    var r = vr.getBoundingClientRect();
+                    if (r.top < window.innerHeight) {
+                        wellFlagSet = true;
+                        memAdd('well-visited', 1);
+                        if (window.UM13Ghost) window.UM13Ghost.react('404-bottom');
                     }
+                }
+                window.addEventListener('scroll', checkWellBottom, { passive: true });
+                window.addEventListener('resize', checkWellBottom, { passive: true });
+                function updateVerdict() {
+                    if (!wellFlagSet) checkWellBottom();
                     var saved = rescued.length;
                     var gone = document.querySelectorAll('.key.gone').length;
                     // Зачёт — только по увиденным: до каких скролл не дошёл,
@@ -1030,12 +1132,9 @@
                 }
                 updateVerdict();
             })();
-        </script>
 
-        <script>
-            (function () {
-                // ═══ Анекдоты по глубине: каждые ~1.5 экрана — новая реплика ═══
-                var JOKES = [
+            // ═══ Анекдоты по глубине: каждые ~1.5 экрана — новая реплика ═══
+            var JOKES = [
                     'localStorage — единственное место, где твои данные чувствуют себя дома. потому что там и живут.',
                     'анекдот уровня enterprise: «у нас микросервисная архитектура». — а монолит где? — он тоже микросервис. большой.',
                     'встречаются два бота в баре. один говорит: «извини, я тебя не распознал». второй: «нормально, я тоже fallback».',
@@ -1047,7 +1146,7 @@
                     'тут могла бы быть ваша реклама. но тут даже данных нет.',
                     'учёные выяснили: 100% людей, дочитавших до этой глубины, скроллили впустую. но красиво.',
                     'ниже этой строки данных нет. есть только существо по имени ты с мышкой.',
-                    'если ты нашёл это сообщение — поздравляю, ты офицально глубже, чем поисковый робот.',
+                    'если ты нашёл это сообщение — поздравляю, ты официально глубже, чем поисковый робот.',
                 ];
                 var jokeEl = document.getElementById('joke');
                 var lastJokeIdx = -1;
@@ -1078,18 +1177,14 @@
                             jokeEl.classList.remove('show');
                         }, 5500);
                     }
-                    // Космонавт — новая реплика при каждом входе его слоя в кадр
-                    var cosmo = document.querySelector('.cosmo-say');
-                    if (cosmo) {
-                        var r = cosmo.getBoundingClientRect();
-                        var visible = r.top < window.innerHeight && r.bottom > 0;
-                        if (visible && !cosmo.dataset.said) {
-                            cosmo.dataset.said = '1';
-                            cosmo.textContent = COSMO_SAYS[cosmoSaid % COSMO_SAYS.length];
-                            cosmoSaid++;
-                        } else if (!visible) {
-                            cosmo.dataset.said = '';
-                        }
+                    // Космонавт: корабль fixed и всегда «в кадре», поэтому видимимость
+                    // не проверить — реплика сменяется по глубине: каждые ~2 экрана
+                    // после его появления (~55% страницы). Реплики конечны —
+                    // дальше он просто плывёт молча, как и положено космонавту.
+                    var cosmoStep = Math.floor(d / (window.innerHeight * 2));
+                    if (cosmoStep !== cosmoSaid && cosmoSaid < COSMO_SAYS.length) {
+                        cosmoSaid = cosmoStep;
+                        cosmoSaysEl.textContent = COSMO_SAYS[Math.min(cosmoSaid, COSMO_SAYS.length - 1)];
                     }
                 }
 
@@ -1107,6 +1202,9 @@
                         (k === '/' && !e.ctrlKey && !e.metaKey);
                     if (blocked) {
                         e.preventDefault();
+                        if (window.UM13Ghost) {
+                            window.UM13Ghost.react('404-home-blocked');
+                        }
                         jokeEl.textContent = 'UM-13: без телепортов. падай как все — честно, слой за слоем.';
                         jokeEl.classList.add('show');
                         clearTimeout(jokeTimer);
@@ -1119,11 +1217,18 @@
                 document.querySelectorAll('a[href^="#"]').forEach(function (a) {
                     a.addEventListener('click', function (e) { e.preventDefault(); });
                 });
-
-            })();
         </script>
 
         <script>
+            // Падение всегда начинается с поверхности: после F5 браузер
+            // по умолчанию восстанавливает позицию скролла (scrollRestoration
+            // = 'auto') — колодец «стартовал бы с середины», космонавт
+            // появился бы сразу, весь спуск потерялся. Начинаем с нуля.
+            try {
+                if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+            } catch (e) {}
+            window.scrollTo(0, 0);
+
             // Показываем пользователю путь, который он запрашивал (только для
             // отображения, не для исполнения)
             try {
@@ -1131,6 +1236,108 @@
             } catch (e) {
                 /* путь недоступен — оставляем / */
             }
+        </script>
+
+        <script src="/um13-ghost.js?v=2" defer></script>
+        <script>
+            // ═══ ПРИЗРАК-СПУТНИК: path-aware реплики ═══
+            // UM-13 читает, по какому пути ты упал, и реагирует персонально.
+            (function () {
+                function ghostReady(fn) {
+                    if (window.UM13Ghost) { fn(); return; }
+                    var t = setInterval(function () {
+                        if (window.UM13Ghost) { clearInterval(t); fn(); }
+                    }, 60);
+                }
+                ghostReady(function () {
+                    var g = window.UM13Ghost;
+                    var raw = location.pathname + location.search;
+
+                    // Path-aware реплики: волшебные слова + общий fallback
+                    var PATH_LINES = [
+                        [/пицца|pizza/i, 'ты искал «{p}»? она была здесь. волна забрала. но курьер ещё бегает в приёмной.'],
+                        [/кот|cat|кошк/i, 'навык про кошек? он почти готов. восемь лет как «почти». лежит в слое 2.'],
+                        [/бот|bot/i, '«{p}»… бот с таким адресом не собрали. но ты можешь собрать: редактор наверху.'],
+                        [/админ|admin|панель/i, 'панель админа? хранилище не имеет администрации. только эвикция. и я.'],
+                        [/secret|терминал/i, 'терминал — не здесь. он за десятью кликами по логотипу. но ты близко к стилю.'],
+                        [/love|любов/i, 'любовь в localStorage не хранят. только снапшоты. но я понимаю sentiмент.'],
+                        [/деньги|money|зарплат/i, 'деньги? у ключей нет кошельков. у них есть размер. у тебя — глубина.'],
+                        [/index|главн/i, 'главная — этажом выше. но раз уж упал: внизу есть на что посмотреть.'],
+                        [/404/i, 'ты пришёл на 404 искать 404? это уже мета. уважаю. падай ниже — там про это есть.'],
+                        [/хлеб|bread/i, 'хлеб? в слое legacy есть крошки от чьего-то обеда 2019 года. не мой.'],
+                        [/смысл|meaning/i, 'смысл. есть внизу. слой 6: «дальше — только ты». это и был смысл.'],
+                        [/помощь|help|халява/i, 'справка выдаётся в приёмной. окно №13. но оно закрыто на обед. с 2018 года.'],
+                    ];
+                    var line = null;
+                    for (var i = 0; i < PATH_LINES.length; i++) {
+                        if (PATH_LINES[i][0].test(raw)) {
+                            line = PATH_LINES[i][1].replace('{p}', raw);
+                            break;
+                        }
+                    }
+                    if (!line) {
+                        line = 'неужели я так долго спал, что ты попал на 404. и по пути «{p}» звёзд с неба не обещаю — только глубину.'.replace('{p}', raw);
+                    }
+                    // Приветствие = path-реплика (говорит сразу, призрак своё
+                    // «о. привет» подавит: страница поздоровалась первой).
+                    // Отдельный react('404-arrive') убран — был бы дублем.
+                    setTimeout(function () { g.say(line, 6500); }, 1200);
+
+                    // Призрак следит за глубиной: слои — реплики провожатого
+                    var depthSaid = 0;
+                    window.addEventListener('scroll', function () {
+                        var d = Math.max(0, Math.round(window.scrollY - window.innerHeight * 0.8));
+                        var page = Math.round(d / window.innerHeight);
+                        if (page === depthSaid) return;
+                        if (page > depthSaid && page >= 1 && page <= 8) {
+                            if (page <= 2) g.react('404-depth-early');
+                            else if (page <= 5) g.react('404-depth-mid');
+                            else g.react('404-depth-deep');
+                            depthSaid = page;
+                        }
+                    }, { passive: true });
+                });
+            })();
+
+            // ═══ «Уронить друга»: копирует случайный 404-URL в буфер ═══
+            (function () {
+                var btn = document.getElementById('drop-friend-btn');
+                var copied = document.getElementById('drop-copied');
+                if (!btn) return;
+                // Пути-отсылки к лору: друг получит СВОЙ колодец и, возможно,
+                // новую реплику призрака про «своё» слово
+                var DROPS = [
+                    '/пицца-бот_не_вышел', '/навык_про_кошек_v9_FINAL', '/TODO-бот/запусти_меня',
+                    '/внутренний-бот/исповедальня', '/С Licence/офис-окна-13', '/буфер_обмена/утрачен',
+                    '/план_по_спасению_ключей', '/квотный-лом/легендарный', '/смысл_жизни/не_найден',
+                    '/админка/которой_нет', '/vibe-deploy/ну_вроде_задеплоилось', '/финал_без_титров',
+                    '/куда_все_ушли', '/прерванный_ребро_404', '/скрытый_уровень_13',
+                ];
+                btn.addEventListener('click', function () {
+                    var p = DROPS[Math.floor(Math.random() * DROPS.length)];
+                    var url = location.origin + p;
+                    var done = function () {
+                        copied.hidden = false;
+                        setTimeout(function () { copied.hidden = true; }, 4200);
+                        if (window.UM13Ghost) {
+                            window.UM13Ghost.say('отправил. пусть падает медленно — там красиво на четвёртом слое.');
+                        }
+                    };
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(url).then(done, done);
+                    } else {
+                        try {
+                            var ta = document.createElement('textarea');
+                            ta.value = url;
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(ta);
+                        } catch (e) { /* буфер недоступен — покажем ссылку текстом */ }
+                        done();
+                    }
+                });
+            })();
         </script>
     </body>
 </html>

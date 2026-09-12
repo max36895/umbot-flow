@@ -38,4 +38,13 @@ export default tseslint.config(
             '@typescript-eslint/no-non-null-assertion': 'off',
         },
     },
+    {
+        // Тест ванильного IIFE-модуля public/um13-ghost.js: исходник скрипта
+        // выполняется в jsdom как предмет теста (модуль без экспортов).
+        // Это не инъекция чужого кода — тестируем ровно наш файл из public/.
+        files: ['src/__tests__/um13Ghost.test.ts'],
+        rules: {
+            'no-eval': 'off',
+        },
+    },
 );

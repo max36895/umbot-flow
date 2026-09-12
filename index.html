@@ -1,22 +1,33 @@
 <!doctype html>
+<!--
+    ═══════════════════════════════════════════════════════════════
+    umbot flow editor · ты смотришь исходник. уважаю.
+    ═══════════════════════════════════════════════════════════════
+    fix(13.0.13): комбинация ↑↑↓↓←→←→BA больше ничего не делает.
+    наверное. мы проверяли. дважды. нам стало легче.
+    ещё тут есть узел 13. он не в sitemap. он за десятью кликами
+    по логотипу в шапке. но ты этого здесь не читал.
+    ═══════════════════════════════════════════════════════════════
+-->
 <html lang="ru">
     <head>
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#0a0a0f" />
-        <title>Umbot Flow Editor — визуальный конструктор чат-ботов</title>
+        <title>Umbot Flow Editor — визуальный конструктор чат-ботов для Telegram и Алисы</title>
         <meta
             name="description"
-            content="Соберите бота для Telegram, Алисы, VK и Маруси блоками на холсте — и скачайте готовый проект с кодом. Бесплатно, в браузере, без регистрации."
+            content="Соберите бота для Telegram, Алисы, VK, Маруси и других платформ блоками на холсте — и скачайте готовый проект с кодом. Бесплатно, в браузере, без регистрации."
         />
         <meta
             property="og:title"
-            content="Umbot Flow Editor — визуальный конструктор чат-ботов"
+            content="Umbot Flow Editor — визуальный конструктор чат-ботов для Telegram и Алисы"
         />
         <meta
             property="og:description"
-            content="Соберите бота для Telegram, Алисы и VK блоками на холсте — и скачайте готовый проект с кодом. Бесплатно, прямо в браузере."
+            content="Соберите бота для Telegram, Алисы, VK и других платформ блоками на холсте — и скачайте готовый TypeScript-проект. Бесплатно, в браузере."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://flow.maxim-m.ru/" />
@@ -26,14 +37,13 @@
         <meta property="og:image:alt" content="Umbot Flow Editor — визуальный редактор чат-ботов: тёмный холст с неоновыми блоками сценария" />
         <meta property="og:locale" content="ru_RU" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Umbot Flow Editor — визуальный конструктор чат-ботов" />
+        <meta name="twitter:title" content="Umbot Flow Editor — визуальный конструктор чат-ботов для Telegram и Алисы" />
         <meta
             name="twitter:description"
-            content="Соберите бота для Telegram, Алисы и VK блоками на холсте — и скачайте готовый проект с кодом."
+            content="Соберите бота для Telegram, Алисы, VK и других платформ блоками на холсте — и скачайте готовый проект с кодом."
         />
         <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
         <link rel="canonical" href="https://flow.maxim-m.ru/" />
-        <link rel="stylesheet" href="/src/landing-fonts.css" />
         <script type="application/ld+json">
             {
                 "@context": "https://schema.org",
@@ -72,7 +82,7 @@
                         "name": "Это бесплатно?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Да, Umbot Flow Editor полностью бесплатен и open-source. Редактор работает в браузере, генератор проекта доступен через npm. Никаких скрытых платежей и подписок."
+                            "text": "Да, Umbot Flow Editor полностью бесплатен и open-source. Редактор работает в браузере, генератор проекта доступен через npm. Никаких скрытых платежей и подписок. А ещё у нас есть бесплатная игра про чат-ботов — попробуйте собрать СКУНЕТ."
                         }
                     },
                     {
@@ -80,7 +90,7 @@
                         "name": "Нужен ли свой сервер?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Редактор работает в браузере — сервер не нужен. Для запуска сгенерированного бота нужен компьютер с Node.js 18+. Бот будет работать на вашем сервере, данные хранятся локально."
+                            "text": "Редактор работает в браузере — сервер не нужен. Для запуска сгенерированного бота нужен Node.js 18 или новее. Бот будет работать на вашем сервере, данные хранятся локально."
                         }
                     },
                     {
@@ -88,7 +98,7 @@
                         "name": "Какие платформы поддерживаются?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Поддерживаются: Алиса (Яндекс), Telegram, VK, Маруся (Сбер), Max (VK), Viber, SmartApp (Сбер). Можно выбрать одну или несколько платформ одновременно."
+                            "text": "Семь платформ: Алиса, Telegram, VK, Маруся, Max, Viber и SmartApp — можно подключить любые комбинации в настройках бота."
                         }
                     },
                     {
@@ -96,7 +106,7 @@
                         "name": "Сложно ли запустить бота после скачивания?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Нет. Скачиваете файл конфигурации, устанавливаете Node.js и выполняете одну команду. Готовый проект с кодом появится автоматически. Если не знаете что делать с кодом — отправьте его разработчику."
+                            "text": "Нет. Скачиваете файл конфигурации, устанавливаете Node.js и выполняете одну команду. Готовый проект с кодом появится автоматически. Если не знаете, что делать с кодом, — отправьте его разработчику."
                         }
                     },
                     {
@@ -104,7 +114,7 @@
                         "name": "Что такое umbot?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Umbot — это фреймворк для создания мультиплатформенных чат-ботов. Поддерживает Алису, Telegram, VK, Марусю и другие платформы. Визуальный редактор создаёт конфигурацию, а специальная программа генерирует готовый проект."
+                            "text": "Это open-source фреймворк для мультиплатформенных чат-ботов. Наш редактор рисует сценарий, а CLI-генератор umbot превращает его в готовый TypeScript-проект."
                         }
                     },
                     {
@@ -112,7 +122,7 @@
                         "name": "Можно ли редактировать конфигурацию вручную?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Да, формат полностью документирован. Можно редактировать в любом текстовом редакторе и загружать обратно в визуальный редактор. Формат стабилен — обновления не ломают ранее созданные конфигурации."
+                            "text": "Да — формат flow.json открыт и документирован: правьте файл в любом редакторе и загружайте обратно в редактор."
                         }
                     }
                 ]
@@ -162,6 +172,11 @@
                 color: var(--fg);
                 line-height: 1.6;
                 overflow-x: hidden;
+            }
+
+            ::-moz-selection {
+                background: rgba(0, 240, 255, 0.25);
+                color: #fff;
             }
 
             ::selection {
@@ -1092,21 +1107,6 @@
                 transform: none;
             }
 
-            @media (prefers-reduced-motion: reduce) {
-                .hero-grid,
-                .orbit-item,
-                .scroll-hint::after,
-                .spark,
-                .node-active-glow,
-                .cursor,
-                .reveal {
-                    animation: none !important;
-                    transition: none !important;
-                    opacity: 1 !important;
-                    transform: none !important;
-                }
-            }
-
             /* ===== Футер ===== */
             footer {
                 border-top: 1px solid rgba(232, 232, 239, 0.07);
@@ -1139,6 +1139,7 @@
                 flex-wrap: wrap;
             }
         </style>
+        <link rel="stylesheet" href="/src/landing-fonts.css" />
     </head>
     <body>
         <header class="site-header" id="site-header">
@@ -1403,7 +1404,7 @@
                     <div class="feature reveal" style="--f-color: var(--node-command)">
                         <span class="f-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v6H4zM14 15h6v6h-6z"/></svg></span>
                         <h3>Блоки вместо кода</h3>
-                        <p>Команды, шаги ввода, условия, действия, ответы и карточки — 7 типов блоков, соединённых рёбрами. Drag-and-drop, как в Figma.</p>
+                        <p>Команды, шаги ввода, условия, действия, ответы и точки завершения — 6 типов блоков, соединённых рёбрами. Drag-and-drop, как в Figma.</p>
                     </div>
                     <div class="feature reveal" style="--f-color: var(--node-response)">
                         <span class="f-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8zM8 10h8M8 14h5"/></svg></span>
@@ -1437,7 +1438,7 @@
             <section class="block container" id="how">
                 <div class="block-head reveal">
                     <h2>От идеи до бота за 4 шага</h2>
-                    <p>Без установки, без регистрации, без кредитной карты.</p>
+                    <p>Без установки и регистрации — нужен только браузер.</p>
                 </div>
                 <div class="steps">
                     <div class="step reveal">
@@ -1446,7 +1447,7 @@
                     </div>
                     <div class="step reveal">
                         <h3>Проверьте и экспортируйте</h3>
-                        <p>Редактор проверит сценарий и отдаст файл конфигурации — кнопкой «Проверить и экспорт».</p>
+                        <p>Редактор проверит сценарий и отдаст файл конфигурации — кнопкой «Проверить и экспортировать».</p>
                     </div>
                     <div class="step reveal">
                         <h3>Сгенерируйте проект</h3>
@@ -1504,40 +1505,43 @@
                     <div class="faq-item reveal">
                         <details open>
                             <summary><span class="q">Это бесплатно?</span> <span class="chev"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-                            <div class="a">Да, Umbot Flow Editor полностью бесплатен и open-source. Редактор работает в браузере, генератор проекта доступен через npm. Никаких скрытых платежей и подписок.</div>
+                            <div class="a">Да, Umbot Flow Editor полностью бесплатен и open-source. Редактор работает в браузере, генератор проекта доступен через npm. Никаких скрытых платежей и подписок. А ещё у нас есть бесплатная <a href="/skynet/">игра про чат-ботов</a> — попробуйте собрать СКУНЕТ.</div>
                         </details>
                     </div>
                     <div class="faq-item reveal">
                         <details>
                             <summary><span class="q">Нужен ли свой сервер?</span> <span class="chev"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-                            <div class="a">Редактор работает в браузере — сервер не нужен. Для запуска сгенерированного бота нужен компьютер с Node.js 18+. Бот будет работать на вашем сервере, данные хранятся локально.</div>
+                            <div class="a">Редактор работает в браузере — сервер не нужен. Для запуска сгенерированного бота нужен Node.js 18 или новее. Бот будет работать на вашем сервере, данные хранятся локально.</div>
                         </details>
                     </div>
                     <div class="faq-item reveal">
                         <details>
                             <summary><span class="q">Какие платформы поддерживаются?</span> <span class="chev"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-                            <div class="a">Поддерживаются: Алиса (Яндекс), Telegram, VK, Маруся (Сбер), Max (VK), Viber, SmartApp (Сбер). Можно выбрать одну или несколько платформ одновременно.</div>
+                            <div class="a">Семь платформ: Алиса, Telegram, VK, Маруся, Max, Viber и SmartApp — можно подключить любые комбинации в настройках бота.</div>
                         </details>
                     </div>
                     <div class="faq-item reveal">
                         <details>
                             <summary><span class="q">Сложно ли запустить бота после скачивания?</span> <span class="chev"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-                            <div class="a">Нет. Скачиваете файл конфигурации, устанавливаете Node.js и выполняете одну команду. Готовый проект с кодом появится автоматически. Если не знаете что делать с кодом — отправьте его разработчику.</div>
+                            <div class="a">Нет. Скачиваете файл конфигурации, устанавливаете Node.js и выполняете одну команду. Готовый проект с кодом появится автоматически. Если не знаете, что делать с кодом, — отправьте его разработчику.</div>
                         </details>
                     </div>
                     <div class="faq-item reveal">
                         <details>
                             <summary><span class="q">Что такое umbot?</span> <span class="chev"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-                            <div class="a">Umbot — это фреймворк для создания мультиплатформенных чат-ботов. Поддерживает Алису, Telegram, VK, Марусю и другие платформы. Визуальный редактор создаёт конфигурацию, а специальная программа генерирует готовый проект.</div>
+                            <div class="a">Это open-source фреймворк для мультиплатформенных чат-ботов. Наш редактор рисует сценарий, а CLI-генератор umbot превращает его в готовый TypeScript-проект.</div>
                         </details>
                     </div>
                     <div class="faq-item reveal">
                         <details>
                             <summary><span class="q">Можно ли редактировать конфигурацию вручную?</span> <span class="chev"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-                            <div class="a">Да, формат полностью документирован. Можно редактировать в любом текстовом редакторе и загружать обратно в визуальный редактор. Формат стабилен — обновления не ломают ранее созданные конфигурации.</div>
+                            <div class="a">Да — <a href="/docs/json-format/">формат flow.json открыт и документирован</a>: правьте файл в любом редакторе и загружайте обратно в редактор.</div>
                         </details>
                     </div>
                 </div>
+                <p style="text-align: center; margin-top: 24px; color: var(--fg-dim)">
+                    Ещё больше ответов — в <a href="/docs/faq/">полном FAQ документации</a>, а описание каждого блока — в <a href="/docs/blocks/">справочнике типов блоков</a>.
+                </p>
             </section>
 
             <!-- ============ ФИНАЛЬНЫЙ CTA ============ -->
@@ -1618,16 +1622,32 @@
 
             // Пасхалка №2: Konami-код (↑↑↓↓←→←→BA или WASD) → «СОБЕРИ СКУНЕТ» (/sky-net.html).
             // Suika-мерджер: сливай чат-ботов, собирай СКУНЕТ. В полях ввода не срабатывает.
+            // Вторая дверь в секреты: набранное на странице слово «um13» (u-m-1-3,
+            // физические коды клавиш — любая раскладка) ведёт в терминал UM-13 —
+            // для тех, кто Konami-код не знает. Подсказка живёт в DevTools-затравке.
             (function () {
                 var KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
                 var WASD = { w: 'ArrowUp', s: 'ArrowDown', a: 'ArrowLeft', d: 'ArrowRight' };
                 var pos = 0;
                 var fired = false;
+                var word = 0;
+                var UM13 = ['KeyU', 'KeyM', 'Digit1', 'Digit3'];
                 window.addEventListener('keydown', function (e) {
                     if (fired) return;
                     var t = e.target;
                     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
                     if (e.metaKey || e.ctrlKey || e.altKey) return;
+                    // слово-вход: um13 → терминал (пасхалка №1 без 10 кликов)
+                    if (e.code === UM13[word]) {
+                        word++;
+                        if (word === UM13.length) {
+                            fired = true;
+                            window.location.href = '/secret.html';
+                            return;
+                        }
+                    } else {
+                        word = e.code === UM13[0] ? 1 : 0;
+                    }
                     var key = e.key;
                     // WASD — только в стрелочной части (финал кода — буквы b/a)
                     if (key.length === 1 && pos < 8) key = WASD[key.toLowerCase()] || key.toLowerCase();
@@ -1680,5 +1700,9 @@
                 onScroll();
             })();
         </script>
+        <!-- Призрак-спутник в ТИХОМ режиме: лендинг — витрина, не сцена.
+             Он прилетает в нижний угол после 60с бездействия, дремлет там
+             и уплывает, как только человек возвращается к чтению -->
+        <script src="/um13-ghost.js?v=2" data-um13-mode="quiet" defer></script>
     </body>
 </html>

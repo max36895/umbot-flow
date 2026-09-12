@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <title>Quick Start — Umbot Flow Editor</title>
         <meta
             name="description"
@@ -20,6 +21,10 @@
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/quick-start/" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+
         <style>
             * {
                 margin: 0;
@@ -142,6 +147,28 @@
             .note strong {
                 color: #00f0ff;
             }
+            .doc-shot {
+                display: block;
+                width: 100%;
+                height: auto;
+                border: 1px solid rgba(0, 240, 255, 0.15);
+                border-radius: 10px;
+                margin: 12px 0 4px;
+            }
+            @media (max-width: 480px) {
+                body { padding: 0; }
+                .container { padding: 24px 14px; }
+                h1 { font-size: 1.5rem; }
+                h2 { font-size: 1.15rem; }
+                .step { flex-direction: column; gap: 10px; }
+                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
+                table { font-size: 0.8rem; }
+                th, td { padding: 6px 8px; }
+                pre { font-size: 0.75rem; padding: 12px; }
+                code { font-size: 0.8em; }
+                .topbar { flex-wrap: wrap; gap: 8px; }
+            }
+
         </style>
     </head>
     <body>
@@ -151,26 +178,39 @@
                 <a class="lang" href="/docs/quick-start/">RU</a>
             </div>
             <h1>Quick Start</h1>
-            <p class="subtitle">From opening the editor to a running bot in 15 minutes</p>
+            <p class="subtitle">From opening the editor to a running bot in 15 minutes — no sign-up</p>
 
             <div class="step">
                 <div class="step-num">1</div>
                 <div class="step-content">
                     <h3>Open the editor</h3>
                     <p>
-                        Go to the <a href="/">home page</a> and start building your bot. Drag a
-                        "Command" block onto the canvas.
+                        On the <a href="/">home page</a> click "Open the editor". The editor runs
+                        entirely in your browser: block palette on the left, canvas in the middle,
+                        toolbar at the top. Your project is saved automatically and the config
+                        file can be downloaded at any moment.
                     </p>
+                    <img
+                        class="doc-shot"
+                        loading="lazy"
+                        decoding="async"
+                        src="/docs/img/quick-start-overview.png"
+                        width="1440"
+                        height="900"
+                        alt="Umbot Flow Editor: block palette on the left, canvas with bot scenario blocks in the center, toolbar at the top"
+                    />
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-num">2</div>
                 <div class="step-content">
-                    <h3>Configure the bot</h3>
+                    <h3>Drop a Command block</h3>
                     <p>
-                        Click the block and fill in the trigger words (words the bot reacts to) and
-                        the response text. Add buttons, conditions and other blocks as needed.
+                        Drag a "Command" block from the palette onto the canvas. A command reacts to
+                        the user's words: they type "hello" — the bot replies with the configured
+                        text. The demo blocks already on the canvas can be deleted (select a block
+                        and press Delete) — or build your own scenario next to them.
                     </p>
                 </div>
             </div>
@@ -178,21 +218,34 @@
             <div class="step">
                 <div class="step-num">3</div>
                 <div class="step-content">
-                    <h3>Export the configuration</h3>
+                    <h3>Set up triggers and the reply</h3>
                     <p>
-                        Click "Validate & Export" in the top toolbar. Download the
-                        <code>flow.json</code> file.
+                        Click the block — the properties panel opens. Fill in the trigger words
+                        ("hello", "hi") and the reply text ("Hi! I'm a bookstore bot. What's your
+                        name?"). Every field has a help tooltip explaining what it means.
                     </p>
+                    <img
+                        class="doc-shot"
+                        loading="lazy"
+                        decoding="async"
+                        src="/docs/img/quick-start-props.png"
+                        width="1440"
+                        height="900"
+                        alt="Block properties panel of the editor: fields for block name, trigger words and reply text"
+                    />
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-num">4</div>
                 <div class="step-content">
-                    <h3>Install Node.js</h3>
+                    <h3>Save the user's answer to a variable</h3>
                     <p>
-                        If you don't have Node.js yet, download and install version 18 or higher
-                        from <a href="https://nodejs.org" target="_blank">nodejs.org</a>.
+                        Add a "Step" block and connect the first block to it. In the step, write
+                        the question "What's your name?" and set "Save to: userName" — the user's
+                        answer will be stored in the variable. Reference it in any later text as
+                        <code>{{userName}}</code>, and a "Condition" block can check its value and
+                        branch the dialog either way.
                     </p>
                 </div>
             </div>
@@ -200,37 +253,92 @@
             <div class="step">
                 <div class="step-num">5</div>
                 <div class="step-content">
-                    <h3>Generate the project</h3>
-                    <p>Open a terminal in the folder with <code>flow.json</code> and run:</p>
-                    <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
-                    <p>A ready-to-run project with code will appear in the <code>my-bot</code> folder.</p>
+                    <h3>Test the scenario in the preview</h3>
+                    <p>
+                        Click "Chat Preview" in the top toolbar and type "hello". The preview plays
+                        the scenario exactly as the platform will: shows the welcome message,
+                        reacts to trigger words, stores variables. Errors are highlighted right on
+                        the blocks — you'll spot a problem before the bot goes live.
+                    </p>
                 </div>
-            </div>
-
-            <div class="note">
-                <strong>Not sure what to do with the code?</strong> Send the
-                <code>my-bot</code> folder to your developer — they will launch the bot for you.
             </div>
 
             <div class="step">
                 <div class="step-num">6</div>
                 <div class="step-content">
-                    <h3>Launch the bot</h3>
-                    <p>Open the <code>my-bot</code> folder and follow the instructions in its README.</p>
+                    <h3>Export the configuration</h3>
+                    <p>
+                        Click "Validate & Export". The editor checks the scenario (empty replies,
+                        orphan blocks, duplicate names) and lets you download
+                        <code>flow.json</code> — your whole bot in one file. You can edit it by
+                        hand and load it back into the editor.
+                    </p>
                 </div>
             </div>
 
-            <h2>Next steps</h2>
+            <div class="note">
+                <strong>Don't want to deal with code?</strong> The <code>flow.json</code> file is a
+                complete task specification: hand it to a developer and they will launch the bot
+                for you.
+            </div>
+
+            <div class="step">
+                <div class="step-num">7</div>
+                <div class="step-content">
+                    <h3>Install Node.js</h3>
+                    <p>
+                        To run the bot you need Node.js 18 or newer — download it from
+                        <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a>.
+                        If Node.js is already installed, check the version with <code>node -v</code>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">8</div>
+                <div class="step-content">
+                    <h3>Generate the project</h3>
+                    <p>Open a terminal in the folder with <code>flow.json</code> and run:</p>
+                    <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
+                    <p>
+                        The command creates a ready TypeScript project: the bot source code
+                        (<code>src/index.ts</code>, <code>src/utils.ts</code>), <code>package.json</code>
+                        and <code>tsconfig.json</code>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">9</div>
+                <div class="step-content">
+                    <h3>Launch the bot</h3>
+                    <p>Install the dependencies, build the project and start the bot:</p>
+                    <pre><code>cd my-bot
+npm install
+npm run build
+npm start</code></pre>
+                    <p>
+                        The bot starts on <code>localhost:3000</code>. Platforms (Telegram, Alisa,
+                        VK, Marusia and others) are plugged in as adapters in <code>src/index.ts</code> —
+                        you supply the tokens on your side.
+                    </p>
+                </div>
+            </div>
+
+            <h2>What's next</h2>
             <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
                 <li>
-                    <a href="/docs/en/blocks/">Block types</a> — learn how commands, steps and
-                    conditions work
+                    <a href="/docs/en/blocks/">Block types</a> — how commands, steps, conditions
+                    and actions work
                 </li>
                 <li>
-                    <a href="/docs/en/json-format/">JSON format</a> — full configuration
-                    specification
+                    <a href="/docs/en/json-format/">JSON format</a> — a reference of the
+                    configuration with every field and operator
                 </li>
-                <li><a href="/docs/en/faq/">FAQ</a> — answers to common questions</li>
+                <li>
+                    <a href="/docs/en/faq/">FAQ</a> — answers to common questions about the editor
+                    and launching
+                </li>
             </ul>
         </div>
     </body>
