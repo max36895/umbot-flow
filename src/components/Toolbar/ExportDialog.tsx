@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
-import { validate } from '../../utils/validator';
+import { validate, getUnconnectedBlocks } from '../../utils/validator';
 import type { ValidationError } from '../../utils/validator';
-import { t } from '../../i18n';
+import { t, tf } from '../../i18n';
 import { NodeIcon } from '../ui/NodeIcons';
 import { Modal } from '../ui/Modal';
 
@@ -20,6 +20,9 @@ export default function ExportDialog() {
     // блоков-сирот: без подсказки «2 ошибки» при первом заходе выглядят
     // как «я что-то сломал». Показываем разъяснение только для демо-имени.
     const isUm13Demo = doc.name === 'um-13' && errors.length > 0;
+    // Блоки, которые CLI молча отбросит при генерации (нет входящего ребра/кнопки):
+    // валидация их пропускает, а в сгенерированном боте они не появятся — честно предупреждаем.
+    const unconnectedBlocks = getUnconnectedBlocks(doc);
     // Безопасное имя файла: пробелы/спецсимволы ломают shell-команду — подменяем на _
     const safeFileName = (doc.name || 'flow').replace(/[^a-zA-Z0-9_-]+/g, '_');
     const command = `npx umbot create from-flow ${safeFileName}.json --output ./my-bot`;
@@ -110,6 +113,24 @@ export default function ExportDialog() {
                         </div>
                     )}
                 </div>
+
+                {unconnectedBlocks.length > 0 && (
+                    <div
+                        className={`mt-3 rounded-lg border p-3 ${
+                            errors.length === 0
+                                ? 'border-warning/30 bg-warning/10 text-warning'
+                                : 'border-outline-variant bg-fg/5 text-fg/60'
+                        }`}
+                        role="status"
+                    >
+                        <p className="text-xs">
+                            {tf('export.unconnected', {
+                                count: unconnectedBlocks.length,
+                                blocks: unconnectedBlocks.join(', '),
+                            })}
+                        </p>
+                    </div>
+                )}
 
                 <div className="mb-4 rounded-lg bg-fg/5 p-3 border border-outline-variant">
                     <p className="text-xs text-fg/60">

@@ -552,6 +552,33 @@ export function validateGraph(doc: FlowDocument): ValidationError[] {
     return errors;
 }
 
+/**
+ * Блоки (action/condition/response), которые CLI-генератор молча отбросит
+ * при `create from-flow`: standalone-блоки без входящего ребра не попадают
+ * в connectedBlocks и не генерируют обработчик. Кнопки с targetNodeId
+ * считаются входом — как и в генераторе (кнопка выставляет thisIntentName).
+ * Результат — имена блоков для предупреждения в ExportDialog.
+ */
+export function getUnconnectedBlocks(doc: FlowDocument): string[] {
+    const referencedByButton = new Set<string>();
+    for (const n of doc.nodes) {
+        if (n.type === 'command') {
+            for (const btn of (n as CommandNodeData).response.buttons) {
+                if (btn.targetNodeId) referencedByButton.add(btn.targetNodeId);
+            }
+        }
+    }
+    const names: string[] = [];
+    for (const n of doc.nodes) {
+        if (n.type !== 'action' && n.type !== 'condition' && n.type !== 'response') continue;
+        const hasIncoming = doc.edges.some((e) => e.to === n.id) || referencedByButton.has(n.id);
+        if (!hasIncoming) {
+            names.push((n as { name?: string }).name || n.id);
+        }
+    }
+    return names;
+}
+
 /** Run full validation on a flow document. */
 export function validate(doc: unknown): ValidationError[] {
     const schemaErrors = validateSchemaLevel(doc);

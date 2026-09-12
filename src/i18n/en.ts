@@ -136,6 +136,8 @@ export default {
     'export.errors': 'error(s) found:',
     'export.demoHint':
         'This is a learning example: the orphan-block errors are intentional, to demo validation. Connect them to the flow or delete them — and the bot is ready to export.',
+    'export.unconnected':
+        'Not connected to the flow: {blocks}. These blocks will not be generated in the project — the CLI only builds handlers for blocks linked by edges or buttons. Connect them to a command/step with edges if your bot needs them.',
     'export.copyJson': 'Copy JSON',
     'export.download': 'Download flow.json',
     'export.copied': 'Copied to clipboard',
