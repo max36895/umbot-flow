@@ -191,7 +191,7 @@ Response, Action, Condition узлы, подключённые через edges 
 
 ### Известное расхождение с CLI фреймворка
 
-CLI (`universal_bot-ts/cli/flowGenerator.js`) — **отдельная реализация** от нашего `templateGenerator.ts`. Известный баг CLI: для `saveAs: 'original'` генерирует `ctrl.userCommand` (нижний регистр от адаптеров) вместо `ctrl.originalUserCommand` — см. `BUGREPORT_cli_step_lowercase.md`. Редактор это обойти не может, фикс на стороне фреймворка.
+CLI (`umbot/cli/flowGenerator.js`) — **отдельная реализация** от нашего `templateGenerator.ts`. Известный баг CLI: для `saveAs: 'original'` генерирует `ctrl.userCommand` (нижний регистр от адаптеров) вместо `ctrl.originalUserCommand` — см. `BUGREPORT_cli_step_lowercase.md`. Редактор это обойти не может, фикс на стороне фреймворка.
 
 ## Testing
 
