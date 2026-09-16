@@ -5,7 +5,6 @@ import useValidationStore from '../../store/validationStore';
 import { getLocale } from '../../i18n';
 import { um13CoauthorDue, um13LeaveNode } from '../../utils/um13Coauthor';
 
-
 /**
  * ═══════════════════════════════════════════════════════════════
  *  «UM-13 НАБЛЮДАЕТ» — пассивные пасхалки редактора.
@@ -49,7 +48,7 @@ import { um13CoauthorDue, um13LeaveNode } from '../../utils/um13Coauthor';
 const COOLDOWN_MS = 25_000;
 
 /**
- * Цвета кубиков призрака (public/um13-ghost.js NODE_COLORS) по типу ноды —
+ * Цвета кубиков призрака (um13-ghost.js NODE_COLORS) по типу ноды —
  * для «ловца удалённых нод». Гекс дублируется осознанно: призрак — ванильный
  * файл без импортов, AGENTS.md-токены здесь бы не разрешались на моменте
  * исполнения. При смене палитры нод — синхронизировать с um13-ghost.js.
@@ -257,13 +256,18 @@ export default function Um13Watches() {
         let firstNameCheck = true;
         const unsub = useFlowStore.subscribe((state) => {
             // пропускаем первый кадр (загрузка документа — не событие)
-            if (firstNameCheck) { firstNameCheck = false; return; }
+            if (firstNameCheck) {
+                firstNameCheck = false;
+                return;
+            }
             if (Math.random() > 0.2) return; // редко: 1 к 5 переименованиям
             if (useUiStore.getState().previewOpen) return;
             const named = state.nodes
                 .map((n) => (n.data as { name?: string } | undefined)?.name)
-                .filter((name): name is string =>
-                    !!name && !/^(command|step|condition|action|response|end)(_\d+)?$/.test(name),
+                .filter(
+                    (name): name is string =>
+                        !!name &&
+                        !/^(command|step|condition|action|response|end)(_\d+)?$/.test(name),
                 );
             const latest = named[named.length - 1];
             if (!latest || latest === lastNodeNameRef.current) return;
@@ -281,7 +285,10 @@ export default function Um13Watches() {
     useEffect(() => {
         const interval = window.setInterval(() => {
             const state = useFlowStore.getState();
-            if (state.nodes.length > 0) { emptyCanvasSinceRef.current = null; return; }
+            if (state.nodes.length > 0) {
+                emptyCanvasSinceRef.current = null;
+                return;
+            }
             if (emptyCanvasSinceRef.current === null) {
                 emptyCanvasSinceRef.current = Date.now();
                 return;
@@ -327,12 +334,15 @@ export default function Um13Watches() {
             const type = prevTypes.get(removedId);
             prevIds = nextIds;
             prevTypes = typesOf(state.nodes);
-            const color = type && type in GHOST_NODE_COLORS
-                ? GHOST_NODE_COLORS[type as keyof typeof GHOST_NODE_COLORS]
-                : undefined;
-            (window as unknown as {
-                UM13Ghost?: { catchNode(c?: string): void };
-            }).UM13Ghost?.catchNode(color);
+            const color =
+                type && type in GHOST_NODE_COLORS
+                    ? GHOST_NODE_COLORS[type as keyof typeof GHOST_NODE_COLORS]
+                    : undefined;
+            (
+                window as unknown as {
+                    UM13Ghost?: { catchNode(c?: string): void };
+                }
+            ).UM13Ghost?.catchNode(color);
         });
         return unsub;
     }, []);
@@ -400,7 +410,10 @@ export default function Um13Watches() {
     useEffect(() => {
         let firstNameCheck = true;
         const unsub = useFlowStore.subscribe((state) => {
-            if (firstNameCheck) { firstNameCheck = false; return; }
+            if (firstNameCheck) {
+                firstNameCheck = false;
+                return;
+            }
             const g = ghost();
             if (!g?.hearsName) return;
             // последняя переименованная нода с кличкой
@@ -441,9 +454,11 @@ export default function Um13Watches() {
             if (!svg) return;
             const r = svg.getBoundingClientRect();
             const angle = (Math.atan2(ahead.y - point.y, ahead.x - point.x) * 180) / Math.PI;
-            window.dispatchEvent(new CustomEvent('um13:perch', {
-                detail: { x: r.left + point.x, y: r.top + point.y, angle: Math.round(angle) },
-            }));
+            window.dispatchEvent(
+                new CustomEvent('um13:perch', {
+                    detail: { x: r.left + point.x, y: r.top + point.y, angle: Math.round(angle) },
+                }),
+            );
         }, 15_000);
         return () => window.clearInterval(interval);
     }, []);
@@ -465,17 +480,22 @@ export default function Um13Watches() {
             if (!id) return;
             const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement | null;
             const pos = el
-                ? { x: el.getBoundingClientRect().left + el.offsetWidth / 2, y: el.getBoundingClientRect().top }
+                ? {
+                      x: el.getBoundingClientRect().left + el.offsetWidth / 2,
+                      y: el.getBoundingClientRect().top,
+                  }
                 : null;
             if (pos) {
                 window.dispatchEvent(new CustomEvent('um13:coauthor', { detail: pos }));
             }
             // тост-признание: призрак честен с человеком с первой секунды
-            useUiStore.getState().showToast(
-                getLocale() === 'ru'
-                    ? 'UM-13: я добавил кое-что. одну ноду. извини. можно я останусь тут?'
-                    : 'UM-13: i added something. one node. sorry. may i stay here?',
-            );
+            useUiStore
+                .getState()
+                .showToast(
+                    getLocale() === 'ru'
+                        ? 'UM-13: я добавил кое-что. одну ноду. извини. можно я останусь тут?'
+                        : 'UM-13: i added something. one node. sorry. may i stay here?',
+                );
         }, 20_000);
         return () => window.clearInterval(interval);
     }, []);

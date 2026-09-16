@@ -9,7 +9,7 @@
         "start": "npm run build && npm run preview",
         "test": "vitest run",
         "test:watch": "vitest",
-        "lint": "eslint src/",
+        "lint": "eslint src/ scripts/ public/metrika.js um13-ghost.js",
         "prettier": "prettier --write src/"
     },
     "dependencies": {

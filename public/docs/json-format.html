@@ -1,211 +1,63 @@
 <!doctype html>
 <html lang="ru">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112563287', 'ym');
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>JSON-формат конструктора — Umbot Flow</title>
+    <meta
+        name="description"
+        content="Полная спецификация JSON-конфигурации для Umbot Flow. Структура документа, типы узлов, связи, переменные."
+    />
+    <link rel="canonical" href="https://flow.maxim-m.ru/docs/json-format/" />
+    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
+    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
+    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
+    <meta property="og:title" content="JSON-формат — Umbot Flow" />
+    <meta
+        property="og:description"
+        content="Полная спецификация JSON-конфигурации для Umbot Flow. Структура документа, типы узлов, связи, переменные."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/docs/json-format/" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    ym(112563287, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <!-- /Yandex.Metrika counter -->
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <title>JSON-формат — Umbot Flow Editor</title>
-        <meta
-            name="description"
-            content="Полная спецификация JSON-конфигурации для Umbot Flow Editor. Структура документа, типы узлов, связи, переменные."
-        />
-        <link rel="canonical" href="https://flow.maxim-m.ru/docs/json-format/" />
-        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
-        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
-        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
-        <meta property="og:title" content="JSON-формат — Umbot Flow Editor" />
-        <meta
-            property="og:description"
-            content="Полная спецификация JSON-конфигурации для Umbot Flow Editor. Структура документа, типы узлов, связи, переменные."
-        />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/docs/json-format/" />
-        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <meta property="og:locale" content="ru_RU" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="stylesheet" href="/docs/docs.css?v=1" />
+</head>
+<body class="page-json">
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #0f0f14;
-                color: #e0e0e0;
-                line-height: 1.7;
-            }
-            .container {
-                max-width: 700px;
-                margin: 0 auto;
-                padding: 40px 20px;
-            }
-            h1 {
-                font-size: 2rem;
-                margin-bottom: 8px;
-                color: #fff;
-            }
-            h2 {
-                font-size: 1.3rem;
-                margin: 32px 0 12px;
-                color: #00f0ff;
-            }
-            h3 {
-                font-size: 1rem;
-                margin: 20px 0 8px;
-                color: #fff;
-            }
-            .subtitle {
-                color: #888;
-                margin-bottom: 32px;
-            }
-            .back {
-                display: inline-block;
-                margin-bottom: 24px;
-                color: #00f0ff;
-                text-decoration: none;
-                font-size: 0.9rem;
-            }
-            .back:hover {
-                text-decoration: underline;
-            }
-            .topbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 24px;
-            }
-            .topbar .back {
-                margin-bottom: 0;
-            }
-            .lang {
-                color: #888;
-                text-decoration: none;
-                font-size: 0.85rem;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 4px 10px;
-            }
-            .lang:hover {
-                color: #00f0ff;
-                border-color: rgba(0, 240, 255, 0.3);
-            }
-            pre {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 8px;
-                padding: 16px;
-                overflow-x: auto;
-                margin: 12px 0;
-                font-size: 0.85rem;
-            }
-            code {
-                background: rgba(0, 240, 255, 0.1);
-                color: #00f0ff;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-family: 'SF Mono', 'Fira Code', monospace;
-                font-size: 0.85em;
-            }
-            pre code {
-                background: none;
-                padding: 0;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 12px 0;
-                font-size: 0.9rem;
-            }
-            th,
-            td {
-                padding: 8px 12px;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                text-align: left;
-            }
-            th {
-                background: rgba(255, 255, 255, 0.05);
-                color: #aaa;
-            }
-            td:first-child {
-                color: #00f0ff;
-                font-family: monospace;
-            }
-            a {
-                color: #00f0ff;
-            }
-            .note {
-                background: rgba(0, 240, 255, 0.05);
-                border: 1px solid rgba(0, 240, 255, 0.2);
-                border-radius: 8px;
-                padding: 16px;
-                margin: 16px 0;
-                font-size: 0.9rem;
-            }
-            .note strong {
-                color: #00f0ff;
-            }
-            @media (max-width: 480px) {
-                body { padding: 0; }
-                .container { padding: 24px 14px; }
-                h1 { font-size: 1.5rem; }
-                h2 { font-size: 1.15rem; }
-                .step { flex-direction: column; gap: 10px; }
-                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
-                table { font-size: 0.8rem; }
-                th, td { padding: 6px 8px; }
-                pre { font-size: 0.75rem; padding: 12px; }
-                code { font-size: 0.8em; }
-                .topbar { flex-wrap: wrap; gap: 8px; }
-            }
+<div class="container">
+    <div class="topbar">
+        <a class="back" href="/docs/">← Документация</a>
+        <a class="lang" href="/docs/en/json-format/">EN</a>
+    </div>
+    <h1>JSON-формат конфигурации</h1>
+    <p class="subtitle">
+        Референс flow.json — файла, который генерирует визуальный редактор
+    </p>
 
-        </style>
-    </head>
-    <body>
-        <!-- Yandex.Metrika counter (noscript) -->
-        <noscript><div><img src="https://mc.yandex.ru/watch/112563287" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter (noscript) -->
-        <div class="container">
-            <div class="topbar">
-                <a class="back" href="/docs/">← Документация</a>
-                <a class="lang" href="/docs/en/json-format/">EN</a>
-            </div>
-            <h1>JSON-формат конфигурации</h1>
-            <p class="subtitle">
-                Референс flow.json — файла, который генерирует визуальный редактор
-            </p>
+    <p class="muted">
+        flow.json описывает весь сценарий бота: узлы, связи между ними и настройки проекта.
+        Редактор валидирует файл по JSON Schema (<code>schemaVersion: "1.0"</code>), поэтому
+        любой экспортированный конфиг гарантированно читается обратно. Ручные правки тоже
+        безопасны: загрузите файл через «Импорт JSON», и редактор проверит его той же схемой.
+    </p>
 
-            <p style="color: #888; font-size: 0.9rem">
-                flow.json описывает весь сценарий бота: узлы, связи между ними и настройки проекта.
-                Редактор валидирует файл по JSON Schema (<code>schemaVersion: "1.0"</code>), поэтому
-                любой экспортированный конфиг гарантированно читается обратно. Ручные правки тоже
-                безопасны: загрузите файл через «Импорт JSON», и редактор проверит его той же схемой.
-            </p>
+    <div class="note">
+        <strong>Совет:</strong> полная спецификация с примерами сгенерированного кода — в
+        <a
+            href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
+        >репозитории на GitHub</a
+        >.
+    </div>
 
-            <div class="note">
-                <strong>Совет:</strong> полная спецификация с примерами сгенерированного кода — в
-                <a
-                    href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
-                    >репозитории на GitHub</a
-                >.
-            </div>
-
-            <h2>Структура документа</h2>
-            <pre><code>{
+    <h2>Структура документа</h2>
+    <pre><code>{
     "schemaVersion": "1.0",
     "name": "my-bot",
     "version": "1.0.0",
@@ -217,91 +69,91 @@
     "welcome": { "text": "Привет!" }
 }</code></pre>
 
-            <table>
-                <tr>
-                    <th>Поле</th>
-                    <th>Описание</th>
-                </tr>
-                <tr>
-                    <td>schemaVersion</td>
-                    <td>Версия формата, сейчас всегда <code>"1.0"</code></td>
-                </tr>
-                <tr>
-                    <td>name</td>
-                    <td>Имя проекта — используется в package.json и имени папки</td>
-                </tr>
-                <tr>
-                    <td>version</td>
-                    <td>Версия проекта (semver)</td>
-                </tr>
-                <tr>
-                    <td>platforms</td>
-                    <td>
-                        Список платформ: <code>telegram</code>, <code>alisa</code>,
-                        <code>marusia</code>, <code>vk</code>, <code>max_app</code>,
-                        <code>viber</code>, <code>smart_app</code>
-                    </td>
-                </tr>
-                <tr>
-                    <td>database</td>
-                    <td>Хранилище данных: <code>file</code>, <code>mongo</code> или <code>none</code></td>
-                </tr>
-                <tr>
-                    <td>nodes</td>
-                    <td>Все блоки сценария (см. типы ниже)</td>
-                </tr>
-                <tr>
-                    <td>edges</td>
-                    <td>Связи между блоками</td>
-                </tr>
-                <tr>
-                    <td>welcome</td>
-                    <td>Приветственное сообщение при старте диалога</td>
-                </tr>
-                <tr>
-                    <td>fallback</td>
-                    <td>Ответ на нераспознанный ввод</td>
-                </tr>
-                <tr>
-                    <td>variables</td>
-                    <td>Комментарии к переменным: имя → описание</td>
-                </tr>
-            </table>
+    <table>
+        <tr>
+            <th>Поле</th>
+            <th>Описание</th>
+        </tr>
+        <tr>
+            <td>schemaVersion</td>
+            <td>Версия формата, сейчас всегда <code>"1.0"</code></td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>Имя проекта — используется в package.json и имени папки</td>
+        </tr>
+        <tr>
+            <td>version</td>
+            <td>Версия проекта (semver)</td>
+        </tr>
+        <tr>
+            <td>platforms</td>
+            <td>
+                Список платформ: <code>telegram</code>, <code>alisa</code>,
+                <code>marusia</code>, <code>vk</code>, <code>max_app</code>,
+                <code>viber</code>, <code>smart_app</code>
+            </td>
+        </tr>
+        <tr>
+            <td>database</td>
+            <td>Хранилище данных: <code>file</code>, <code>mongo</code> или <code>none</code></td>
+        </tr>
+        <tr>
+            <td>nodes</td>
+            <td>Все блоки сценария (см. типы ниже)</td>
+        </tr>
+        <tr>
+            <td>edges</td>
+            <td>Связи между блоками</td>
+        </tr>
+        <tr>
+            <td>welcome</td>
+            <td>Приветственное сообщение при старте диалога</td>
+        </tr>
+        <tr>
+            <td>fallback</td>
+            <td>Ответ на нераспознанный ввод</td>
+        </tr>
+        <tr>
+            <td>variables</td>
+            <td>Комментарии к переменным: имя → описание</td>
+        </tr>
+    </table>
 
-            <h2>Типы узлов</h2>
-            <table>
-                <tr>
-                    <th>Тип</th>
-                    <th>Назначение</th>
-                </tr>
-                <tr>
-                    <td>command</td>
-                    <td>Команда — реагирует на слова-триггеры</td>
-                </tr>
-                <tr>
-                    <td>step</td>
-                    <td>Шаг — запрашивает ввод и сохраняет его в переменную</td>
-                </tr>
-                <tr>
-                    <td>condition</td>
-                    <td>Условие — ветвление по переменной</td>
-                </tr>
-                <tr>
-                    <td>action</td>
-                    <td>Действие — HTTP-запросы, переменные, случайные числа</td>
-                </tr>
-                <tr>
-                    <td>response</td>
-                    <td>Ответ — показывает текст и кнопки без запроса ввода</td>
-                </tr>
-                <tr>
-                    <td>end</td>
-                    <td>Завершение — закрывает диалог</td>
-                </tr>
-            </table>
+    <h2>Типы узлов</h2>
+    <table>
+        <tr>
+            <th>Тип</th>
+            <th>Назначение</th>
+        </tr>
+        <tr>
+            <td>command</td>
+            <td>Команда — реагирует на слова-триггеры</td>
+        </tr>
+        <tr>
+            <td>step</td>
+            <td>Шаг — запрашивает ввод и сохраняет его в переменную</td>
+        </tr>
+        <tr>
+            <td>condition</td>
+            <td>Условие — ветвление по переменной</td>
+        </tr>
+        <tr>
+            <td>action</td>
+            <td>Действие — HTTP-запросы, переменные, случайные числа</td>
+        </tr>
+        <tr>
+            <td>response</td>
+            <td>Ответ — показывает текст и кнопки без запроса ввода</td>
+        </tr>
+        <tr>
+            <td>end</td>
+            <td>Завершение — закрывает диалог</td>
+        </tr>
+    </table>
 
-            <h3>Command — команда</h3>
-            <pre><code>{
+    <h3>Command — команда</h3>
+    <pre><code>{
     "type": "command",
     "id": "node_123",
     "name": "greeting",
@@ -310,31 +162,31 @@
     "saveTo": "lastGreeting",
     "response": { "text": "Привет, {{userName}}!", "buttons": [] }
 }</code></pre>
-            <table>
-                <tr>
-                    <th>Поле</th>
-                    <th>Описание</th>
-                </tr>
-                <tr>
-                    <td>slots</td>
-                    <td>Слова-триггеры, регистр не важен</td>
-                </tr>
-                <tr>
-                    <td>isPattern</td>
-                    <td>Если <code>true</code> — слоты трактуются как регулярные выражения</td>
-                </tr>
-                <tr>
-                    <td>saveTo</td>
-                    <td>Сохранить ввод пользователя в переменную</td>
-                </tr>
-                <tr>
-                    <td>response</td>
-                    <td>Текст ответа, TTS, кнопки, карточка, завершение диалога</td>
-                </tr>
-            </table>
+    <table>
+        <tr>
+            <th>Поле</th>
+            <th>Описание</th>
+        </tr>
+        <tr>
+            <td>slots</td>
+            <td>Слова-триггеры, регистр не важен</td>
+        </tr>
+        <tr>
+            <td>isPattern</td>
+            <td>Если <code>true</code> — слоты трактуются как регулярные выражения</td>
+        </tr>
+        <tr>
+            <td>saveTo</td>
+            <td>Сохранить ввод пользователя в переменную</td>
+        </tr>
+        <tr>
+            <td>response</td>
+            <td>Текст ответа, TTS, кнопки, карточка, завершение диалога</td>
+        </tr>
+    </table>
 
-            <h3>Step — шаг</h3>
-            <pre><code>{
+    <h3>Step — шаг</h3>
+    <pre><code>{
     "type": "step",
     "id": "node_456",
     "name": "ask_name",
@@ -342,13 +194,13 @@
     "saveTo": "userName",
     "saveAs": "original"
 }</code></pre>
-            <p style="color: #888; font-size: 0.9rem">
-                <code>saveAs: "original"</code> сохраняет ввод как есть, <code>"lowercase"</code> —
-                в нижнем регистре. Куда идти дальше, определяется связью <code>next</code>.
-            </p>
+    <p class="muted">
+        <code>saveAs: "original"</code> сохраняет ввод как есть, <code>"lowercase"</code> —
+        в нижнем регистре. Куда идти дальше, определяется связью <code>next</code>.
+    </p>
 
-            <h3>Condition — условие</h3>
-            <pre><code>{
+    <h3>Condition — условие</h3>
+    <pre><code>{
     "type": "condition",
     "id": "node_789",
     "name": "check_age",
@@ -356,88 +208,107 @@
     "operator": "gte",
     "value": 18
 }</code></pre>
-            <p style="color: #888; font-size: 0.9rem">
-                Ветки «да»/«нет» задаются связями <code>branch_true</code> и
-                <code>branch_false</code>. value может быть числом, строкой или именем переменной.
-            </p>
+    <p class="muted">
+        Ветки «да»/«нет» задаются связями <code>branch_true</code> и
+        <code>branch_false</code>. value может быть числом, строкой или именем переменной.
+    </p>
 
-            <h4>Операторы сравнения</h4>
-            <table>
-                <tr>
-                    <th>Код</th>
-                    <th>Проверка</th>
-                </tr>
-                <tr><td>eq / neq</td><td>Равно / не равно</td></tr>
-                <tr><td>gt / gte / lt / lte</td><td>Больше / больше-или-равно / меньше / меньше-или-равно</td></tr>
-                <tr><td>contains</td><td>Строка содержит подстроку</td></tr>
-                <tr><td>isEmpty / isNotEmpty</td><td>Переменная пуста / не пуста</td></tr>
-                <tr><td>isSayTrue / isSayFalse</td><td>Пользователь ответил «да» / «нет» (естественный язык)</td></tr>
-                <tr><td>isUrl</td><td>Значение — корректный URL</td></tr>
-            </table>
+    <h4>Операторы сравнения</h4>
+    <table>
+        <tr>
+            <th>Код</th>
+            <th>Проверка</th>
+        </tr>
+        <tr>
+            <td>eq / neq</td>
+            <td>Равно / не равно</td>
+        </tr>
+        <tr>
+            <td>gt / gte / lt / lte</td>
+            <td>Больше / больше-или-равно / меньше / меньше-или-равно</td>
+        </tr>
+        <tr>
+            <td>contains</td>
+            <td>Строка содержит подстроку</td>
+        </tr>
+        <tr>
+            <td>isEmpty / isNotEmpty</td>
+            <td>Переменная пуста / не пуста</td>
+        </tr>
+        <tr>
+            <td>isSayTrue / isSayFalse</td>
+            <td>Пользователь ответил «да» / «нет» (естественный язык)</td>
+        </tr>
+        <tr>
+            <td>isUrl</td>
+            <td>Значение — корректный URL</td>
+        </tr>
+    </table>
 
-            <h3>Action — действие</h3>
-            <p style="color: #888; font-size: 0.9rem">
-                Три типа действий: <code>set_variable</code> (вычислить выражение и записать в
-                переменную), <code>random_number</code> (случайное число от min до max) и
-                <code>http_request</code> (GET/POST-запрос с заголовками, телом и сохранением ответа
-                в переменную). В URL, теле и выражениях работает подстановка
-                <code>{{переменная}}</code>.
-            </p>
+    <h3>Action — действие</h3>
+    <p class="muted">
+        Три типа действий: <code>set_variable</code> (вычислить выражение и записать в
+        переменную), <code>random_number</code> (случайное число от min до max) и
+        <code>http_request</code> (GET/POST-запрос с заголовками, телом и сохранением ответа
+        в переменную). В URL, теле и выражениях работает подстановка
+        <code>{{переменная}}</code>.
+    </p>
 
-            <h2>Связи (edges)</h2>
-            <pre><code>{ "from": "node_123", "to": "node_456", "type": "next" }</code></pre>
-            <table>
-                <tr>
-                    <th>Тип</th>
-                    <th>Описание</th>
-                </tr>
-                <tr>
-                    <td>next</td>
-                    <td>Последовательный переход к следующему блоку</td>
-                </tr>
-                <tr>
-                    <td>branch_true</td>
-                    <td>Ветка «да» от условия</td>
-                </tr>
-                <tr>
-                    <td>branch_false</td>
-                    <td>Ветка «нет» от условия</td>
-                </tr>
-                <tr>
-                    <td>slot_match</td>
-                    <td>Переход при совпадении слота</td>
-                </tr>
-            </table>
+    <h2>Связи (edges)</h2>
+    <pre><code>{ "from": "node_123", "to": "node_456", "type": "next" }</code></pre>
+    <table>
+        <tr>
+            <th>Тип</th>
+            <th>Описание</th>
+        </tr>
+        <tr>
+            <td>next</td>
+            <td>Последовательный переход к следующему блоку</td>
+        </tr>
+        <tr>
+            <td>branch_true</td>
+            <td>Ветка «да» от условия</td>
+        </tr>
+        <tr>
+            <td>branch_false</td>
+            <td>Ветка «нет» от условия</td>
+        </tr>
+        <tr>
+            <td>slot_match</td>
+            <td>Переход при совпадении слота</td>
+        </tr>
+    </table>
 
-            <h2>Подстановка переменных</h2>
-            <p style="color: #888; font-size: 0.9rem">
-                В любом тексте используйте <code>{{имя}}</code> — значение подставится
-                автоматически:
-            </p>
-            <pre><code>"Привет, {{userName}}!"  →  setText(ctrl, `Привет, ${ctrl.userData.userName}!`)</code></pre>
+    <h2>Подстановка переменных</h2>
+    <p class="muted">
+        В любом тексте используйте <code>{{имя}}</code> — значение подставится
+        автоматически:
+    </p>
+    <pre><code>"Привет, {{userName}}!"  →  setText(ctrl, `Привет, ${ctrl.userData.userName}!`)</code></pre>
 
-            <h2>Валидация и имена</h2>
-            <p style="color: #888; font-size: 0.9rem">
-                Имена блоков с пробелами и спецсимволами автоматически превращаются в корректные
-                идентификаторы (кириллица сохраняется). Редактор ловит типовые ошибки до экспорта:
-                пустые ответы, недостижимые блоки, дубли имён после санитизации, потерянные связи.
-                Условия внутри одного блока изолируются — два условия с одинаковой переменной в
-                одном блоке не конфликтуют.
-            </p>
+    <h2>Валидация и имена</h2>
+    <p class="muted">
+        Имена блоков с пробелами и спецсимволами автоматически превращаются в корректные
+        идентификаторы (кириллица сохраняется). Редактор ловит типовые ошибки до экспорта:
+        пустые ответы, недостижимые блоки, дубли имён после санитизации, потерянные связи.
+        Условия внутри одного блока изолируются — два условия с одинаковой переменной в
+        одном блоке не конфликтуют.
+    </p>
 
-            <h2>Дополнительно</h2>
-            <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
-                <li><a href="/docs/blocks/">Типы блоков</a> — какие бывают узлы и как их соединять</li>
-                <li>
-                    <a href="/docs/quick-start/">Быстрый старт</a> — от первого блока до запущенного бота
-                </li>
-                <li>
-                    <a
-                        href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
-                        >Полная спецификация на GitHub</a
-                    >
-                </li>
-            </ul>
-        </div>
-    </body>
+    <h2>Дополнительно</h2>
+    <ul class="muted">
+        <li><a href="/docs/blocks/">Типы блоков</a> — какие бывают узлы и как их соединять</li>
+        <li>
+            <a href="/docs/quick-start/">Быстрый старт</a> — от первого блока до запущенного бота
+        </li>
+        <li>
+            <a
+                href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
+            >Полная спецификация на GitHub</a
+            >
+        </li>
+    </ul>
+</div>
+<script src="/metrika.js" async></script>
+</body>
 </html>

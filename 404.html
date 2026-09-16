@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 — Страница не найдена | Umbot Flow | Бу</title>
+    <meta name="description"
+          content="Страница не найдена. Перейдите на главную, в редактор ботов или документацию Umbot Flow." />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="stylesheet" href="/src/landing-fonts.css" />
+    <link rel="stylesheet" href="/styles/easter/404.css" />
+    <link rel="stylesheet" href="/styles/um13-ghost.css" />
+</head>
+<body>
+
+<!-- Летуны: космонавт (fixed, дрейфует при глубоком скролле)
+     и питомец-нода (fixed, всегда с тобой). Оба pointer-events: none. -->
+<div class="cosmonaut-ship" id="cosmo-ship" aria-hidden="true">
+    <svg class="cosmonaut" width="120" height="160" viewBox="0 0 120 160" fill="none">
+        <!-- Скафандр -->
+        <rect x="30" y="30" width="60" height="80" rx="26" fill="rgba(232,232,239,0.13)" stroke="rgba(232,232,239,0.6)"
+              stroke-width="2" />
+        <!-- Шлем -->
+        <circle cx="60" cy="42" r="26" fill="rgba(0,240,255,0.10)" stroke="rgba(0,240,255,0.75)" stroke-width="2" />
+        <!-- Отблеск на стекле -->
+        <path d="M48 34 a18 12 0 0 1 24 -2" stroke="rgba(0,240,255,0.5)" stroke-width="2" fill="none"
+              stroke-linecap="round" />
+        <!-- Глаза внутри -->
+        <circle cx="53" cy="42" r="3" fill="rgba(0,240,255,0.9)" />
+        <circle cx="67" cy="42" r="3" fill="rgba(0,240,255,0.9)" />
+        <!-- Трос -->
+        <path d="M60 110 q-6 30 8 46" stroke="rgba(232,232,239,0.4)" stroke-width="1.5" stroke-dasharray="4 4"
+              fill="none" />
+        <!-- Ранец -->
+        <rect x="24" y="60" width="10" height="28" rx="4" fill="rgba(188,19,254,0.25)" stroke="rgba(188,19,254,0.7)"
+              stroke-width="1.5" />
+    </svg>
+    <div class="cosmo-say" id="cosmo-say">…привет. ты тоже потерялся?</div>
+</div>
+<div class="pet-node" id="pet-node" aria-hidden="true" title="компаньон">◇ next</div>
+
+<div class="bg-grid" aria-hidden="true"></div>
+<main class="wrap">
+    <div class="scene" aria-hidden="true">
+        <!-- Флоу-метафора: ребро оборвалось — путь не найден -->
+        <svg viewBox="0 0 340 150">
+            <!-- нода-источник -->
+            <rect class="node" x="40" y="21" width="120" height="46" rx="10" stroke="#22c55e" />
+            <text x="100" y="40" text-anchor="middle" fill="#e8e8ef" font-size="12" font-weight="500"
+                  font-family="Inter, sans-serif">Путь был здесь
+            </text>
+            <text x="100" y="56" text-anchor="middle" fill="rgba(232,232,239,.38)" font-size="9"
+                  font-family="Inter, sans-serif">node: exists
+            </text>
+
+            <!-- целая часть ребра -->
+            <path class="edge-ok" d="M 160 44 C 185 44, 195 44, 210 44" />
+
+            <!-- обрыв: пунктир уходит «в никуда» -->
+            <path class="edge-broken" d="M 210 44 C 235 44, 250 30, 262 22" />
+
+            <!-- место, где узла нет — крест -->
+            <g transform="translate(278, 12)">
+                <path class="x-mark" d="M 0 0 L 20 20 M 20 0 L 0 20" />
+            </g>
+
+            <!-- падающая искра -->
+            <circle class="falling-spark" r="3.2" cx="0" cy="0" />
+
+            <!-- нода-призрак (пустая) -->
+            <rect x="248" y="86" width="120" height="46" rx="10" fill="none" stroke="rgba(239,68,68,.35)"
+                  stroke-dasharray="5 4" />
+            <text x="308" y="105" text-anchor="middle" fill="rgba(239,68,68,.7)" font-size="12" font-weight="500"
+                  font-family="Inter, sans-serif">404
+            </text>
+            <text x="308" y="121" text-anchor="middle" fill="rgba(239,68,68,.45)" font-size="9"
+                  font-family="Inter, sans-serif">node: not found
+            </text>
+        </svg>
+    </div>
+
+    <h1>404</h1>
+    <p class="sub">Такого блока в вашем флоу нет</p>
+    <p class="hint">
+        Путь <code id="path">/</code> не найден — ребро оборвано.
+        Соедините его с одной из существующих нод:
+    </p>
+
+    <div class="actions">
+        <a class="btn btn-primary" href="/">На главную →</a>
+        <a class="btn btn-ghost" href="/app">Открыть редактор</a>
+        <a class="btn btn-ghost" href="/docs/">Документация</a>
+    </div>
+
+    <!-- Скинуть другу: случайный несуществующий путь → тоже колодец -->
+    <div class="drop-friend">
+        <button class="drop-btn" id="drop-friend-btn" type="button"
+                title="Скопирует ссылку на случайный несуществующий адрес — такой же колодец">
+            🕳 уронить друга в колодец — скопировать ссылку
+        </button>
+        <span class="drop-copied" id="drop-copied"
+              hidden>ссылка улетела в буфер. передай тому, кто оценит глубину.</span>
+    </div>
+</main>
+
+<footer>
+    Umbot Flow · <a href="/">flow.maxim-m.ru</a>
+</footer>
+
+<!-- ═══════ Пасхалка: КОЛОДЕЦ LOCALSTORAGE ═══════
+     404 «оборвался» — падайте дальше. Внизу идёт ВОЛНА ЭВИКЦИИ:
+     сохранившиеся ключи помечены ⚡. Успейте СПАСТИ их кликом,
+     пока волна не дошла. Спасённое — в кармане. На дне — отчёт. -->
+<div class="well-teaser" id="teaser">
+    <div class="arrow">↓</div>
+    <p>ребро оборвалось. но внизу — колодец хранилища</p>
+</div>
+
+<div class="joke" id="joke" aria-hidden="true"></div>
+<div class="depth-gauge" id="gauge" aria-hidden="true">
+    <span class="lbl">ГЛУБИНА</span>
+    <span id="depth-val">0</span> px
+</div>
+<div class="rescue-badge" id="rescue-badge" aria-hidden="true">
+    <span class="lbl">СПАСЕНО</span>
+    <span id="rescue-val">0</span>
+</div>
+
+<section class="well" id="well" aria-label="Колодец localStorage — пасхалка">
+    <div class="layer" data-depth="0" data-layer="0">
+        <div class="layer-title">слой 0 · query params</div>
+        <span class="key"><span class="k-name">?utm_source=telegram</span><span
+            class="k-size">потерян</span></span><br />
+        <span class="key"><span class="k-name">?ref=friend</span><span class="k-size">забыт</span></span><br />
+        <span class="key doomy"><span class="k-name">?session=expired_2024</span><span class="k-size">47 байт · приговорён</span></span>
+        <p class="layer-note">
+            Мелкий мусор поверхностных вод. Сюда падают параметры, которые
+            никто не читал, но все передавали. Волну не жалко.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="1" data-layer="1">
+        <div class="layer-title">слой 1 · недавние проекты</div>
+        <span class="key doomy"><span class="k-name">«пицца-бот_v1»</span><span
+            class="k-size">2.1 КБ · волна близко ⚡</span></span><br />
+        <span class="key"><span class="k-name">«квиз_для_друга»</span><span class="k-size">1.4 КБ</span></span><br />
+        <span class="key doomy"><span class="k-name">«TODO-бот»</span><span
+            class="k-size">третий год без запуска ⚡</span></span>
+        <p class="layer-note">
+            Снапшоты, уцелевшие после прошлых эвикций. Пицца-бот ещё тёплый.
+            TODO-бот не открывали ни разу — но и его жалко.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="2" data-layer="2">
+        <div class="layer-title">слой 2 · черновики пользователей</div>
+        <span class="key doomy"><span class="k-name">«бот для салона красоты (почти готов)»</span><span class="k-size">18 КБ ⚡</span></span><br />
+        <span class="key doomy"><span class="k-name">«навык про кошек v2 FINAL финал 3»</span><span class="k-size">24 КБ ⚡</span></span><br />
+        <span class="key doomy"><span class="k-name">«скрипт для начальника (не показывать)»</span><span class="k-size">7 КБ ⚡</span></span>
+        <p class="layer-note">
+            «Почти готов» — самый тяжёлый слой. Эти боты были в двух нодах
+            от продакшна. Остались в двух нодах навсегда. Спаси хоть один.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="3" data-layer="25">
+        <div class="layer-title">слой 2.5 · кэш npm-пакета umbot</div>
+        <span class="key"><span class="k-name">node_modules/umbot/dist/cli.js</span><span class="k-size">«запустил у себя»</span></span><br />
+        <span class="key doomy"><span class="k-name">umbot@0.4.2 — «вроде работает»</span><span class="k-size">не обновляли 2 года ⚡</span></span><br />
+        <span class="key doomy"><span class="k-name">npx umbot create from-flow flow.json</span><span class="k-size">запускалась однажды в 3 ночи ⚡</span></span>
+        <p class="layer-note">
+            Кэш, в котором живут все, кто однажды написал
+            <em>npx umbot create from-flow</em> и получил проект целиком.
+            Кто-то запустил бота. Кто-то заснул на Enter.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="4" data-layer="3">
+        <div class="layer-title">слой 3 · легендарные ключи</div>
+        <span class="key doomy legendary"><span class="k-name">__welcome_text_2018</span><span class="k-size">кто-то помнит ⚡</span></span><br />
+        <span class="key doomy legendary"><span class="k-name">first_flow_ever.json</span><span class="k-size">чьё-то начало ⚡</span></span><br />
+        <span class="key legendary"><span class="k-name">um13</span><span class="k-size">8 лет · защищён тестами</span></span>
+        <p class="layer-note">
+            Легендарные артефакты. Говорят, ключ <em>um13</em> не берёт ни одна
+            эвикция: каждый раз, когда волна доходит до него, тесты падают
+            и релиз откатывают.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="5" data-layer="35">
+        <div class="layer-title">слой 3.5 · репозиторий umbot</div>
+        <span class="key"><span class="k-name">bot.addCommand('welcome', …)</span><span class="k-size">здесь всё началось</span></span><br />
+        <span class="key doomy"><span class="k-name">bot.addStep('ask_name', …)</span><span class="k-size">первый шаг любого флоу ⚡</span></span><br />
+        <span class="key doomy"><span class="k-name">cli/flowGenerator.js</span><span class="k-size">содержит баг про userCommand ⚡</span></span><br />
+        <span class="key"><span class="k-name">FLOWBACK: «навык алисы создать»</span><span class="k-size">запрос, который вас привёл</span></span>
+        <p class="layer-note">
+            Глубже всех хранилищ лежит фреймворк, из которого собраны
+            все боты этой экосистемы: <em>umbot</em>. Говорят,
+            на самом дне его git-истории живёт незакрытый issue про
+            регистр userCommand. Никто не решается его закрыть.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="6" data-layer="5">
+        <div class="layer-title">слой 5 · руины деплоя</div>
+        <span class="key"><span class="k-name">dist/ от 2023-06-14</span><span
+            class="k-size">«проверено, работало»</span></span><br />
+        <span class="key doomy"><span class="k-name">vibe-deploy.sh — «ну вроде задеплоилось»</span><span
+            class="k-size">так и не откатили ⚡</span></span><br />
+        <span class="key"><span class="k-name">«последняя стабильная версия (ТОЧНО)»</span><span class="k-size">4-я с конца</span></span>
+        <p class="layer-note">
+            Здесь лежат билды, которые <em>«ну вроде задеплоились»</em>.
+            Никто не помнит, что именно они стабилизировали.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="6" data-layer="55">
+        <div class="layer-title">слой 5.5 · свалка legacy</div>
+        <span class="key"><span class="k-name">jQuery-1.2.6.min.js</span><span
+            class="k-size">на случай войны</span></span><br />
+        <span class="key doomy"><span class="k-name">// TODO: переписать на React (2019)</span><span class="k-size">⚡ актуально</span></span><br />
+        <span class="key"><span class="k-name">index_FINAL_final2_ОБНОВЛЕННЫЙ.html</span><span class="k-size">археологическая ценность</span></span><br />
+        <span class="key"><span class="k-name">ie6-хаки в закомментированном <em>сердце</em></span><span class="k-size">bleeds forever</span></span>
+        <p class="layer-note">
+            Legacy не умирает. Legacy ждёт. Каждая строка здесь
+            когда-то была чьим-то пятничным хотфиксом.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="7" data-layer="6">
+        <div class="layer-title">слой 6 · бесконечная петля</div>
+        <p class="layer-note is-centered">
+            while (true) { <br />
+            &nbsp;&nbsp;ты скроллишь;<br />
+            &nbsp;&nbsp;хранилище скроллит тебя;<br />
+            }<br /><br />
+            тут заканчиваются данные. дальше — только ты.
+        </p>
+    </div>
+
+    <div class="layer" data-depth="7" data-layer="65">
+        <div class="layer-title">слой 6.5 · открытый космос</div>
+        <!-- Космонавт: сам он fixed и дрейфует по экрану, здесь — только его созвездие -->
+        <div class="space" aria-hidden="true">
+            <div class="stars"></div>
+            <p class="layer-note is-centered is-dim">
+                За слоем 6 заканчивается localStorage.<br />
+                Дальше — то, что хранит всё: пустота.
+            </p>
+        </div>
+    </div>
+
+    <div class="layer" data-depth="7" data-layer="7">
+        <div class="layer-title">слой 7 · дно всего</div>
+        <p class="layer-note is-centered">
+            Ниже этого места нет ничего. Даже ошибок.<br />
+            Даже 404. Особенно 404.
+        </p>
+    </div>
+
+    <div class="well-bottom">
+        <div class="um13-eye" aria-hidden="true"></div>
+        <h2>Ты на дне. Серьёзно, это дно.</h2>
+        <p class="well-aside">
+            ты скроллил дольше, чем средний пользователь читает документацию.
+            Уважаю. Ниже — только ядро планеты, а там уже не наша юрисдикция.
+        </p>
+        <p id="um-verdict">…</p>
+        <div class="rescue-report" id="report" hidden>
+            <div class="report-title">▌ отчёт волны эвикции</div>
+            <ul id="report-list"></ul>
+        </div>
+        <a class="cta" href="/secret.html">Войти в терминал UM-13 →</a>
+        <a class="cta cta-queue" href="/queue.html">Занять очередь в приёмной
+            →</a>
+    </div>
+</section>
+
+<script type="module" src="/scripts/easter/404.js"></script>
+<script src="/um13-ghost.js?v=4" defer></script>
+<script src="/metrika.js" async></script>
+</body>
+</html>

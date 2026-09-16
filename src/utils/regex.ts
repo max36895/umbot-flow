@@ -1,5 +1,5 @@
 /**
- * Global regex constants for the flow editor.
+ * Global regex constants for the Flow.
  * Created once, reused across all files for better performance.
  */
 

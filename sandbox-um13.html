@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/metrika.js" async></script>
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Песочница UM-13 | Как ты тут оказался?</title>
+    <meta name="description" content="Внутренняя песочница: все реакции призрака UM-13 на одной странице. Если ты это видишь, значит что-то пошло не по плану" />
+    <link rel="stylesheet" href="/src/landing-fonts.css" />
+    <link rel="stylesheet" href="/styles/easter/sandbox-um13.css" />
+    <link rel="stylesheet" href="/styles/um13-ghost.css" />
+</head>
+<body>
+
+<h1>Песочница UM-13</h1>
+<p class="sub">
+    Призрак загружен в обычном (page) режиме: здоровается, травит байки, засыпает от скуки.
+    Его можно <b>тыкать</b> (следите за дугой: хихи → «может, не надо» → «хватит» → побег),
+    <b>брать и переносить</b> (зажми и потащи), дразнить кнопками ниже.
+    Реакции — как на всех секретных страницах сайта.
+</p>
+
+<div class="grid">
+    <div class="group-title">эмоции</div>
+    <button data-act="mood:normal">normal<small>моргает, обычное лицо</small></button>
+    <button data-act="mood:startled">startled<small>испуг: дрожь, рот «о»</small></button>
+    <button data-act="mood:skeptic">skeptic<small>прищур, бровь</small></button>
+    <button data-act="mood:delight">delight<small>дуги-глаза, румянец</small></button>
+    <button data-act="mood:smart">smart<small>очки</small></button>
+    <button data-act="mood:thinking">thinking<small>взгляд в сторону</small></button>
+    <button data-act="mood:angry">angry<small>оскал, красные щёки</small></button>
+    <button data-act="mood:sad">sad<small>слеза сползает</small></button>
+    <button data-act="mood:wink">wink<small>подмигивает</small></button>
+
+    <div class="group-title">акты (бессловесная жизнь)</div>
+    <button data-act="act:glitch">завис<small>глитч, RGB-расслоение</small></button>
+    <button data-act="act:eat">ест<small>кубик-нода ко рту</small></button>
+    <button data-act="act:dream">мечтает<small>парит выше, (♪)</small></button>
+    <button data-act="act:peek">подглядывает<small>из-за левого края</small></button>
+    <button data-act="act:defrag">дефрагментация<small>рассыпается и собирается</small></button>
+    <button data-act="act:herd">пастух нод<small>сгоняет кубики в цепочку… и разбрасывает</small></button>
+    <button data-act="act:polish">полирует ключ<small>снимает, протирает, вешает</small></button>
+    <button data-act="act:watch">провожает невидимое<small>зрачки едут за «ничем»</small></button>
+    <button data-act="act:mime">притворяется нодой<small>«меня не выбрали в экспорт» — порт-точка, форма коробки</small>
+    </button>
+
+    <div class="group-title">взаимодействие</div>
+    <button data-act="poke">тычок<small>как клик по телу</small></button>
+    <button data-act="tantrum">ПСИХ<small>кубики во все стороны + потеряшка у края</small></button>
+    <button data-act="confetti">конфетти<small>победное</small></button>
+    <button data-act="say">сказать фразу<small>случайная байка</small></button>
+
+    <div class="group-title">состояние</div>
+    <button data-act="hide">спрятать<small>убрать с экрана</small></button>
+    <button data-act="show">вернуть<small>появить (page-режим)</small></button>
+    <button data-act="sleep">уснуть<small>форсировать сон</small></button>
+    <button data-act="wake">разбудить<small>сцена побудки</small></button>
+
+    <div class="group-title">спектакль</div>
+    <button data-act="show-tour" id="tour">▶ прогнать всё<small>авто-тур: приветствие → дуга тычков → побег → 3 поимки →
+        псих → акты → конфетти → сон</small></button>
+
+    <div class="group-title">память и финал</div>
+    <button data-act="trust-up">доверие: «свой»<small>запишет локации+визиты → подарки</small></button>
+    <button data-act="trust-reset">доверие: незнакомец<small>короткие реплики, выскальзывает из драга</small></button>
+    <button data-act="visit">visit()<small>ход визита — доверие растёт от встреч</small></button>
+    <button data-act="show-state">state<small>trust / pressure / key — в статус</small></button>
+    <button data-act="key-turned">финал: окно открыто<small>key-turned — ключа нет, остался в замке</small></button>
+    <button data-act="key-given">финал: ключ отдан<small>key-given — цепочка пуста, ключ у вас</small></button>
+    <button data-act="key-reset">финал: сброс<small>ключ снова на цепочке (перезагрузка)</small></button>
+
+    <div class="group-title">новое · v1.0</div>
+    <button data-act="friend-card">карточка дружбы<small>friendCard() — PNG в буфер/скачивание</small></button>
+    <button data-act="chime">колокольчик<small>chime() — три ноты (только песочница/финал)</small></button>
+    <button data-act="pet-cube">потеряшка-питомец<small>запишет cube-adopted — кубик на цепочке</small></button>
+    <button data-act="pet-reset">питомец: сброс<small>кубик исчезает с цепочки (перезагрузка)</small></button>
+    <button data-act="locale-en">язык: EN<small>setLocale('en') — реплики по-английски</small></button>
+    <button data-act="locale-ru">язык: RU<small>setLocale('ru') — канон</small></button>
+    <button data-act="missed-look">«постарел без тебя»<small>last-seen неделю назад — тусклый до hello</small></button>
+
+    <div class="group-title">события редактора</div>
+    <button data-act="ev-review">um13:review<small>прилетает к «ноде с ошибкой»</small></button>
+    <button data-act="ev-confirm">confirm-scary<small>закрывает лицо занавесью (страх за вас)</small></button>
+    <button data-act="ev-light">светлая тема<small>янтарные очки — «ослеп»</small></button>
+    <button data-act="ev-dark">тёмная тема<small>очки сняты</small></button>
+
+    <div class="group-title">новое · v1.1</div>
+    <button data-act="mood-cold">настроение: холод<small>last-mood=cold — hello после психа (перезагрузка)</small>
+    </button>
+    <button data-act="mood-warm">настроение: тепло<small>last-mood=warm — hello после экспорта (перезагрузка)</small>
+    </button>
+    <button data-act="ev-called">кличка «ум13»<small>он слышит своё имя — um13:called</small></button>
+    <button data-act="ev-perch">провод<small>садится на ребро флоу — um13:perch</small></button>
+    <button data-act="ev-coauthor">соавтор<small>прилетает к ноде-записке — um13:coauthor</small></button>
+</div>
+
+<div class="status" id="status">ожидание…</div>
+
+<script type="module" src="/scripts/easter/sandbox-um13.js"></script>
+<script src="/um13-ghost.js?v=4" defer></script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+/* ═══ Общий «терминал» UM-13 ═══
+   Разметка и движок (scripts/easter/terminal.js) у сервисного терминала
+   (secret.html, зелёный фосфор) и исповедальни (confession.html,
+   фиолетовый) одинаковые. Цвета берутся из переменных страницы:
+   --phos, --phos-dim, --phos-faint, --phos-ghost, --amber, --mono.
+   Отличия оформления — в стилях самих страниц (подключаются после). */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+.crt-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px dashed var(--phos-faint);
+    font-size: 13px;
+    color: var(--phos-dim);
+    flex-wrap: wrap;
+}
+
+.crt-head .sig {
+    color: var(--amber);
+}
+
+/* Лента вывода */
+#screen {
+    flex: 1;
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+.line {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.line.dim {
+    color: var(--phos-dim);
+}
+
+.line.faint {
+    color: var(--phos-faint);
+    font-size: 13px;
+}
+
+.line.amber {
+    color: var(--amber);
+}
+
+/* Печатающийся курсор */
+.cursor-blink {
+    display: inline-block;
+    width: 9px;
+    height: 16px;
+    background: var(--phos);
+    vertical-align: -2px;
+    animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* Варианты ответов — доступны только когда бот ждёт выбора */
+.choices {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.choices.active {
+    display: flex;
+}
+
+.choices button {
+    font-family: var(--mono);
+    font-size: 14px;
+    text-align: left;
+    background: transparent;
+    color: var(--phos);
+    border: 1px solid var(--phos-faint);
+    padding: 10px 14px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+}
+
+.choices button::before {
+    color: var(--amber);
+}
+
+.choices button:hover {
+    background: var(--phos-ghost);
+    border-color: var(--phos-dim);
+}
+
+/* Свободный ввод */
+.inputline {
+    display: none;
+    gap: 0;
+    margin-top: 14px;
+}
+
+.inputline.active {
+    display: flex;
+}
+
+.inputline .prompt {
+    color: var(--amber);
+    white-space: nowrap;
+    font-size: 15px;
+}
+
+.inputline input {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 15px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--phos);
+    caret-color: var(--amber);
+    min-width: 0;
+}
+
+.inputline input::placeholder {
+    color: var(--phos-faint);
+}
+
+/* Выход */
+.exit-row {
+    font-size: 12px;
+    color: var(--phos-faint);
+}
+
+.exit-row a {
+    color: var(--phos-dim);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--phos-dim);
+}
+
+.exit-row a:hover {
+    color: var(--phos);
+    border-color: var(--phos);
+}

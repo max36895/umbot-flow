@@ -58,7 +58,7 @@ export function setLocale(locale: Locale): void {
     applyLang(locale);
     try {
         localStorage.setItem(STORAGE_KEY, locale);
-        // Дубль для призрака UM-13 (public/um13-ghost.js читает ключ
+        // Дубль для призрака UM-13 (um13-ghost.js читает ключ
         // um13-locale): редактор и призрак говорят на одном языке.
         // Один origin — один localStorage: статические страницы
         // вселенной увидят то же значение.

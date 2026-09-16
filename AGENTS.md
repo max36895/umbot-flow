@@ -1,8 +1,8 @@
-# Umbot Flow Editor — Project Knowledge Base
+# Umbot Flow — Project Knowledge Base
 
 ## Overview
 
-Visual flow editor for building umbot chatbots. Users create bots by placing blocks on a canvas and connecting them. The editor generates JSON which can be converted to a complete umbot project via CLI (`npx umbot create from-flow flow.json`).
+Visual Flow for building umbot chatbots. Users create bots by placing blocks on a canvas and connecting them. The editor generates JSON which can be converted to a complete umbot project via CLI (`npx umbot create from-flow flow.json`).
 
 **Два входа** (не забыть при деплое и тестах):
 - `/` — статический лендинг (`index.html`, ~1400 строк, без React)
@@ -29,7 +29,11 @@ Visual flow editor for building umbot chatbots. Users create bots by placing blo
 umbot-flow/
 ├── index.html                      # Лендинг (статика, без React)
 ├── app.html                        # Редактор: точка монтирования React (#root)
+├── styles/                         # CSS статических страниц: landing.css, easter/*.css (terminal.css — общий для secret/confession), um13-ghost.css — стили призрака
+├── scripts/                        # JS статических страниц (ES-модули): landing.js, easter/*.js (um13.js — общая память UM-13)
 ├── public/docs/                    # Статическая документация (ru/en)
+├── public/docs/docs.css            # Общие стили документации (без хэша: при правке поднять ?v=N)
+├── public/metrika.js               # Яндекс.Метрика для всех страниц
 ├── ROADMAP.md                      # Хотелки/доработки (приоритизировано)
 ├── UX_AUDIT.md                     # Прошлый UX-аудит (большинство пунктов закрыто)
 ├── BUGREPORT_cli_step_lowercase.md # Открытый баг CLI фреймворка (регистр ввода)

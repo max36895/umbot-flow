@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   UM-13 GHOST v1.1 — единый живой призрак всех страниц (public/um13-ghost.js)
+   UM-13 GHOST v1.1 — единый живой призрак всех страниц (um13-ghost.js)
    ═══════════════════════════════════════════════════════════════════
 
    v1.1 (вторая волна креативного аудита — «взгляд, обида, кличка,
@@ -83,12 +83,17 @@
    DevTools + um13(). Пузырь сжат к призраку (120–200px): раньше
    текст хоронил персонажа (пузырь был в 5 раз больше тела).
 
-    ОДИН персонаж — ОДИН файл. Вся логика (внешность, эмоции, автомат
-    состояний, реплики, частицы) живёт здесь. Страница подключает:
+    ОДИН персонаж — логика и SVG здесь, стили — в styles/um13-ghost.css
+    (SVG остаётся внутри скрипта: лица, глаза, юбка управляются через DOM,
+    внешний <img>/background такого не позволит). Страница подключает оба:
 
-        <script src="/um13-ghost.js" defer></script>
+        <link rel="stylesheet" href="/styles/um13-ghost.css" />  (в <head>)
+        <script src="/um13-ghost.js?v=N" defer></script>
         <!-- на /app: -->
-        <script src="/um13-ghost.js" data-um13-mode="editor" defer></script>
+        <script src="/um13-ghost.js?v=N" data-um13-mode="editor" defer></script>
+
+    CSS Vite собирает с хэшем в имени; сам скрипт — без хэша, поэтому при
+    правке этого файла поднимайте ?v=N во всех подключениях.
 
     Призрак сам находит/создаёт портал #um13-ghost-root, читает режим
     с тега, слушает мост занятости window.__UM13_ENV__ (React-редактор)
@@ -135,17 +140,22 @@
        2) data-um13-mode на <html> (app.html дублирует); 3) /app в pathname.
        Третий источник — страховка: даже если тег потерялся при трансформации
        сборки, редактор опознаётся по своему URL. */
-    var MODE = 'page';
+    let MODE = 'page';
     try {
-        var my = document.currentScript || (function () {
-            var scripts = document.querySelectorAll('script[data-um13-mode]');
-            return scripts.length ? scripts[scripts.length - 1] : null;
-        })();
-        var m = (my && my.getAttribute('data-um13-mode'))
-            || document.documentElement.getAttribute('data-um13-mode');
+        const my =
+            document.currentScript ||
+            (function () {
+                const scripts = document.querySelectorAll('script[data-um13-mode]');
+                return scripts.length ? scripts[scripts.length - 1] : null;
+            })();
+        let m =
+            (my && my.getAttribute('data-um13-mode')) ||
+            document.documentElement.getAttribute('data-um13-mode');
         if (!m && /\/app\/?$|\/app\?/.test(location.pathname + location.search)) m = 'editor';
         if (m === 'editor' || m === 'page' || m === 'quiet') MODE = m;
-    } catch (e) { /* page по умолчанию */ }
+    } catch (e) {
+        /* page по умолчанию */
+    }
 
     /* quiet (лендинг): витрина не для болтовни — призрак прилетает
        в нижний угол после 60с бездействия, дремлет, не говорит сам
@@ -160,7 +170,7 @@
        силуэта и лор (ключ от хранилища, где его забыли; если человек
        спасал ключи в колодце — призрак носит спасённый). Прямая кромка
        под волной не рисуется (двойная линия давала «полосу»). */
-    var GHOST_SVG =
+    const GHOST_SVG =
         '<svg viewBox="0 0 64 64" fill="none" aria-hidden="true">' +
         /* Тело: купол r24 с центром y27 — вершина дуги y3, ВНУТРИ грида
            (прошлая дуга a25 от y24 выходила вершиной в y=-1 — купол
@@ -301,408 +311,9 @@
         '</g>' +
         '</svg>';
 
-    /* ═══ СТИЛЬ — без prefers-reduced-motion: призрак всегда живой ═══ */
-    var css = '' +
-        '#um13-ghost-root{position:fixed;inset:0;pointer-events:none;z-index:2147483000;overflow:visible;}' +
-        '#um13-ghost-root *{box-sizing:border-box;}' +
-        /* Капсула: наклон задаётся в rotate(var(--um13-tilt)), парение — bob.
-           Наклон живёт на .um13g (не svg), чтобы не спорил с дыханием.
-           user-select:none + touch-action:none — перенос призрака не выделяет
-           текст под ним и не скроллит страницу на тач-устройствах. */
-        '.um13g{position:absolute;left:0;top:0;width:110px;display:flex;flex-direction:column;align-items:center;' +
-        'transform:translate(-50%,-50%) rotate(var(--um13-tilt, 0deg));cursor:pointer;pointer-events:auto;' +
-        'user-select:none;-webkit-user-select:none;touch-action:none;' +
-        'transition:left 1.6s cubic-bezier(.45,.05,.35,1),top 1.6s cubic-bezier(.45,.05,.35,1),opacity .6s ease,transform .5s ease;}' +
-        '#um13-ghost-root.um13g-dodging .um13g{transition:left .45s cubic-bezier(.3,1.4,.5,1),top .45s cubic-bezier(.3,1.4,.5,1),opacity .6s ease,transform .5s ease;}' +
-        /* уплытие: к краю с уменьшением и таянием */
-        '.um13g.um13g-sailing{transform:translate(-50%,-50%) scale(.25) rotate(20deg);opacity:0;' +
-        'transition:left 1.6s cubic-bezier(.4,0,.7,.4),top 1.6s cubic-bezier(.4,0,.7,.4),opacity 1.6s ease,transform 1.6s ease;}' +
-        /* парение-покачивание на месте (бесконечное, мягкое) */
-        '.um13g .um13g-hoverwrap{animation:um13g-bob 3.1s ease-in-out infinite;}' +
-        '@keyframes um13g-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}' +
-        /* во сне призрак почти не движется: парение сжимается до 2.5px,
-           остальное — микродрейф вокруг точки засыпания (см. startSleepDrift) */
-        '#um13-ghost-root.um13g-sleeping .um13g .um13g-hoverwrap{animation:um13g-bob-sleep 5.2s ease-in-out infinite;}' +
-        '@keyframes um13g-bob-sleep{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}' +
-        /* дыхание капсулы. Свечение — БЕЗ фильтра на svg: drop-shadow
-           заставлял пересчитывать свечение КАЖДЫЙ КАДР бесконечных
-           анимаций (глаза/ключ/моргание) — редечил FPS перелётов.
-           Дешёвый заменитель: radial-подложка на hoverwrap, статична. */
-        '.um13g svg{width:72px;height:72px;position:relative;z-index:1;' +
-        'animation:um13g-breathe 3.6s ease-in-out infinite;}' +
-        '.um13g .um13g-glow{position:absolute;left:50%;top:50%;width:120px;height:120px;' +
-        'border-radius:50%;transform:translate(-50%,-50%);z-index:0;pointer-events:none;' +
-        'background:radial-gradient(circle,rgba(0,240,255,.16) 0%,rgba(0,240,255,.05) 45%,transparent 70%);}' +
-        '#um13-ghost-root.um13g-sleeping .um13g svg{animation:um13g-breathe 5.4s ease-in-out infinite;}' +
-        '@keyframes um13g-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}' +
-        '.um13g-skirt{animation:um13g-skirt 2.6s ease-in-out infinite;transform-origin:32px 46px;}' +
-        '@keyframes um13g-skirt{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.3)}}' +
-        /* испуг: дрожь всей капсулы */
-        '#um13-ghost-root.um13g-scared .um13g .um13g-hoverwrap{animation:um13g-shake .09s linear infinite;}' +
-        '@keyframes um13g-shake{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(-1.5px,1px) rotate(-1deg)}' +
-        '50%{transform:translate(1px,-1.5px) rotate(1deg)}75%{transform:translate(-1px,-1px) rotate(-0.5deg)}100%{transform:translate(1.5px,1px) rotate(0.5deg)}}' +
-        /* псих: тряска + красное СВЕЧЕНИЕ-подложка (не фильтр на svg) */
-        '#um13-ghost-root.um13g-raging .um13g .um13g-hoverwrap{animation:um13g-shake .07s linear infinite;}' +
-        '#um13-ghost-root.um13g-raging .um13g .um13g-glow{background:radial-gradient(circle,rgba(255,0,85,.22) 0%,rgba(255,0,85,.07) 45%,transparent 70%);}' +
-        /* грусть: слеза сползает по щеке ДО ПОДОЛА (кромка y46) и капает */
-        '.um13g-f-sad .um13g-tear{animation:um13g-tear 2.2s ease-in infinite;}' +
-        '@keyframes um13g-tear{0%{transform:translateY(0);opacity:.9}70%{transform:translateY(6px);opacity:.9}' +
-        '85%{transform:translateY(9px) scaleY(1.3);opacity:0}100%{opacity:0}}' +
-        /* группы-лица */
-        '.um13g-f{display:none;}' +
-        '.um13g[data-face="normal"] .um13g-f-normal{display:block;}' +
-        '.um13g[data-face="startled"] .um13g-f-startled{display:block;}' +
-        '.um13g[data-face="skeptic"] .um13g-f-skeptic{display:block;}' +
-        '.um13g[data-face="delight"] .um13g-f-delight{display:block;}' +
-        '.um13g[data-face="smart"] .um13g-f-smart{display:block;}' +
-        '.um13g[data-face="thinking"] .um13g-f-thinking{display:block;}' +
-        '.um13g[data-face="angry"] .um13g-f-angry{display:block;}' +
-        '.um13g[data-face="sad"] .um13g-f-sad{display:block;}' +
-        '.um13g[data-face="wink"] .um13g-f-wink{display:block;}' +
-        '.um13g[data-face="asleep"] .um13g-f-asleep{display:block;}' +
-        /* нормальное лицо — усталый полуулыб; моргание + дрейф взгляда:
-           Pac-Man-призраки продают эмоцию направлением зрачков — пара
-           глаз медленно «оглядывается» (±2px) без новых лиц */
-        '.um13g[data-face="normal"] .um13g-blink{animation:um13g-blinkface 4.7s ease-in-out infinite;}' +
-        '@keyframes um13g-blinkface{0%,92.5%,100%{opacity:1}95%{opacity:.06}}' +
-        '.um13g[data-face="normal"] .um13g-eye{animation:um13g-gaze 7.2s ease-in-out infinite;}' +
-        '@keyframes um13g-gaze{0%,28%{transform:translateX(0)}36%,64%{transform:translateX(2.2px)}72%,100%{transform:translateX(0)}}' +
-        /* ключ на цепочке качается — маховик мелкой жизни (origin = крепление к подолу) */
-        '.um13g-key{animation:um13g-keyswing 3.4s ease-in-out infinite;transform-origin:54px 44px;}' +
-        '@keyframes um13g-keyswing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}' +
-        /* ══ СТЕСНИТЕЛЬНОСТЬ (правило «Бу наоборот») ══
-           3с наведённого курсора — призрак отворачивается и ЗАКРЫВАЕТ
-           ЛИЦО ЗАНАВЕСЬЮ подола: фирменная механика, замечают и
-           пересказывают. Занавесь — зеркальный веер подола, поднятый
-           ВВЕРХ от кромки (origin y60, scaleY отрицательный): в
-           прошлой версии юбка тянулась вниз от y46 и лицо оставалось
-           открытым — обещание не выполнялось (креативный аудит A1). */
-        '.um13g .um13g-shyveil{display:none;}' +
-        '.um13g.um13g-shy .um13g-hoverwrap{animation:um13g-shy 2.6s ease-in-out infinite;}' +
-        '@keyframes um13g-shy{0%,100%{transform:translateX(6px) rotate(10deg)}50%{transform:translateX(10px) rotate(14deg)}}' +
-        '.um13g.um13g-shy .um13g-skirt{animation:um13g-shyskirt 1.3s ease-in-out infinite;transform-origin:32px 46px;}' +
-        '@keyframes um13g-shyskirt{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.6) scaleX(1.15)}}' +
-        /* занавесь: ткань поднята и дышит в пределах лица (y24–46) */
-        '.um13g.um13g-shy .um13g-shyveil{display:block;transform-origin:32px 46px;' +
-        'animation:um13g-shyveil 1.3s ease-in-out infinite;}' +
-        '@keyframes um13g-shyveil{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.06) scaleX(1.04)}}' +
-        /* ═══ «ПОСТАРЕЛ БЕЗ ТЕБЯ» (давность на теле): разрыв > недели —
-           чуть более тусклый контур ДО первого hello, потом оживает ═══ */
-        '.um13g.um13g-missed{opacity:.55;}' +
-        '.um13g.um13g-missed .um13g-glow{background:radial-gradient(circle,rgba(0,240,255,.08) 0%,transparent 60%);}' +
-        /* вздрагивание при клике */
-        /* вздрагивание при клике */
-        '.um13g svg.um13g-startled-pop{animation:um13g-pop .5s ease-out;}' +
-        '@keyframes um13g-pop{0%{transform:scale(.92)}55%{transform:scale(1.14)}100%{transform:scale(1)}}' +
-        /* Zzz */
-        '.um13g-zzz{position:absolute;top:-12px;right:-8px;font-family:\'SF Mono\',Consolas,monospace;' +
-        'font-weight:700;color:#00f0ff;font-size:13px;pointer-events:none;' +
-        'animation:um13g-zz 2.2s ease-out infinite;opacity:0;}' +
-        '.um13g-zzz.z2{top:-22px;right:-18px;font-size:16px;animation-delay:.5s;}' +
-        '.um13g-zzz.z3{top:-30px;right:-24px;font-size:18px;animation-delay:1s;}' +
-        '@keyframes um13g-zz{0%{opacity:0;transform:translate(0,0) scale(.7)}30%{opacity:1}' +
-        '100%{opacity:0;transform:translate(8px,-18px) scale(1.1)}}' +
-        /* ══ КУБИКИ-ЧАСТИЦЫ ══ */
-        '.um13g-cube{position:absolute;width:9px;height:9px;border-radius:2.5px;pointer-events:none;z-index:2;' +
-        'transform:translate(0,0) rotate(0);opacity:1;}' +
-        /* конфетти-победа: падают с дрейфом */
-        '@keyframes um13g-confetti{0%{transform:translate(0,0) rotate(0);opacity:1}' +
-        '100%{transform:translate(var(--dx,20px),140px) rotate(540deg);opacity:0}}' +
-        /* ══ ПУЗЫРЬ-ОБЛАЧКО: СВЕРХУ с хвостиком ══
-           Сжат к призраку: раньше 150–250px против 72px тела —
-           текст хоронил персонажа (пузырь был в 5 раз больше говорящего) */
-        '.um13g .um13g-say{pointer-events:none;position:absolute;bottom:calc(100% + 14px);left:50%;' +
-        'transform:translateX(-50%) translateY(6px) scale(.95);' +
-        'min-width:120px;max-width:200px;padding:9px 13px;border-radius:14px;' +
-        'background:rgba(8,12,20,.94);border:1px solid rgba(0,240,255,.45);' +
-        'color:#e8e8ef;font-family:\'SF Mono\',Consolas,monospace;font-size:12px;line-height:1.5;' +
-        'text-align:center;opacity:0;white-space:normal;' +
-        'transition:opacity .3s ease,transform .3s ease;' +
-        'box-shadow:0 4px 24px rgba(0,0,0,.5),0 0 18px rgba(0,240,255,.14);}' +
-        '.um13g .um13g-say::after{content:\'\';position:absolute;bottom:-7px;left:50%;' +
-        'margin-left:-7px;width:12px;height:12px;background:rgba(8,12,20,.94);' +
-        'border-right:1px solid rgba(0,240,255,.45);border-bottom:1px solid rgba(0,240,255,.45);' +
-        'transform:rotate(45deg);}' +
-        '.um13g .um13g-say.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);pointer-events:auto;cursor:pointer;}' +
-        '.um13g .um13g-say b{color:#00f0ff;font-weight:600;}' +
-        '.um13g .um13g-say.flip-left{left:auto;right:10px;transform:translateX(0) translateY(6px) scale(.95);}' +
-        '.um13g .um13g-say.flip-left.show{transform:translateX(0) translateY(0) scale(1);}' +
-        '.um13g .um13g-say.flip-left::after{left:auto;right:24px;margin-left:0;}' +
-        '.um13g .um13g-say.flip-right{left:10px;right:auto;transform:translateX(0) translateY(6px) scale(.95);}' +
-        '.um13g .um13g-say.flip-right.show{transform:translateX(0) translateY(0) scale(1);}' +
-        '.um13g .um13g-say.flip-right::after{left:24px;margin-left:0;}' +
-        /* ═══ АУДИТ A3: вертикальный кламп — у верхней кромки пузырь
-           уходит за экран (реплика живёт НАД телом). flip-down ставит
-           пузырь ПОД призрака с хвостиком сверху; вернуть нечего —
-           снизу пузырь упирается в экран только на гигантских репликах
-           у самого пола, но fy-кламп (0.92) оставляет там запас. ═══ */
-        '.um13g .um13g-say.flip-down{bottom:auto;top:calc(100% + 14px);transform:translateX(-50%) translateY(-6px) scale(.95);}' +
-        '.um13g .um13g-say.flip-down.show{transform:translateX(-50%) translateY(0) scale(1);}' +
-        '.um13g .um13g-say.flip-down::after{bottom:auto;top:-7px;border:none;' +
-        'border-left:1px solid rgba(0,240,255,.45);border-top:1px solid rgba(0,240,255,.45);}' +
-        '.um13g .um13g-tag{margin-top:5px;font-family:\'SF Mono\',Consolas,monospace;font-size:11px;color:rgba(0,240,255,.55);' +
-        'letter-spacing:.1em;text-transform:uppercase;opacity:.85;}' +
-        /* ═══ АКТЫ-ПОЗЫ: бессловесная жизнь между репликами ═══
-           Паузные анимации из игр: тело говорит без текста. Классы вешаются
-           на КАПСУЛУ (.um13g) и включают свою хореографию. */
-        /* глитч-завис: капсула дёргается и рассыпается по каналам.
-           Цветные сдвиги — ТОНИРОВАННЫЕ ПОДЛОЖКИ (не drop-shadow-цепочка
-           на svg: тройной фильтр выедал FPS вместе с бесконечным skew).
-           Аудит A4: альфа 0.14/0.12 на тёмном фоне глазом не читалась —
-           поднята до читаемого расслоения, сдвиг расширен до ±6px. */
-        '.um13g.um13g-act-glitch .um13g-hoverwrap{animation:um13g-glitch .32s steps(2) infinite;}' +
-        '.um13g.um13g-act-glitch svg{animation:um13g-glitch-skew 1.4s steps(3) infinite;}' +
-        '.um13g.um13g-act-glitch .um13g-glow::before,' +
-        '.um13g.um13g-act-glitch .um13g-glow::after{content:\'\';position:absolute;inset:0;border-radius:50%;}' +
-        '.um13g.um13g-act-glitch .um13g-glow::before{background:radial-gradient(circle,rgba(255,0,85,.26),transparent 60%);' +
-        'transform:translateX(-6px);mix-blend-mode:screen;}' +
-        '.um13g.um13g-act-glitch .um13g-glow::after{background:radial-gradient(circle,rgba(0,255,157,.24),transparent 60%);' +
-        'transform:translateX(6px);mix-blend-mode:screen;}' +
-        '@keyframes um13g-glitch{0%{transform:translate(0,0)}25%{transform:translate(-3px,1px)}' +
-        '50%{transform:translate(2px,-2px)}75%{transform:translate(-1px,2px)}100%{transform:translate(0,0)}}' +
-        '@keyframes um13g-glitch-skew{0%,100%{transform:scale(1) skewX(0)}33%{transform:scale(1.02,.96) skewX(-4deg)}' +
-        '66%{transform:scale(.98,1.03) skewX(3deg)}}' +
-        /* ═══ АКТ «ЕСТ НОДУ» (хореография по правкам арт-директора):
-           подход прыжками с anticipation → укус В МОМЕНТ касания рта →
-           жевок тела/рта синхронно с укусом (без мёртвой зоны 1.35с) →
-           проглат вниз по телу с «бульком» (не scale-схлопывание) →
-           крошки. Съедобная нода крупная (16px, порт+метка читаются).
-           eat-quick — короткий профиль «доесть» для кормления ═══ */
-        '.um13g .um13g-eatbite{position:absolute;left:50%;top:66%;width:16px;height:16px;' +
-        'border-radius:3px;border:1.5px solid rgba(7,11,18,.55);' +
-        'pointer-events:none;z-index:2;' +
-        'animation:um13g-bite-approach .9s cubic-bezier(.3,.9,.4,1),' +
-        'um13g-bite-eat1 .55s cubic-bezier(.4,0,.8,.6) .95s both,' +
-        'um13g-bite-chew1 .7s ease-in-out 1.5s 1,' +
-        'um13g-bite-eat2 .5s cubic-bezier(.4,0,.8,.6) 2.25s both,' +
-        'um13g-bite-chew2 .7s ease-in-out 2.8s 1,' +
-        'um13g-bite-gulp .55s cubic-bezier(.5,0,.9,.5) 3.5s both;}' +
-        /* подход: anticipation (микро-отлёт) → прыжок ко рту со squash */
-        '@keyframes um13g-bite-approach{0%{transform:translate(44px,-38px) scale(1) rotate(-14deg);opacity:0}' +
-        '15%{transform:translate(50px,-42px) scale(1) rotate(-18deg);opacity:1}' +
-        '100%{transform:translate(0,0) scale(1.15,.85) rotate(4deg);opacity:1}}' +
-        /* укус 1: мгновенное сплющивание У РТА, нода откусана (scale .62) */
-        '@keyframes um13g-bite-eat1{0%{transform:translate(0,0) scale(1.15,.85) rotate(4deg);opacity:1}' +
-        '100%{transform:translate(0,1px) scale(.62) rotate(2deg);opacity:1}}' +
-        /* жевок 1: ноду жуют (лёгкое покачивание остатка) */
-        '@keyframes um13g-bite-chew1{0%,100%{transform:translate(0,1px) scale(.62) rotate(2deg)}' +
-        '50%{transform:translate(0,2px) scale(.62) rotate(-3deg)}}' +
-        /* укус 2: добивание до крошки */
-        '@keyframes um13g-bite-eat2{0%{transform:translate(0,1px) scale(.62) rotate(2deg);opacity:1}' +
-        '100%{transform:translate(-1px,2px) scale(.28) rotate(10deg);opacity:1}}' +
-        '@keyframes um13g-bite-chew2{0%,100%{transform:translate(-1px,2px) scale(.28) rotate(10deg)}' +
-        '50%{transform:translate(-1px,3px) scale(.28) rotate(-6deg)}}' +
-        /* ПРОГЛАТ: остаток уходит ВНИЗ по телу (не схлопывается) */
-        '@keyframes um13g-bite-gulp{0%{transform:translate(-1px,2px) scale(.28);opacity:1}' +
-        '100%{transform:translate(0,34px) scale(.22,.5);opacity:0}}' +
-        /* крошки: в такт укусов (после первого — 1шт, после второго — 2шт) */
-        '.um13g .um13g-crumb{position:absolute;left:50%;top:66%;width:4px;height:4px;border-radius:1px;' +
-        'pointer-events:none;z-index:2;opacity:0;animation:um13g-crumb .9s ease-out forwards;}' +
-        '@keyframes um13g-crumb{0%{transform:translate(2px,6px) scale(1);opacity:.95}' +
-        '100%{transform:translate(var(--cdx,8px),48px) rotate(160deg) scale(.7);opacity:0}}' +
-        /* тело: жуёт СИНХРОННО укусам — кивок в кадр касания (0.95с),
-           «бульк» при проглате (микро-scale на 3.5с) */
-        '.um13g.um13g-act-eat .um13g-hoverwrap{animation:um13g-chew-idle .7s ease-in-out 3;' +
-        'animation-delay:.95s;}' +
-        '@keyframes um13g-chew-idle{0%,100%{transform:translateY(0) scaleY(1)}' +
-        '50%{transform:translateY(2.5px) scaleY(.94)}}' +
-        '.um13g.um13g-act-eat .um13g-hoverwrap .um13g-gulpwave{opacity:0;}' +
-        /* лицо обжоры: базовое лицо гасим ЦЕЛИКОМ (полуулыб нормала
-           просвечивал сквозь «о» — два рта в одном), рот в такт укусов */
-        '.um13g.um13g-act-eat .um13g-f{opacity:0;}' +
-        '.um13g.um13g-act-eat .um13g-eatface{display:block;}' +
-        '.um13g .um13g-eatface{display:none;}' +
-        '.um13g .um13g-eatface .um13g-mouth-o{animation:um13g-chewmouth .7s ease-in-out 3;' +
-        'animation-delay:.95s;transform-origin:32px 44px;}' +
-        '@keyframes um13g-chewmouth{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.3)}}' +
-        /* ═══ EAT-QUICK: короткий профиль «доесть» (кормление кликом) —
-           один укус + один жевок, 1.1с. Без длинного подхода ═══ */
-        '.um13g.um13g-act-eatquick .um13g-f{opacity:0;}' +
-        '.um13g.um13g-act-eatquick .um13g-eatface{display:block;}' +
-        '.um13g.um13g-act-eatquick .um13g-hoverwrap{animation:um13g-chew-idle .7s ease-in-out 1;}' +
-        '.um13g.um13g-act-eatquick .um13g-eatface .um13g-mouth-o{animation:um13g-chewmouth .7s ease-in-out 1;' +
-        'transform-origin:32px 44px;}' +
-        '.um13g .um13g-eatquick-bite{position:absolute;left:50%;top:66%;width:16px;height:16px;' +
-        'border-radius:3px;border:1.5px solid rgba(7,11,18,.55);pointer-events:none;z-index:2;' +
-        'animation:um13g-qeat .5s cubic-bezier(.4,0,.8,.6) .15s forwards,' +
-        'um13g-qchew .55s ease-in-out .55s 1,um13g-bite-gulp .5s cubic-bezier(.5,0,.9,.5) .95s both;}' +
-        '@keyframes um13g-qeat{0%{transform:translate(20px,-14px) scale(1);opacity:0}' +
-        '30%{opacity:1}100%{transform:translate(0,1px) scale(.5) rotate(3deg);opacity:1}}' +
-        '@keyframes um13g-qchew{0%,100%{transform:translate(0,1px) scale(.5) rotate(3deg)}' +
-        '50%{transform:translate(0,2px) scale(.5) rotate(-4deg)}}' +
-        /* мечты: парит выше обычного, мягко вращаясь */
-        '.um13g.um13g-act-dream .um13g-hoverwrap{animation:um13g-dream 4.4s ease-in-out infinite;}' +
-        '@keyframes um13g-dream{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(2deg)}}' +
-        /* танец: «никто же не смотрит» — приседания с бёдрами, юбка вдвое чаще */
-        '.um13g.um13g-act-dance .um13g-hoverwrap{animation:um13g-dance 1.15s ease-in-out infinite;}' +
-        '@keyframes um13g-dance{0%,100%{transform:translateX(-7px) rotate(-6deg) scaleY(1)}' +
-        '25%{transform:translateX(0) rotate(0) scaleY(.9)}50%{transform:translateX(7px) rotate(6deg) scaleY(1)}' +
-        '75%{transform:translateX(0) rotate(0) scaleY(.9)}}' +
-        '.um13g.um13g-act-dance .um13g-skirt{animation-duration:.58s;}' +
-        /* подглядывание: выглядывает из-за края — видна половина */
-        '.um13g.um13g-act-peek .um13g-hoverwrap{animation:um13g-peek 2.8s ease-in-out infinite;}' +
-        '@keyframes um13g-peek{0%,15%{transform:translateX(-46%)}30%,45%{transform:translateX(-8%)}' +
-        '60%,100%{transform:translateX(-46%)}}' +
-        /* дефрагментация: рассыпается и собирается обратно (scale+opacity —
-           без пиксельных фильтров: анимация фильтра ела FPS) */
-        '.um13g.um13g-act-defrag svg{animation:um13g-defrag 2.6s ease-in-out infinite;}' +
-        '@keyframes um13g-defrag{0%,100%{transform:scale(1);opacity:1}' +
-        '50%{transform:scale(.92);opacity:.55}}' +
-        /* ═══ АКТ «ПАСТУХ НОД»: кубики дрейфуют рядом, призрак их
-           подталкивает в линию (WAAPI-хореография из JS); CSS — только
-           лёгкое покачивание тела «работающего» и спокойное лицо ═══ */
-        '.um13g.um13g-act-herd .um13g-hoverwrap{animation:um13g-herd-bob 3.2s ease-in-out infinite;}' +
-        '@keyframes um13g-herd-bob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}' +
-        '.um13g .um13g-herdcube{position:absolute;border-radius:2.5px;pointer-events:none;z-index:2;}' +
-        /* ═══ АКТ «ПОЛИРУЕТ КЛЮЧ»: снимает ключ с цепочки, держит,
-           протирает. Реальная группа ключа прячется, летит дубль-ключ.
-           CSS — поза «сосредоточен»: наклон вниз, замедленный key-swing гаснет ═══ */
-        '.um13g.um13g-act-polish .um13g-key{opacity:0;}' +
-        '.um13g.um13g-act-polish .um13g-hoverwrap{animation:um13g-polish 4.5s ease-in-out infinite;}' +
-        '@keyframes um13g-polish{0%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(2px) rotate(3deg)}' +
-        '55%{transform:translateY(2px) rotate(-2deg)}' +
-        '70%{transform:translateY(-2px) rotate(0)}}' +
-        '.um13g .um13g-keyheld{position:absolute;left:50%;top:40%;width:14px;height:14px;pointer-events:none;z-index:3;}' +
-        /* ═══ АКТ «ГОЛОДАЕТ» (по ревью): урчание живота ВИДИМОЕ
-           (5% по вертикали, 0.7с — раньше 1.5% был subpixel), нода
-           ПУЛЬСИРУЕТ (аффорданс «кликни» — ревью пользователя: без
-           этого кормление — секретная фича), взгляд драматургичен:
-           смотрит на ноду → отворачивается → снова смотрит (WAAPI-цикл
-           в startHungryChoreo). КЛИК = кормление. ═══ */
-        '.um13g.um13g-act-hungry .um13g-hoverwrap{animation:um13g-hungry-groan .7s ease-in-out infinite;}' +
-        '@keyframes um13g-hungry-groan{0%,100%{transform:translateY(0) scale(1,1)}' +
-        '50%{transform:translateY(2px) scale(1.01,.95)}}' +
-        '.um13g.um13g-act-hungry .um13g-eye{animation:um13g-hungry-look 8s ease-in-out infinite;}' +
-        '@keyframes um13g-hungry-look{0%,30%{transform:translateY(2.2px) translateX(-1.5px)}' +
-        '45%,60%{transform:translateY(0) translateX(0)}' +
-        '75%,100%{transform:translateY(2.2px) translateX(-1.5px)}}' +
-        '.um13g .um13g-hungrynode{position:absolute;left:18%;top:78%;width:14px;height:14px;border-radius:3px;' +
-        'pointer-events:none;z-index:2;box-shadow:0 0 10px var(--hc,#00f0ff);' +
-        'animation:um13g-hungry-lie 3s ease-in-out infinite,um13g-hungry-need 1.6s ease-in-out infinite;}' +
-        '@keyframes um13g-hungry-lie{0%,100%{transform:rotate(14deg) translateY(0)}' +
-        '50%{transform:rotate(11deg) translateY(1px)}}' +
-        /* пульсация «съешь меня»: та же нода, которую он ест — визуальная
-           связка «еда лежит тут» вместо чтения подписи */
-        '@keyframes um13g-hungry-need{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}' +
-        /* кормление: нода летит ко рту и исчезает */
-        '.um13g .um13g-hungrynode.fed{animation:um13g-fed .6s cubic-bezier(.4,0,.8,.5) forwards;}' +
-        '@keyframes um13g-fed{0%{transform:translate(0,0) scale(1);opacity:1}' +
-        '100%{transform:translate(26px,-26px) scale(.1);opacity:0}}' +
-        /* ═══ ЛОВЕЦ УДАЛЁННЫХ НОД: кубик удалённой ноды падает
-           в подол и «хранится» пару секунд — гаснущая память ═══ */
-        '.um13g .um13g-caught{position:absolute;left:50%;top:88%;width:9px;height:9px;border-radius:2.5px;' +
-        'pointer-events:none;z-index:2;animation:um13g-caught-fall .7s cubic-bezier(.3,.7,.4,1) forwards,' +
-        'um13g-caught-keep 2.5s ease-in-out .7s forwards;}' +
-        '@keyframes um13g-caught-fall{0%{transform:translate(30px,-46px) rotate(0);opacity:0}' +
-        '30%{opacity:1}100%{transform:translate(0,0) rotate(18deg);opacity:1}}' +
-        '@keyframes um13g-caught-keep{0%,70%{opacity:.9}100%{opacity:0;transform:translate(0,1px) rotate(18deg)}}' +
-        /* ═══ АКТ «ПРОВОЖАЕТ НЕВИДИМОЕ»: зрачки-группы едут за
-           летящим «ничем» (позицию задаёт JS через --um13-watch),
-           тело слегка поворачивается. Иногда машет подолом. ═══ */
-        '.um13g.um13g-act-watch .um13g-hoverwrap{animation:um13g-watch-lean 5s ease-in-out infinite;}' +
-        '@keyframes um13g-watch-lean{0%,100%{transform:rotate(0)}50%{transform:rotate(4deg)}}' +
-        /* ═══ АКТ «ПРИТВОРЯЕТСЯ НОДОЙ» (v1.1): трагедия одного жеста —
-           «меня не выбрали в экспорт». Капсула застывает формой ноды:
-           радиусы гаснут (clip-path «коробка»), подол поджимается,
-           снизу рисуется точка-порт (как у настоящей ноды холста),
-           моргание продолжается (нода «живая», это и есть шутка).
-           Через 2.5с — оседает обратно с микровздохом. Границы клипа
-           чуть шире тела (10..54), чтобы stroke кромки не резался. */
-        '.um13g.um13g-act-mime .um13g-hoverwrap{animation:um13g-mime-settle 1.2s ease-out 1 forwards;}' +
-        '@keyframes um13g-mime-settle{0%{transform:translateY(2px)}100%{transform:translateY(3px)}}' +
-        '.um13g.um13g-act-mime svg{animation:none;}' +
-        '.um13g.um13g-act-mime .um13g-svgclip{clip-path:inset(14% 18% 26% 18%);}' +
-        '.um13g.um13g-act-mime .um13g-skirt{animation:none;transform:scaleY(.82);}' +
-        '.um13g.um13g-act-mime .um13g-key{opacity:.25;}' +
-        '.um13g .um13g-mimeport{position:absolute;left:50%;bottom:-7px;width:7px;height:7px;' +
-        'border-radius:50%;transform:translateX(-50%);pointer-events:none;opacity:0;' +
-        'background:rgba(7,11,18,.9);border:2px solid rgba(0,240,255,.8);}' +
-        '.um13g.um13g-act-mime .um13g-mimeport{opacity:1;}' +
-        /* ═══ ХОЛОДНОЕ ПЯТНО: спящий долго греет одно место —
-           уплывая, оставляет морозный развод, который тает ~30с.
-           Фольклорный штрих: призраки охлаждают, а этот — из
-           хранилища, где действительно холодно. pointer-events:none. */
-        '.um13g-frost{position:fixed;width:180px;height:120px;border-radius:50%;pointer-events:none;' +
-        'background:radial-gradient(ellipse,rgba(0,240,255,.10) 0%,rgba(120,200,255,.05) 45%,transparent 70%);' +
-        'opacity:0;transition:opacity 1.2s ease;}' +
-        '.um13g-frost.on{opacity:1;}' +
-        '.um13g-frost.bye{opacity:0;transition:opacity 28s ease-out;}' +
-        /* ═══ ПРОВОД: редакторский перелёт садится НА РЕБРО флоу —
-           призрак сидит на кривой связи как птица на проводе,
-           наклоняясь по касательной. Точка приходит с событием
-           um13:perch ({x,y,angle} — экранные координаты середины
-           ребра и угол касательной). */
-        '.um13g.um13g-perched{cursor:default;}' +
-        '@keyframes um13g-perch-wobble{0%,100%{transform:translateY(0) rotate(0)}' +
-        '50%{transform:translateY(-2px) rotate(1.2deg)}}' +
-        '.um13g.um13g-perched .um13g-hoverwrap{animation:um13g-bob 3.1s ease-in-out infinite,um13g-perch-wobble 2.3s ease-in-out infinite;}' +
-        /* ═══ ВЗГЛЯД СЛЕДИТ ЗА КУРСОРОМ: зрачки-группы едут за
-           мышью через CSS-var на капсуле. Пока курсор активен — честное
-           слежение; 10с покоя — призрак «теряет интерес» (уходит в
-           прежний дрейф-цикл um13g-gaze). ═══ */
-        '.um13g .um13g-eye{transition:transform .35s cubic-bezier(.3,.8,.4,1);}' +
-        '.um13g[data-gaze="mouse"] .um13g-eye{animation:none;' +
-        'transform:translate(calc(var(--um13-gaze-x,0)*2.6px),calc(var(--um13-gaze-y,0)*2.6px));}' +
-        /* ═══ ДАВЛЕНИЕ КВОТЫ В ТЕЛЕ: localStorage забит — призрак
-           чувствует. Уровень 1 (≥85%): юбка чаще, тик-дрожь. Уровень 2
-           (≥95%): мерцание всего тела, спящий тоже нервно дрейфует. ═══ */
-        '#um13-ghost-root[data-pressure="1"] .um13g-skirt{animation-duration:1.8s;}' +
-        '#um13-ghost-root[data-pressure="1"] .um13g svg{animation:um13g-breathe 3.6s ease-in-out infinite,um13g-tic 7s steps(1) infinite;}' +
-        '#um13-ghost-root[data-pressure="2"] .um13g-skirt{animation-duration:1.35s;}' +
-        '#um13-ghost-root[data-pressure="2"] .um13g svg{animation:um13g-breathe 3.6s ease-in-out infinite,um13g-tic 3.5s steps(1) infinite,um13g-flicker 2.8s steps(2) infinite;}' +
-        '@keyframes um13g-tic{0%,93%,100%{transform:translateX(0)}94%{transform:translateX(-1.6px) rotate(-1.5deg)}97%{transform:translateX(1.2px) rotate(1deg)}}' +
-        '@keyframes um13g-flicker{0%,100%{opacity:1}50%{opacity:.82}}' +
-        /* ═══ СВЕТЛАЯ ТЕМА = ОСЛЕП: циановое тело тонет в белом —
-           призрак «надевает» янтарные очки и приглушает контраст, чтобы
-           остаться читаемым. Уведомление в html[data-theme=light]. ═══ */
-        '[data-theme="light"] .um13g-shades{display:block;}' +
-        '.um13g-shades{display:none;}' +
-        '[data-theme="light"] .um13g-glow{background:radial-gradient(circle,rgba(8,145,178,.18) 0%,rgba(8,145,178,.06) 45%,transparent 70%);}' +
-        /* ═══ КУБИК-ПОТЕРЯШКА: после психа один кубик прилипает
-           у края экрана до конца сессии. Дрожит изредка. Кликабельен. ═══ */
-        '.um13g-cube-stuck{position:fixed;border-radius:2.5px;pointer-events:auto;cursor:pointer;z-index:2147483000;' +
-        'box-shadow:0 0 10px var(--stuck, #00f0ff);animation:um13g-stuck-shiver 6s steps(1) infinite;}' +
-        '@keyframes um13g-stuck-shiver{0%,96.5%,100%{transform:rotate(var(--rot,45deg))}97%{transform:rotate(calc(var(--rot,45deg) + 14deg))}98.5%{transform:rotate(calc(var(--rot,45deg) - 8deg))}}' +
-        /* ═══ КЛЮЧ ФИНАЛА: key-turned — окно №13 открыто (ключ в замке,
-           навсегда): цепочка пуста. key-given — ключ отдан человеку:
-           призрак иногда трогает пустое место (idle-микроакт). Оба —
-           только телом, без слов: вселенная меняется навсегда. ═══ */
-        '#um13-ghost-root.key-turned .um13g-key{display:none;}' +
-        '#um13-ghost-root.key-given .um13g-key{display:none;}' +
-        '#um13-ghost-root.key-given .um13g:hover .um13g-keyring{opacity:.5;}' +
-        '.um13g-keyring{display:none;}' +
-        '#um13-ghost-root.key-given .um13g-keyring{display:block;opacity:.25;}' +
-        /* ═══ АУДИТ A10: зрачки живы и на «спокойных» лицах — лёгкий
-           дрейф ±1.5px у skeptic/smart (на smart он скользит за линзой
-           очков, на skeptic — из-под прищура). Дёшево, а половина
-           лиц перестаёт быть статичной. ═══ */
-        '.um13g[data-face="skeptic"] .um13g-eye{animation:um13g-gaze 7.2s ease-in-out infinite;}' +
-        '.um13g[data-face="smart"] .um13g-eye{animation:um13g-gaze 9.4s ease-in-out infinite;}' +
-        /* ═══ КУБИК-ПИТОМЕЦ: потеряшка, которую не забрали в прошлой
-           сессии, висит на цепочке слева от ключа до конца финала —
-           после key-given/turned кубик остаётся: единственный друг,
-           который ни от чего не зависит. ═══ */
-        '.um13g-petcube{display:none;}' +
-        '#um13-ghost-root.pet-cube .um13g-petcube{display:block;' +
-        'animation:um13g-petswing 3.1s ease-in-out infinite;transform-origin:10px 46px;}' +
-        '@keyframes um13g-petswing{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}' +
-        /* ═══ СОМНАМБУЛА (В1): спящий призрак однажды за долгий сон
-           «рисует» грезу из кубиков поверх страницы. Оверлей в корне,
-           документ под ним не затрагивается; пробуждение рассыпает
-           рисунок за 2с. ═══ */
-        '.um13g-dreampic{position:absolute;width:12px;height:12px;border-radius:2.5px;pointer-events:none;z-index:3;' +
-        'opacity:0;transition:opacity 2.4s ease;}' +
-        '.um13g-dreampic.on{opacity:.8;}' +
-        '.um13g-dreampic.bye{transition:opacity .9s ease,transform .9s ease-in;transform:translateY(26px) rotate(120deg);opacity:0;}' +
-        /* ═══ АУДИТ A8: на узких экранах пузырь min-width 120px против
-           капсулы 84px — «пузырь хоронит персонажа» (то, с чем боролись
-           в реворке). Сжимаем минимум, сохраняя читаемость 11px. ═══ */
-        '@media (max-width:640px){.um13g{width:84px}.um13g svg{width:54px;height:54px}' +
-        '.um13g .um13g-say{font-size:11px;min-width:100px}}';
-
     /* ═══ DOM ═══ */
     function mountRoot() {
-        var root = document.getElementById('um13-ghost-root');
+        let root = document.getElementById('um13-ghost-root');
         if (root) return root;
         root = document.createElement('div');
         root.id = 'um13-ghost-root';
@@ -710,20 +321,15 @@
         return root;
     }
 
-    var styleEl = document.createElement('style');
-    styleEl.id = 'um13-ghost-style';
-    styleEl.textContent = css;
-    document.head.appendChild(styleEl);
-
-    var root = null;
-    var body = null;
-    var hoverWrap = null;
-    var svgEl = null;
-    var sayEl = null;
+    let root = null;
+    let body = null;
+    let hoverWrap = null;
+    let svgEl = null;
+    let sayEl = null;
 
     function buildDom() {
         root = mountRoot();
-        var existing = root.querySelector('.um13g');
+        const existing = root.querySelector('.um13g');
         if (existing) existing.remove();
         body = document.createElement('div');
         body.className = 'um13g';
@@ -735,9 +341,12 @@
         // Иначе на /app и лендинге он висел видимым до 30с/60с бездействия.
         body.style.opacity = '0';
         body.style.pointerEvents = 'none';
+        body.classList.add('um13g-away');
         body.innerHTML =
             '<div class="um13g-hoverwrap"><div class="um13g-glow"></div>' +
-            '<div class="um13g-svgclip">' + GHOST_SVG + '</div>' +
+            '<div class="um13g-svgclip">' +
+            GHOST_SVG +
+            '</div>' +
             '<div class="um13g-mimeport"></div></div>' +
             '<div class="um13g-say"></div><div class="um13g-tag">um-13</div>';
         root.appendChild(body);
@@ -750,17 +359,38 @@
         });
     }
 
+    /** Пауза анимаций скрытого призрака. Класс ставится после того, как
+     *  догорит fade-out (opacity .6s), снимается сразу при появлении. */
+    let awayTimer = 0;
+    function setAway(away) {
+        clearTimeout(awayTimer);
+        if (!body) return;
+        if (!away) {
+            body.classList.remove('um13g-away');
+            return;
+        }
+        awayTimer = setTimeout(function () {
+            if (body && !S.visible) body.classList.add('um13g-away');
+        }, 700);
+    }
+
     /* ═══ ПОЗИЦИЯ + ЖИВОЙ НАКЛОН ═══
        При перелёте капсула наклоняется в сторону движения: tilt = clamp
        по горизонтальной дельте. На месте — 0 (и пусть парит bob-ом). */
-    var SPOTS = [
-        { x: 0.14, y: 0.22 }, { x: 0.5, y: 0.14 }, { x: 0.86, y: 0.22 },
-        { x: 0.10, y: 0.55 }, { x: 0.90, y: 0.55 }, { x: 0.20, y: 0.84 },
-        { x: 0.80, y: 0.84 }, { x: 0.5, y: 0.9 }, { x: 0.32, y: 0.42 },
+    const SPOTS = [
+        { x: 0.14, y: 0.22 },
+        { x: 0.5, y: 0.14 },
+        { x: 0.86, y: 0.22 },
+        { x: 0.1, y: 0.55 },
+        { x: 0.9, y: 0.55 },
+        { x: 0.2, y: 0.84 },
+        { x: 0.8, y: 0.84 },
+        { x: 0.5, y: 0.9 },
+        { x: 0.32, y: 0.42 },
     ];
-    var spotIdx = Math.floor(Math.random() * SPOTS.length);
-    var pos = { x: 0, y: 0 };
-    var offscreen = false;
+    let spotIdx = Math.floor(Math.random() * SPOTS.length);
+    const pos = { x: 0, y: 0 };
+    let offscreen = false;
 
     function applyPos() {
         if (offscreen) {
@@ -770,8 +400,8 @@
         }
         // fy-нижняя граница 0.11 (аудит A3): у верхней кромки пузырю
         // (высота ~60px + хвост 14px) с телом нужно место — 0.10 резал
-        var fx = Math.max(0.08, Math.min(0.92, pos.x / window.innerWidth));
-        var fy = Math.max(0.11, Math.min(0.92, pos.y / window.innerHeight));
+        const fx = Math.max(0.08, Math.min(0.92, pos.x / window.innerWidth));
+        const fy = Math.max(0.11, Math.min(0.92, pos.y / window.innerHeight));
         body.style.left = fx * window.innerWidth + 'px';
         body.style.top = fy * window.innerHeight + 'px';
         pos.x = fx * window.innerWidth;
@@ -781,7 +411,7 @@
 
     /** Наклон: по вектору перелёта. dx>0 — летит вправо, наклон вправо. */
     function applyTilt(dx, dy) {
-        var deg = Math.max(-24, Math.min(24, dx / 14));
+        let deg = Math.max(-24, Math.min(24, dx / 14));
         // лёгкий вклад вертикали: вниз — чуть клюёт носом
         deg += Math.max(-8, Math.min(8, dy / 40));
         body.style.setProperty('--um13-tilt', deg.toFixed(1) + 'deg');
@@ -793,8 +423,8 @@
     }
 
     function flyTo(px, py, noTilt) {
-        var dx = px - pos.x;
-        var dy = py - pos.y;
+        const dx = px - pos.x;
+        const dy = py - pos.y;
         pos.x = px;
         pos.y = py;
         if (!noTilt && Math.abs(dx) > 40) applyTilt(dx, dy);
@@ -802,17 +432,21 @@
     }
 
     function nextSpot() {
-        var next = Math.floor(Math.random() * SPOTS.length);
+        let next = Math.floor(Math.random() * SPOTS.length);
         if (next === spotIdx) next = (next + 1) % SPOTS.length;
         spotIdx = next;
         flyTo(SPOTS[spotIdx].x * window.innerWidth, SPOTS[spotIdx].y * window.innerHeight);
     }
 
-    function rnd(a, b) { return a + Math.random() * (b - a); }
-    function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+    function rnd(a, b) {
+        return a + Math.random() * (b - a);
+    }
+    function pick(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
 
     /* ═══ СОСТОЯНИЕ ═══ */
-    var S = {
+    const S = {
         mode: MODE,
         booted: false,
         bootedAt: 0,
@@ -827,20 +461,45 @@
         shy: false,
         face: 'normal',
         bootedHelloDone: false, // hello этой сессии сыграло (для «постарел без тебя»)
-        ragedThisVisit: false,  // НАСТРОЕНИЕ-ПАМЯТЬ: псих был — визит кончится «холодным»
+        ragedThisVisit: false, // НАСТРОЕНИЕ-ПАМЯТЬ: псих был — визит кончится «холодным»
         exportedThisVisit: false, // НАСТРОЕНИЕ-ПАМЯТЬ: экспорт был — визит кончится «тёплым»
-        sleptHere: false,       // ХОЛОДНОЕ ПЯТНО: в этой точке спал — уплывая, оставит развод
+        sleptHere: false, // ХОЛОДНОЕ ПЯТНО: в этой точке спал — уплывая, оставит развод
         clicks: [],
         lastActivity: Date.now(),
         lastBark: 0,
-        timers: { idle: 0, check: 0, sleep: 0, bark: 0, wake: 0, dodge: 0, say: 0, faceReset: 0, drift: 0, sail: 0, rage: 0, warn: 0, fly: 0, arrive: 0, shy: 0, shyWatch: 0, pressure: 0, dream: 0, fright: 0, dreampic: 0 },
+        timers: {
+            idle: 0,
+            check: 0,
+            sleep: 0,
+            bark: 0,
+            wake: 0,
+            dodge: 0,
+            say: 0,
+            faceReset: 0,
+            drift: 0,
+            sail: 0,
+            rage: 0,
+            warn: 0,
+            fly: 0,
+            arrive: 0,
+            shy: 0,
+            shyWatch: 0,
+            pressure: 0,
+            dream: 0,
+            fright: 0,
+            dreampic: 0,
+        },
     };
 
-    var busyBridge = { busy: false };
-    var blockedByHost = false; // хост (React, Konami-сцена) запретил призрака
+    const busyBridge = { busy: false };
+    let blockedByHost = false; // хост (React, Konami-сцена) запретил призрака
     window.__UM13_ENV__ = {
-        setBusy: function (b) { busyBridge.busy = !!b; },
-        getBusy: function () { return busyBridge.busy; },
+        setBusy: function (b) {
+            busyBridge.busy = !!b;
+        },
+        getBusy: function () {
+            return busyBridge.busy;
+        },
     };
 
     /* ═══ ОБЩАЯ ПАМЯТЬ (читает и ПИШЕТ; до этого — только читал) ═══
@@ -850,17 +509,21 @@
     function memoryRead() {
         try {
             return JSON.parse(localStorage.getItem('um13-memory') || '{}');
-        } catch (e) { return {}; }
+        } catch (e) {
+            return {};
+        }
     }
     function memoryWrite(patch) {
         try {
-            var m = memoryRead();
-            for (var k in patch) m[k] = patch[k];
+            const m = memoryRead();
+            for (const k in patch) m[k] = patch[k];
             localStorage.setItem('um13-memory', JSON.stringify(m));
-        } catch (e) { /* приватный режим */ }
+        } catch (e) {
+            /* приватный режим */
+        }
     }
     function memoryNum(flag) {
-        var v = memoryRead()[flag];
+        const v = memoryRead()[flag];
         return typeof v === 'number' ? v : 0;
     }
 
@@ -869,7 +532,7 @@
        временем, драгоценен. Ночь меняет hello и подмешивает
        свои байки в обычный пул. Часы честные: new Date(). */
     function isNightShift() {
-        var h = new Date().getHours();
+        const h = new Date().getHours();
         return h >= 23 || h < 6;
     }
 
@@ -879,13 +542,15 @@
        в scheduleHello один раз за визит и стирается. */
     function visitMoodPool() {
         try {
-            var m = memoryRead();
-            var mood = m['last-mood'];
+            const m = memoryRead();
+            const mood = m['last-mood'];
             if (mood !== 'cold' && mood !== 'warm') return null;
             delete m['last-mood'];
             localStorage.setItem('um13-memory', JSON.stringify(m));
             return mood === 'cold' ? L.moodColdHello : L.moodWarmHello;
-        } catch (e) { return null; }
+        } catch (e) {
+            return null;
+        }
     }
 
     /* ═══ ДОВЕРИЕ: прогрессия знакомства из реальных локаций.
@@ -895,12 +560,12 @@
        Растёт от: посещённых локаций (терминал/дно/исповедальня —
        каждый +0.5), визитов (каждые 5 — +0.5). Никогда не падает. */
     function trustLevel() {
-        var m = memoryRead();
-        var score = 0;
+        const m = memoryRead();
+        let score = 0;
         if (m['terminal-visited']) score += 0.5;
         if (m['well-visited']) score += 0.5;
         if (m['confession']) score += 0.5;
-        var visits = typeof m['visits'] === 'number' ? m['visits'] : 0;
+        const visits = typeof m['visits'] === 'number' ? m['visits'] : 0;
         score += Math.floor(visits / 5) * 0.5;
         return score >= 1.5 ? 2 : score >= 0.5 ? 1 : 0;
     }
@@ -909,29 +574,38 @@
        через navigator.storage.estimate (когда доступен) с фолбэком
        на сумму длин ключей против эмпирических 5 МБ. Призрак
        чувствует вселенную, в которой живёт. */
-    var pressureLevel = 0; // 0 | 1 (≥85%) | 2 (≥95%)
+    let pressureLevel = 0; // 0 | 1 (≥85%) | 2 (≥95%)
     function measurePressure() {
         try {
-            var est = navigator.storage && navigator.storage.estimate;
+            const est = navigator.storage && navigator.storage.estimate;
             if (typeof est === 'function') {
-                navigator.storage.estimate().then(function (q) {
-                    if (q && q.usage && q.quota) applyPressure(q.usage / q.quota);
-                }).catch(function () { /* estimate не обязателен */ });
+                navigator.storage
+                    .estimate()
+                    .then(function (q) {
+                        if (q && q.usage && q.quota) applyPressure(q.usage / q.quota);
+                    })
+                    .catch(function () {
+                        /* estimate не обязателен */
+                    });
                 return; // асинхронно, но уже запланировано
             }
-        } catch (e) { /* нет storage api */ }
+        } catch (e) {
+            /* нет storage api */
+        }
         // фолбэк: сумма длин значений localStorage (приближение)
-        var total = 0;
+        let total = 0;
         try {
-            for (var i = 0; i < localStorage.length; i++) {
-                var k = localStorage.key(i);
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
                 if (k) total += (localStorage.getItem(k) || '').length + (k || '').length;
             }
-        } catch (e) { /* приватный режим */ }
+        } catch (e) {
+            /* приватный режим */
+        }
         applyPressure(total / (5 * 1024 * 1024));
     }
     function applyPressure(ratio) {
-        var level = ratio >= 0.95 ? 2 : ratio >= 0.85 ? 1 : 0;
+        const level = ratio >= 0.95 ? 2 : ratio >= 0.85 ? 1 : 0;
         if (level === pressureLevel) return;
         pressureLevel = level;
         if (root) root.setAttribute('data-pressure', String(level));
@@ -960,12 +634,12 @@
        в живой сессии флаг НЕ пишет (кубик нашёлся и вернулся в стор). */
     function applyPetCube() {
         if (!root) return;
-        var adopted = !!memoryNum('cube-adopted');
+        const adopted = !!memoryNum('cube-adopted');
         root.classList.toggle('pet-cube', adopted);
         // цвет потеряшки помнится: кубик на цепочке — «тот самый»
-        var pc = body && body.querySelector('.um13g-petcube rect');
+        const pc = body && body.querySelector('.um13g-petcube rect');
         if (pc && adopted) {
-            var color = memoryRead()['cube-color'];
+            const color = memoryRead()['cube-color'];
             if (typeof color === 'string' && NODE_COLORS.indexOf(color) >= 0) {
                 pc.setAttribute('fill', color + '44');
                 pc.setAttribute('stroke', color);
@@ -973,7 +647,7 @@
         }
     }
     /** Первая реплика о питомце — раз за визит: призрак сам скажет. */
-    var petCubeSaid = false;
+    let petCubeSaid = false;
     function maybePetCubeLine() {
         if (petCubeSaid || !memoryNum('cube-adopted')) return;
         if (!S.visible || S.asleep) return;
@@ -989,33 +663,39 @@
        возвращение мыши/видимости — рисунок рассыпается за ~2с,
        призрак вздрагивает и смущённо отрицает. Греза собирается
        ИЗ РЕАЛЬНЫХ ФЛАГОВ памяти: колодец, дверь, сердце из нод. */
-    var sleepPic = { els: [], drawn: false };
+    const sleepPic = { els: [], drawn: false };
     function dreamPattern() {
         // что рисует: по памяти человека (был в колодце — колодец
         // + ключи; СКУНЕТ — эволюция-лестница; иначе — сердце из нод)
-        var m = memoryRead();
+        const m = memoryRead();
         if (m['well-visited']) {
             // колодец: кольцо + падающие ключи-точки
-            var cells = [];
-            for (var ring = 0; ring < 14; ring++) {
-                var a = (ring / 14) * Math.PI * 2;
+            const cells = [];
+            for (let ring = 0; ring < 14; ring++) {
+                const a = (ring / 14) * Math.PI * 2;
                 cells.push({ x: 0.5 + Math.cos(a) * 0.05, y: 0.55 + Math.sin(a) * 0.07 });
             }
-            for (var k = 0; k < 5; k++) cells.push({ x: 0.46 + k * 0.02, y: 0.45 + k * 0.04 });
+            for (let k = 0; k < 5; k++) cells.push({ x: 0.46 + k * 0.02, y: 0.45 + k * 0.04 });
             return cells;
         }
         if (m['skynet-won']) {
             // лестница эволюции: кубики по восходящей
-            var ladder = [];
-            for (var s = 0; s < 8; s++) ladder.push({ x: 0.42 + s * 0.03, y: 0.6 - s * 0.04 });
+            const ladder = [];
+            for (let s = 0; s < 8; s++) ladder.push({ x: 0.42 + s * 0.03, y: 0.6 - s * 0.04 });
             return ladder;
         }
         // сердце из нод: грубая параметрика двух дуг
-        var heart = [];
-        for (var t = 0; t <= 18; t++) {
-            var p = (t / 18) * Math.PI * 2;
-            var hx = 0.5 + 0.06 * Math.pow(Math.sin(p), 3);
-            var hy = 0.55 - 0.055 * (Math.cos(p) * 1.1 - 0.3 * Math.cos(2 * p) - 0.15 * Math.cos(3 * p) - 0.1 * Math.cos(4 * p));
+        const heart = [];
+        for (let t = 0; t <= 18; t++) {
+            const p = (t / 18) * Math.PI * 2;
+            const hx = 0.5 + 0.06 * Math.pow(Math.sin(p), 3);
+            const hy =
+                0.55 -
+                0.055 *
+                    (Math.cos(p) * 1.1 -
+                        0.3 * Math.cos(2 * p) -
+                        0.15 * Math.cos(3 * p) -
+                        0.1 * Math.cos(4 * p));
             heart.push({ x: hx, y: hy });
         }
         return heart;
@@ -1024,27 +704,39 @@
         if (sleepPic.drawn || !S.asleep || !S.visible) return;
         if (MODE === 'quiet') return; // витрина — не его сцена даже во сне
         sleepPic.drawn = true;
-        var cells = dreamPattern();
-        var cx = pos.x, cy = pos.y;
+        const cells = dreamPattern();
+        const cx = pos.x,
+            cy = pos.y;
         cells.forEach(function (c, i) {
-            var el = document.createElement('div');
+            const el = document.createElement('div');
             el.className = 'um13g-dreampic';
             el.style.background = NODE_COLORS[i % NODE_COLORS.length];
             el.style.boxShadow = '0 0 8px ' + NODE_COLORS[i % NODE_COLORS.length];
             // кубики ложатся вокруг призрака (греза рождается рядом)
-            el.style.left = (cx - window.innerWidth * 0.5) + c.x * window.innerWidth + 'px';
-            el.style.top = (cy - window.innerHeight * 0.5) + c.y * window.innerHeight + 'px';
+            el.style.left = cx - window.innerWidth * 0.5 + c.x * window.innerWidth + 'px';
+            el.style.top = cy - window.innerHeight * 0.5 + c.y * window.innerHeight + 'px';
             root.appendChild(el);
             sleepPic.els.push(el);
             // проявление по одному, «рисует» во сне
-            setTimeout(function () { el.classList.add('on'); }, 600 + i * 110);
+            setTimeout(
+                function () {
+                    el.classList.add('on');
+                },
+                600 + i * 110,
+            );
         });
     }
     function clearSleepPic(interrupted) {
         if (!sleepPic.els.length) return;
-        var els = sleepPic.els.splice(0);
-        els.forEach(function (el) { el.classList.add('bye'); });
-        setTimeout(function () { els.forEach(function (el) { el.remove(); }); }, 1000);
+        const els = sleepPic.els.splice(0);
+        els.forEach(function (el) {
+            el.classList.add('bye');
+        });
+        setTimeout(function () {
+            els.forEach(function (el) {
+                el.remove();
+            });
+        }, 1000);
         if (interrupted && S.visible && !S.asleep) {
             // «застукали за рисованием»: сон-картинка была правдой
             if (Math.random() < 0.6) queueSay(pick(L.dreamCaughtDrawing), 4200, 'startled', 'user');
@@ -1057,20 +749,22 @@
      *  а не долбил поверх баек. */
     function keyKnownReminderDue() {
         try {
-            var m = memoryRead();
+            const m = memoryRead();
             if (!m['key-known'] || m['key-turned'] || m['key-given']) return false;
-            var last = m['key-known-said'];
+            const last = m['key-known-said'];
             if (typeof last === 'number' && Date.now() - last < 3600_000) return false;
             m['key-known-said'] = Date.now();
             localStorage.setItem('um13-memory', JSON.stringify(m));
             return true;
-        } catch (e) { return false; }
+        } catch (e) {
+            return false;
+        }
     }
 
     /* ═══ ТИТУЛ ВКЛАДКИ + ФАВИКОН: призрак живёт за границей
        страницы. Уходишь — тихое «…ты ушёл?» в title (один раз за
        визит, 8с). Спящий — фавикон со спящей мордой. */
-    var titleState = { orig: '', captured: false, timer: 0, saidAway: false, lastAway: 0 };
+    const titleState = { orig: '', captured: false, timer: 0, saidAway: false, lastAway: 0 };
     /* Оригинал титула фиксируется при СТАРТЕ страницы — и ровно один
        раз (флаг captured, а НЕ truthiness: пустой <title> — валидный
        оригинал, `if (!orig)` перезахватил бы уже чужую правку титула
@@ -1082,37 +776,59 @@
     }
     function setTitle(text, restoreMs) {
         titleTease();
-        try { document.title = text; } catch (e) { return; }
+        try {
+            document.title = text;
+        } catch (e) {
+            return;
+        }
         clearTimeout(titleState.timer);
         titleState.timer = setTimeout(function () {
             document.title = titleState.orig;
         }, restoreMs || 8000);
     }
-    var favState = { orig: null, sleepEl: null };
+    const favState = { orig: null, sleepEl: null };
     /** Спящий фавикон: 16×16 canvas — две дуги-глаза и подол. */
     function setSleepFavicon(on) {
         try {
             if (on) {
                 if (favState.sleepEl) return;
-                var link = document.querySelector('link[rel~="icon"]');
+                const link = document.querySelector('link[rel~="icon"]');
                 if (!link || !link.parentNode) return;
-                var cv = document.createElement('canvas');
-                cv.width = 16; cv.height = 16;
-                var ctx = cv.getContext && cv.getContext('2d');
+                const cv = document.createElement('canvas');
+                cv.width = 16;
+                cv.height = 16;
+                const ctx = cv.getContext && cv.getContext('2d');
                 if (!ctx) return;
                 ctx.fillStyle = '#070b12';
                 ctx.fillRect(0, 0, 16, 16);
                 ctx.strokeStyle = '#00f0ff';
                 ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(8, 7, 5.5, Math.PI, 0); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(2.5, 7); ctx.lineTo(2.5, 12); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(13.5, 7); ctx.lineTo(13.5, 12); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(2.5, 12); ctx.quadraticCurveTo(5, 15, 8, 13);
-                ctx.quadraticCurveTo(11, 15, 13.5, 12); ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(8, 7, 5.5, Math.PI, 0);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(2.5, 7);
+                ctx.lineTo(2.5, 12);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(13.5, 7);
+                ctx.lineTo(13.5, 12);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(2.5, 12);
+                ctx.quadraticCurveTo(5, 15, 8, 13);
+                ctx.quadraticCurveTo(11, 15, 13.5, 12);
+                ctx.stroke();
                 // закрытые глаза — дуги вниз
-                ctx.beginPath(); ctx.moveTo(5, 7.5); ctx.quadraticCurveTo(6.5, 9, 8, 7.5); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(8.5, 7.5); ctx.quadraticCurveTo(10, 9, 11.5, 7.5); ctx.stroke();
-                var el = link.cloneNode(false);
+                ctx.beginPath();
+                ctx.moveTo(5, 7.5);
+                ctx.quadraticCurveTo(6.5, 9, 8, 7.5);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(8.5, 7.5);
+                ctx.quadraticCurveTo(10, 9, 11.5, 7.5);
+                ctx.stroke();
+                const el = link.cloneNode(false);
                 el.setAttribute('href', cv.toDataURL('image/png'));
                 el.setAttribute('id', 'um13-sleep-favicon');
                 link.parentNode.insertBefore(el, link);
@@ -1122,7 +838,9 @@
                 favState.sleepEl.remove();
                 favState.sleepEl = null;
             }
-        } catch (e) { /* canvas/фавикон недоступны — молчим */ }
+        } catch (e) {
+            /* canvas/фавикон недоступны — молчим */
+        }
     }
 
     /* ═══ ЛОКАЛЬ ПРИЗРАКА ═══
@@ -1133,19 +851,20 @@
        страницы пишут тот же ключ при собственном переключателе. */
     function resolveLocale() {
         try {
-            var saved = localStorage.getItem('um13-locale');
+            const saved = localStorage.getItem('um13-locale');
             if (saved === 'ru' || saved === 'en') return saved;
-        } catch (e) { /* приватный режим */ }
+        } catch (e) {
+            /* приватный режим */
+        }
         return ((navigator.language || 'ru') + '').toLowerCase().indexOf('ru') === 0 ? 'ru' : 'en';
     }
-    var LOCALE = resolveLocale();
-    window.UM13Ghost && 0; // (no-op; L резолвится ниже — до API)
+    let LOCALE = resolveLocale();
 
     /* ═══ РЕПЛИКИ: RU (канон) + EN (перевод) ═══
        Формат пула: {ru: [...], en: [...]} — выборка через pickL(key).
        Для ВСЕХ существующих пулов (включая nested returnAfter/
        dreamMumble) парность обязательна; правится вместе с тестами. */
-    var RU = {
+    const RU = {
         hello: [
             'о. привет.',
             'о, привет. я тут просто летаю. делай вид, что меня нет.',
@@ -1296,9 +1015,7 @@
                 'не сохранилось. хранилище закрыло дверь. экспортируй флоу — я подержу его у выхода.',
                 'запись не прошла. квота. экспорт — честный выход из этой волны.',
             ],
-            'save-error-retry': [
-                'опять не сохранилось. я не уйду, пока ты не нажмёшь экспорт.',
-            ],
+            'save-error-retry': ['опять не сохранилось. я не уйду, пока ты не нажмёшь экспорт.'],
         },
         editorArrive: [
             'вот тут я посплю. ты только не скрипи мышкой.',
@@ -1308,10 +1025,7 @@
         ],
         /* Используется в fallAsleep НЕ-silent вызовах (page-режим
            сыпет sleepTalk; editor — после editorArrive-сцены тише) */
-        editorSleep: [
-            '(здесь тихо. я подремлю)',
-            '(событий нет. ложусь)',
-        ],
+        editorSleep: ['(здесь тихо. я подремлю)', '(событий нет. ложусь)'],
         editorWake: [
             '…а? я не спал. я ждал событий.',
             'мне снился продакшн. почти досмотрел.',
@@ -1497,11 +1211,26 @@
         /* ═══ СНЫ ИЗ ПАМЯТИ: спящий бормочет о том, что человек
            РЕАЛЬНО делал в локациях. Флаги — настоящие события. */
         dreamMumble: {
-            well: ['(снится колодец… ключи падают… я ловлю…)', '(сны о дне… там светло и страшно…)'],
-            skynet: ['(мне снится банк… и СКУНЕТ… огромный…)', '(в сон приходят слияния… щёлк… щёлк…)'],
-            queue: ['(снится окно №13… оно закрыто… навсегда…)', '(во сне очередь двигается… страшный сон…)'],
-            courier: ['(пицца… доставка для узла 13… я во сне ответил…)', '(пахнет пиццей… это сон… точно сон…)'],
-            generic: ['(мне снится продакшн… почти досмотрел…)', '(запись на волнах… слышу ключи…)'],
+            well: [
+                '(снится колодец… ключи падают… я ловлю…)',
+                '(сны о дне… там светло и страшно…)',
+            ],
+            skynet: [
+                '(мне снится банк… и СКУНЕТ… огромный…)',
+                '(в сон приходят слияния… щёлк… щёлк…)',
+            ],
+            queue: [
+                '(снится окно №13… оно закрыто… навсегда…)',
+                '(во сне очередь двигается… страшный сон…)',
+            ],
+            courier: [
+                '(пицца… доставка для узла 13… я во сне ответил…)',
+                '(пахнет пиццей… это сон… точно сон…)',
+            ],
+            generic: [
+                '(мне снится продакшн… почти досмотрел…)',
+                '(запись на волнах… слышу ключи…)',
+            ],
         },
         /* Пробуждение помнит сон: если разбудили посреди сна */
         dreamCaughtLines: [
@@ -1521,7 +1250,12 @@
             herd: ['(сортировка)', '(наводит порядок)', '(пасётся)'],
             polish: ['(полирует ключ)', '(наводит блеск)', '(протёр. стало хуже)'],
             watch: ['(провожает)', '(не смотри туда)', '(там кто-то был)'],
-            hungry: ['(голодает)', '(смотрит на ноду)', '(сил нет. есть хочется)', '(не смотреть. не работать)'],
+            hungry: [
+                '(голодает)',
+                '(смотрит на ноду)',
+                '(сил нет. есть хочется)',
+                '(не смотреть. не работать)',
+            ],
             mime: ['(притворяется нодой)', '(форма не та)', '(я почти валиден)', '(выбери меня)'],
         },
         /* ЛОВЕЦ УДАЛЁННЫХ НОД: человек удаляет ноду — призрак
@@ -1630,11 +1364,7 @@
         /* ═══ ПРОВОД: призрак садится на ребро флоу — как птица
            на проводе. Первый контакт персонажа с настоящим графом
            игрока. Сидит, балансирует, уплывает. */
-        perchLines: [
-            '(присел на связь)',
-            '(не трогаю. просто сижу)',
-            '(провод как провод)',
-        ],
+        perchLines: ['(присел на связь)', '(не трогаю. просто сижу)', '(провод как провод)'],
         /* ═══ СОАВТОРСТВО (финал «секретного соуса»): призрак сам
            добавил ноду в флоу человека. Полная симметрия вселенной:
            он приносил игры — теперь оставляет записку. Если она
@@ -1649,7 +1379,7 @@
     /* ═══ EN — перевод характера, не подстрочник ═══
        Тон: меланхоличный сухой юмор без восклицаний; «восемь лет»
        (2018–2026, жизнь в localStorage) — сквозная константа. */
-    var EN = {
+    const EN = {
         hello: [
             'oh. hi.',
             'oh, hi. i just float here. pretend i am not.',
@@ -1732,9 +1462,7 @@
                 'did not save. the storage closed the door. export the flow — i will hold it at the exit.',
                 'write failed. quota. export is the honest way out of this wave.',
             ],
-            'save-error-retry': [
-                'failed again. i am not leaving until you press export.',
-            ],
+            'save-error-retry': ['failed again. i am not leaving until you press export.'],
         },
         editorArrive: [
             'i will nap right here. just do not squeak the mouse.',
@@ -1742,10 +1470,7 @@
             'that is it, i landed. big field — room for a nap.',
             'quiet and empty here. perfect for sleep. do not say i am in the way.',
         ],
-        editorSleep: [
-            '(quiet here. i will doze)',
-            '(no events. lying down)',
-        ],
+        editorSleep: ['(quiet here. i will doze)', '(no events. lying down)'],
         editorWake: [
             '…hm? not sleeping. waiting for events.',
             'i dreamt of production. almost saw the ending.',
@@ -1849,23 +1574,6 @@
             'calm now. cubes returned to the store.',
             'sorry. that was not destruction, that was therapy.',
         ],
-        dodgeStart: [
-            'that is it. i am out of cursor range.',
-            'personal space. it exists. look it up.',
-            'you poked seven times. contract breached. flying away.',
-        ],
-        dodgeEnd: [
-            '…staying. near the cursor. i said what i said.',
-            'done running. the boundary is closer than i thought.',
-        ],
-        shyLines: [
-            '…do not stare like that. i am not an exhibit.',
-            'three seconds of eye contact. for a ghost that is very personal.',
-            'i am working and you are watching. this is not symmetric.',
-            'yes. embarrass the ghost. very brave.',
-            'i am not used to attention. eight years of silence.',
-            'okay. look away. i am about to do something.',
-        ],
         shyRelief: [
             '…whew. carrying on.',
             'forget it. i was not embarrassed. that was a render.',
@@ -1959,11 +1667,26 @@
             'bright here. just like the cache.',
         ],
         dreamMumble: {
-            well: ['(dreaming of the well… keys falling… i catch them…)', '(dreams of the bottom… bright and frightening down there…)'],
-            skynet: ['(dreaming of the bank… and SKY-NET… enormous…)', '(mergings visit my sleep… click… click…)'],
-            queue: ['(dreaming of window 13… it is closed… forever…)', '(in my dream the queue moves… a nightmare…)'],
-            courier: ['(pizza… delivery for node 13… i answered in my dream…)', '(smells like pizza… it is a dream… surely a dream…)'],
-            generic: ['(dreaming of production… almost saw the ending…)', '(recording on the waves… i hear keys…)'],
+            well: [
+                '(dreaming of the well… keys falling… i catch them…)',
+                '(dreams of the bottom… bright and frightening down there…)',
+            ],
+            skynet: [
+                '(dreaming of the bank… and SKY-NET… enormous…)',
+                '(mergings visit my sleep… click… click…)',
+            ],
+            queue: [
+                '(dreaming of window 13… it is closed… forever…)',
+                '(in my dream the queue moves… a nightmare…)',
+            ],
+            courier: [
+                '(pizza… delivery for node 13… i answered in my dream…)',
+                '(smells like pizza… it is a dream… surely a dream…)',
+            ],
+            generic: [
+                '(dreaming of production… almost saw the ending…)',
+                '(recording on the waves… i hear keys…)',
+            ],
         },
         dreamCaughtLines: [
             '…hm? i dreamt of the wave. then there was you. spoiler: it was a good dream.',
@@ -1979,8 +1702,18 @@
             herd: ['(sorting)', '(tidying up)', '(herding)'],
             polish: ['(polishing the key)', '(adding shine)', '(wiped. got worse)'],
             watch: ['(seeing someone off)', '(do not look there)', '(someone was here)'],
-            hungry: ['(hungry)', '(staring at a node)', '(no strength. want food)', '(do not look. do not work)'],
-            mime: ['(pretending to be a node)', '(wrong shape)', '(i am almost valid)', '(pick me)'],
+            hungry: [
+                '(hungry)',
+                '(staring at a node)',
+                '(no strength. want food)',
+                '(do not look. do not work)',
+            ],
+            mime: [
+                '(pretending to be a node)',
+                '(wrong shape)',
+                '(i am almost valid)',
+                '(pick me)',
+            ],
         },
         nodeCatchLines: [
             '…i will hold this one.',
@@ -2057,11 +1790,7 @@
             'i heard. i have one name, but it is mine.',
             'someone said “um13”. that is almost a signaling system.',
         ],
-        perchLines: [
-            '(perched on an edge)',
-            '(not touching. just sitting)',
-            '(a wire is a wire)',
-        ],
+        perchLines: ['(perched on an edge)', '(not touching. just sitting)', '(a wire is a wire)'],
         coauthorLines: [
             'i added a node. while you were looking away. sorry. may i stay in this flow?',
             'scribbled one node. an honest one. it is yours — just with my signature.',
@@ -2072,14 +1801,17 @@
     /* ═══ РЕЗОЛВЕР: L[key] — пул текущей локали, фолбэк RU (канон).
        Пулы с плейсхолдерами ({n}/{k}) резолвятся так же — подстановка
        остаётся на местах вызова. */
-    var L = new Proxy({}, {
-        get: function (_t, key) {
-            if (LOCALE === 'en' && EN[key]) return EN[key];
-            return RU[key];
+    const L = new Proxy(
+        {},
+        {
+            get: function (_t, key) {
+                if (LOCALE === 'en' && EN[key]) return EN[key];
+                return RU[key];
+            },
         },
-    });
+    );
     /* Эмоции и эффекты для событий страниц */
-    var EVENT_MOODS = {
+    const EVENT_MOODS = {
         '404-arrive': 'startled',
         '404-depth-early': 'thinking',
         '404-depth-mid': 'thinking',
@@ -2107,19 +1839,26 @@
         'skynet-win': 'delight',
         'flow-export': 'delight',
         /* события редактора — призрак-ревьюер и тело */
-        'flow-review': 'sad',            // ошибка валидации: «у этой ноды нет выхода»
-        'flow-review-name': 'smart',     // человек окрестил ноду — комментирует имя
-        'flow-empty': 'thinking',        // долго пустой холст: «ну хоть одну ноду»
-        'confirm-scary': 'sad',          // ConfirmDialog деструктива: закрывает лицо
-        'confirm-relief': 'thinking',    // отменил — выдыхает
-        'theme-light': 'smart',          // светлая тема: «ослеп» — янтарные очки
+        'flow-review': 'sad', // ошибка валидации: «у этой ноды нет выхода»
+        'flow-review-name': 'smart', // человек окрестил ноду — комментирует имя
+        'flow-empty': 'thinking', // долго пустой холст: «ну хоть одну ноду»
+        'confirm-scary': 'sad', // ConfirmDialog деструктива: закрывает лицо
+        'confirm-relief': 'thinking', // отменил — выдыхает
+        'theme-light': 'smart', // светлая тема: «ослеп» — янтарные очки
     };
     /* Победные события — с конфетти */
-    var CONFETTI_EVENTS = { '404-bottom': 1, '404-saved': 1, 'skynet-win': 1, 'confession-done': 1, 'queue-cert': 1, 'flow-export': 1 };
+    const CONFETTI_EVENTS = {
+        '404-bottom': 1,
+        '404-saved': 1,
+        'skynet-win': 1,
+        'confession-done': 1,
+        'queue-cert': 1,
+        'flow-export': 1,
+    };
     /* Печальные — слеза */
     /* (mood sad уже включает слезу анимацией) */
 
-    var REACTIONS = buildReactions();
+    const REACTIONS = buildReactions();
     function buildReactions() {
         return {
             '404-arrive': [
@@ -2252,16 +1991,22 @@
     }
 
     /* ═══ РАННИЕ ВЫЗОВЫ ═══ */
-    var pending = [];
-    var externalHello = false;
-    var firstWordAt = 0;
+    const pending = [];
+    const externalHello = false;
+    let firstWordAt = 0;
 
     /* ═══ ПУЗЫРЬ ═══ */
+    // Пауза между репликами (500мс после скрытия): пузырь уже пуст, но
+    // очередь ждёт своего хода. Без флага enqueue в этой паузе считал
+    // пузырь свободным — выбрасывал ждущие реплики и говорил без паузы.
+    let pumpPending = false;
     function hideSay() {
         if (sayEl) sayEl.classList.remove('show');
         clearTimeout(S.timers.say);
+        pumpPending = false;
         // очередь: следующая реплика занимает пузырь после текущей
         if (sayQueue.length) {
+            pumpPending = true;
             S.timers.say = setTimeout(pumpSay, 500); // пауза между репликами
         }
     }
@@ -2270,7 +2015,7 @@
         if (!sayEl) return;
         sayEl.classList.remove('flip-left', 'flip-right', 'flip-down');
         if (!sayEl.classList.contains('show')) return;
-        var r = sayEl.getBoundingClientRect();
+        const r = sayEl.getBoundingClientRect();
         if (r.left < 8) sayEl.classList.add('flip-left');
         else if (r.right > window.innerWidth - 8) sayEl.classList.add('flip-right');
         // АУДИТ A3: вертикаль — пузырь у верхней кромки обрезался
@@ -2278,17 +2023,17 @@
         else if (r.top < 8) sayEl.classList.add('flip-down');
     }
 
-    function showSay(text, ms, mood, kind) {
+    function showSay(text, ms, mood) {
         if (!body || !S.visible || S.sailing) return;
         clearTimeout(S.timers.say);
+        pumpPending = false; // прямой показ отменил паузу: очередь дождётся hideSay
         sayEl.innerHTML = text;
         sayEl.classList.add('show');
-        currentSayKind = kind || 'page';
         if (mood) setFace(mood);
         // Читаемость — центр системы: время жизни = длина × 85мс (≈12 симв/сек,
         // комфортное чтение вслух про себя) + 2.5с на осознание. Никакая
         // следующая реплика не начинает жизнь, пока эта не дожила до конца.
-        var life = ms || Math.max(4500, Math.min(11_000, String(text).length * 85 + 2500));
+        const life = ms || Math.max(4500, Math.min(11_000, String(text).length * 85 + 2500));
         S.timers.say = setTimeout(hideSay, life);
         S.lastBark = Date.now();
         keepSayOnScreen();
@@ -2302,14 +2047,18 @@
      *  Перебить живую реплику может только критическое состояние:
      *  побег (dodging) или псих (tantrum) — там перебой и есть смысл.
      */
-    var currentSayKind = '';
-    var sayQueue = [];
+    let sayQueue = [];
     function enqueue(text, ms, mood, kind) {
         // критические состояния говорят поверх (псих/побег — само действие)
-        if (S.dodging || S.raging) { sayQueue = []; showSay(text, ms, mood, kind); return; }
-        if (sayEl && sayEl.classList.contains('show')) {
-            // живая реплика: встаём в очередь по приоритету, не перебиваем
-            var item = { text: text, ms: ms, mood: mood, kind: kind || 'page' };
+        if (S.dodging || S.raging) {
+            sayQueue = [];
+            showSay(text, ms, mood);
+            return;
+        }
+        if ((sayEl && sayEl.classList.contains('show')) || pumpPending) {
+            // живая реплика (или пауза перед следующей из очереди):
+            // встаём в очередь по приоритету, не перебиваем
+            const item = { text: text, ms: ms, mood: mood, kind: kind || 'page' };
             if (item.kind === 'user') {
                 // user — вперёд очереди (после текущей)
                 sayQueue.unshift(item);
@@ -2320,24 +2069,38 @@
         } else {
             // пузырь свободен — говорим сразу
             sayQueue = [];
-            showSay(text, ms, mood, kind);
+            showSay(text, ms, mood);
         }
     }
-    function queueSay(text, ms, mood) { enqueue(text, ms, mood, 'page'); }
+    function queueSay(text, ms, mood) {
+        enqueue(text, ms, mood, 'page');
+    }
     function pumpSay() {
+        pumpPending = false;
         if (!sayQueue.length) return;
         if (sayEl && sayEl.classList.contains('show')) return;
-        var next = sayQueue.shift();
-        showSay(next.text, next.ms, next.mood, next.kind);
+        const next = sayQueue.shift();
+        showSay(next.text, next.ms, next.mood);
     }
 
     /* ═══ ЛИЦО ═══ */
-    var FACES = ['normal', 'startled', 'skeptic', 'delight', 'smart', 'thinking', 'angry', 'sad', 'wink', 'asleep'];
+    const FACES = [
+        'normal',
+        'startled',
+        'skeptic',
+        'delight',
+        'smart',
+        'thinking',
+        'angry',
+        'sad',
+        'wink',
+        'asleep',
+    ];
     function setFace(mood, sticky) {
         if (!body) return;
         clearTimeout(S.timers.faceReset);
         if (S.asleep && mood !== 'asleep' && !sticky) return;
-        var m = FACES.indexOf(mood) >= 0 ? mood : 'normal';
+        const m = FACES.indexOf(mood) >= 0 ? mood : 'normal';
         S.face = m;
         body.setAttribute('data-face', m);
         root.classList.toggle('um13g-scared', m === 'startled');
@@ -2346,24 +2109,31 @@
             svgEl.classList.remove('um13g-startled-pop');
             void svgEl.getBoundingClientRect();
             svgEl.classList.add('um13g-startled-pop');
-            setTimeout(function () { svgEl.classList.remove('um13g-startled-pop'); }, 600);
+            setTimeout(function () {
+                svgEl.classList.remove('um13g-startled-pop');
+            }, 600);
         }
         if (m !== 'normal' && m !== 'asleep' && !sticky) {
-            S.timers.faceReset = setTimeout(function () {
-                if (!S.asleep) setFace('normal');
-            }, m === 'startled' ? 1600 : 3800);
+            S.timers.faceReset = setTimeout(
+                function () {
+                    if (!S.asleep) setFace('normal');
+                },
+                m === 'startled' ? 1600 : 3800,
+            );
         }
         setZzz(m === 'asleep');
     }
 
     function setZzz(on) {
         if (!body) return;
-        body.querySelectorAll('.um13g-zzz').forEach(function (z) { z.remove(); });
+        body.querySelectorAll('.um13g-zzz').forEach(function (z) {
+            z.remove();
+        });
         root.classList.toggle('um13g-sleeping', on);
         if (!on) return;
-        var host = hoverWrap;
+        const host = hoverWrap;
         ['z', 'z', 'Z'].forEach(function (ch, i) {
-            var z = document.createElement('span');
+            const z = document.createElement('span');
             z.className = 'um13g-zzz' + (i > 0 ? ' z' + (i + 1) : '');
             z.textContent = i === 2 ? 'Z' : 'z';
             host.appendChild(z);
@@ -2371,7 +2141,7 @@
     }
 
     /* Угадывание эмоции по тексту */
-    var MOOD_HINTS = [
+    const MOOD_HINTS = [
         [/ПСИХ|раскидываю|бешен/iy, 'angry'],
         [/\?\s*$/, 'thinking'],
         [/^…|^\(|\.\.\.$/, 'thinking'],
@@ -2382,9 +2152,9 @@
         [/зачем|может, не надо|не переживай|ну просили|бывает|я пас|обидел/i, 'skeptic'],
     ];
     function guessMood(text) {
-        var t = String(text);
-        for (var i = 0; i < MOOD_HINTS.length; i++) {
-            var re = new RegExp(MOOD_HINTS[i][0].source, 'i');
+        const t = String(text);
+        for (let i = 0; i < MOOD_HINTS.length; i++) {
+            const re = new RegExp(MOOD_HINTS[i][0].source, 'i');
             if (re.test(t)) return MOOD_HINTS[i][1];
         }
         return 'normal';
@@ -2392,62 +2162,106 @@
 
     /* ═══ ЧАСТИЦЫ: кубики-ноды и конфетти ═══
        Кубики — цвета нод редактора: команда/шаг/условие/действие/конец. */
-    var NODE_COLORS = ['#00f0ff', '#bc13fe', '#ff0055', '#ff9d00', '#00ff9d', '#eab308'];
+    const NODE_COLORS = ['#00f0ff', '#bc13fe', '#ff0055', '#ff9d00', '#00ff9d', '#eab308'];
     /* «Съедобные» цвета (арт-директорское ревью): красный #ff0055 — это
        danger в этом редакторе, для еды и голода он семантически чужой.
        Ест призрак только «безопасные» типы нод. */
-    var EDIBLE_COLORS = ['#00f0ff', '#ff9d00', '#00ff9d', '#eab308'];
+    const EDIBLE_COLORS = ['#00f0ff', '#ff9d00', '#00ff9d', '#eab308'];
 
     /** Разбросать N кубиков из позиции призрака (tantrum).
      *  Без WAAPI (jsdom) — кубики просто разложены веером: тестам достаточно
      *  существования частиц, браузер получает полную физику разлёта. */
     function burstCubes(count) {
         if (!body) return;
-        var cx = pos.x;
-        var cy = pos.y;
-        for (var i = 0; i < (count || 14); i++) {
-            var c = document.createElement('div');
+        const cx = pos.x;
+        const cy = pos.y;
+        for (let i = 0; i < (count || 14); i++) {
+            const c = document.createElement('div');
             c.className = 'um13g-cube';
-            var color = pick(NODE_COLORS);
+            const color = pick(NODE_COLORS);
             c.style.background = color;
             c.style.boxShadow = '0 0 8px ' + color;
-            var ang = rnd(0, Math.PI * 2);
-            var dist = rnd(70, 190);
-            var dx = Math.cos(ang) * dist;
-            var dy = Math.sin(ang) * dist * 0.55 - rnd(20, 70);
+            const ang = rnd(0, Math.PI * 2);
+            const dist = rnd(70, 190);
+            const dx = Math.cos(ang) * dist;
+            const dy = Math.sin(ang) * dist * 0.55 - rnd(20, 70);
             if (typeof c.animate === 'function') {
-                c.animate([
-                    { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
-                    { transform: 'translate(' + (dx * 0.6) + 'px,' + (dy * 0.5) + 'px) rotate(' + rnd(-200, 200) + 'deg)', opacity: 1, offset: 0.55 },
-                    { transform: 'translate(' + dx + 'px,' + (dy + 120) + 'px) rotate(' + rnd(200, 540) + 'deg)', opacity: 0 },
-                ], { duration: rnd(700, 1200), easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'forwards' });
+                c.animate(
+                    [
+                        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+                        {
+                            transform:
+                                'translate(' +
+                                dx * 0.6 +
+                                'px,' +
+                                dy * 0.5 +
+                                'px) rotate(' +
+                                rnd(-200, 200) +
+                                'deg)',
+                            opacity: 1,
+                            offset: 0.55,
+                        },
+                        {
+                            transform:
+                                'translate(' +
+                                dx +
+                                'px,' +
+                                (dy + 120) +
+                                'px) rotate(' +
+                                rnd(200, 540) +
+                                'deg)',
+                            opacity: 0,
+                        },
+                    ],
+                    {
+                        duration: rnd(700, 1200),
+                        easing: 'cubic-bezier(.2,.7,.4,1)',
+                        fill: 'forwards',
+                    },
+                );
             } else {
                 // фолбэк: статичный веер вокруг призрака
-                c.style.transform = 'translate(' + (dx * 0.7) + 'px,' + (dy * 0.5) + 'px) rotate(45deg)';
+                c.style.transform =
+                    'translate(' + dx * 0.7 + 'px,' + dy * 0.5 + 'px) rotate(45deg)';
                 c.style.opacity = '0.9';
             }
             c.style.left = cx + 'px';
             c.style.top = cy + 'px';
             root.appendChild(c);
-            setTimeout(function (el) { return function () { el.remove(); }; }(c), 1300);
+            setTimeout(
+                (function (el) {
+                    return function () {
+                        el.remove();
+                    };
+                })(c),
+                1300,
+            );
         }
     }
 
     /** Победное конфетти: кубики-ноды сыплются сверху призрака. */
     function confetti(count) {
         if (!body) return;
-        for (var i = 0; i < (count || 18); i++) {
-            var c = document.createElement('div');
+        for (let i = 0; i < (count || 18); i++) {
+            const c = document.createElement('div');
             c.className = 'um13g-cube';
-            var color = pick(NODE_COLORS);
+            const color = pick(NODE_COLORS);
             c.style.background = color;
             c.style.boxShadow = '0 0 8px ' + color;
-            c.style.left = (pos.x + rnd(-70, 70)) + 'px';
-            c.style.top = (pos.y - 60) + 'px';
+            c.style.left = pos.x + rnd(-70, 70) + 'px';
+            c.style.top = pos.y - 60 + 'px';
             c.style.setProperty('--dx', rnd(-40, 40) + 'px');
-            c.style.animation = 'um13g-confetti ' + rnd(1100, 1700) + 'ms cubic-bezier(.3,.4,.6,1) forwards';
+            c.style.animation =
+                'um13g-confetti ' + rnd(1100, 1700) + 'ms cubic-bezier(.3,.4,.6,1) forwards';
             root.appendChild(c);
-            setTimeout(function (el) { return function () { el.remove(); }; }(c), 1800);
+            setTimeout(
+                (function (el) {
+                    return function () {
+                        el.remove();
+                    };
+                })(c),
+                1800,
+            );
         }
     }
 
@@ -2458,7 +2272,7 @@
         S.ragedThisVisit = true; // НАСТРОЕНИЕ-ПАМЯТЬ: визит запомнится холодным
         setFace('angry', true);
         // preline (детонатор от поимки) звучит вместо общей реплики психа
-        if (!silent) showSay(preline || pick(L.tantrumLines), 4200, undefined, 'user');
+        if (!silent) showSay(preline || pick(L.tantrumLines), 4200);
         burstCubes(16);
         // ПОТЕРЯШКА: один кубик из психа не вернулся в стор —
         // прилип у края экрана до конца сессии (клик — призрак найдёт)
@@ -2477,32 +2291,54 @@
        лицом delight: мир умеет возвращать потерянное. */
     function dropStuckCube() {
         if (document.querySelector('.um13g-cube-stuck')) return; // один на сессию
-        var c = document.createElement('div');
+        const c = document.createElement('div');
         c.className = 'um13g-cube-stuck';
-        var color = pick(NODE_COLORS);
+        const color = pick(NODE_COLORS);
         c.style.background = color;
         c.style.setProperty('--stuck', color);
         c.style.setProperty('--rot', Math.floor(rnd(-40, 50)) + 'deg');
         c.style.width = '10px';
         c.style.height = '10px';
         // случайный край экрана, чуть внутрь
-        var edge = Math.floor(Math.random() * 4); // 0 top 1 right 2 bottom 3 left
-        var m = 26;
-        if (edge === 0) { c.style.left = rnd(0.1, 0.9) * window.innerWidth + 'px'; c.style.top = m + 'px'; }
-        else if (edge === 1) { c.style.left = window.innerWidth - m + 'px'; c.style.top = rnd(0.1, 0.9) * window.innerHeight + 'px'; }
-        else if (edge === 2) { c.style.left = rnd(0.1, 0.9) * window.innerWidth + 'px'; c.style.top = window.innerHeight - m + 'px'; }
-        else { c.style.left = m + 'px'; c.style.top = rnd(0.1, 0.9) * window.innerHeight + 'px'; }
+        const edge = Math.floor(Math.random() * 4); // 0 top 1 right 2 bottom 3 left
+        const m = 26;
+        if (edge === 0) {
+            c.style.left = rnd(0.1, 0.9) * window.innerWidth + 'px';
+            c.style.top = m + 'px';
+        } else if (edge === 1) {
+            c.style.left = window.innerWidth - m + 'px';
+            c.style.top = rnd(0.1, 0.9) * window.innerHeight + 'px';
+        } else if (edge === 2) {
+            c.style.left = rnd(0.1, 0.9) * window.innerWidth + 'px';
+            c.style.top = window.innerHeight - m + 'px';
+        } else {
+            c.style.left = m + 'px';
+            c.style.top = rnd(0.1, 0.9) * window.innerHeight + 'px';
+        }
         c.title = '…';
         c.addEventListener('click', function () {
             // призрак ловит потеряшку: кубик летит к нему
             if (S.visible && !S.asleep) {
                 if (typeof c.animate === 'function') {
-                    c.animate([
-                        { transform: 'rotate(45deg)', opacity: 1 },
-                        { transform: 'translate(' + (pos.x - parseFloat(c.style.left)) + 'px,' + (pos.y - parseFloat(c.style.top)) + 'px) scale(.2) rotate(400deg)', opacity: 0 },
-                    ], { duration: 800, easing: 'cubic-bezier(.3,.6,.4,1)', fill: 'forwards' });
+                    c.animate(
+                        [
+                            { transform: 'rotate(45deg)', opacity: 1 },
+                            {
+                                transform:
+                                    'translate(' +
+                                    (pos.x - parseFloat(c.style.left)) +
+                                    'px,' +
+                                    (pos.y - parseFloat(c.style.top)) +
+                                    'px) scale(.2) rotate(400deg)',
+                                opacity: 0,
+                            },
+                        ],
+                        { duration: 800, easing: 'cubic-bezier(.3,.6,.4,1)', fill: 'forwards' },
+                    );
                 }
-                setTimeout(function () { c.remove(); }, 850);
+                setTimeout(function () {
+                    c.remove();
+                }, 850);
                 setFace('delight');
                 // нашли в живой сессии — питомец не нужен: кубик вернулся
                 // в стор; снимаем и класс, чтобы цепочка опустела сразу
@@ -2523,22 +2359,27 @@
        призрак появляется, если его нет, говорит адресную реплику из
        warnLines и уплывает, не влезая в обычный поток болтовни.
        Одна тревога раз в 30с — от «прыгающего» призрака при пачке ошибок. */
-    var lastWarnAt = 0;
+    let lastWarnAt = 0;
     function warn(kind) {
-        var lines = L.warnLines[kind];
+        const lines = L.warnLines[kind];
         if (!lines || !lines.length) return;
-        if (!S.booted) { pending.push({ type: 'warn', kind: kind }); return; }
-        var now = Date.now();
+        if (!S.booted) {
+            pending.push({ type: 'warn', kind: kind });
+            return;
+        }
+        const now = Date.now();
         if (now - lastWarnAt < 30_000) return;
         lastWarnAt = now;
         if (!firstWordAt) firstWordAt = Date.now();
         if (blockedByHost) return;
-        var wasHidden = !S.visible;
+        const wasHidden = !S.visible;
         if (wasHidden) appear(true);
         if (S.asleep) wakeUp();
         showSay(pick(lines), 7000, 'sad');
         if (wasHidden) {
-            S.timers.warn = setTimeout(function () { sailAway(); }, 8000);
+            S.timers.warn = setTimeout(function () {
+                sailAway();
+            }, 8000);
         }
     }
 
@@ -2555,11 +2396,35 @@
        ключ), watch (провожает невидимое). Гарантия уникальности
        финала: polish не приходит, пока окно №13 уже открыто/ключ
        отдан (этот сюжет закрыт). */
-    var ACTS = ['glitch', 'eat', 'dream', 'dance', 'peek', 'defrag', 'herd', 'polish', 'watch', 'hungry', 'mime'];
-    var ACT_DURATION = { glitch: 6000, eat: 4600, dream: 12_000, dance: 12_000, peek: 10_000, defrag: 8000, herd: 18_000, polish: 8000, watch: 12_000, hungry: 8000, mime: 9000 };
-    var currentAct = null;
-    var lastMouseMoveAt = 0;
-    var actTimers = { say: 0, end: 0, watch: 0, flight: 0 };
+    const ACTS = [
+        'glitch',
+        'eat',
+        'dream',
+        'dance',
+        'peek',
+        'defrag',
+        'herd',
+        'polish',
+        'watch',
+        'hungry',
+        'mime',
+    ];
+    const ACT_DURATION = {
+        glitch: 6000,
+        eat: 4600,
+        dream: 12_000,
+        dance: 12_000,
+        peek: 10_000,
+        defrag: 8000,
+        herd: 18_000,
+        polish: 8000,
+        watch: 12_000,
+        hungry: 8000,
+        mime: 9000,
+    };
+    let currentAct = null;
+    let lastMouseMoveAt = 0;
+    const actTimers = { say: 0, end: 0, watch: 0, flight: 0 };
 
     function endAct(interrupted) {
         if (!currentAct) return;
@@ -2570,13 +2435,25 @@
         clearInterval(actTimers.flight);
         if (!body) return;
         body.classList.remove(
-            'um13g-act-glitch', 'um13g-act-eat', 'um13g-act-dream',
-            'um13g-act-dance', 'um13g-act-peek', 'um13g-act-defrag',
-            'um13g-act-herd', 'um13g-act-polish', 'um13g-act-watch', 'um13g-act-hungry', 'um13g-act-eatquick',
+            'um13g-act-glitch',
+            'um13g-act-eat',
+            'um13g-act-dream',
+            'um13g-act-dance',
+            'um13g-act-peek',
+            'um13g-act-defrag',
+            'um13g-act-herd',
+            'um13g-act-polish',
+            'um13g-act-watch',
+            'um13g-act-hungry',
+            'um13g-act-eatquick',
             'um13g-act-mime',
         );
-        var bites = body.querySelectorAll('.um13g-eatbite, .um13g-crumb, .um13g-hungrynode, .um13g-herdcube, .um13g-keyheld');
-        bites.forEach(function (b) { b.remove(); });
+        const bites = body.querySelectorAll(
+            '.um13g-eatbite, .um13g-crumb, .um13g-hungrynode, .um13g-herdcube, .um13g-keyheld',
+        );
+        bites.forEach(function (b) {
+            b.remove();
+        });
         if (S.visible && !S.asleep && interrupted) {
             // «застукали»: смущённая реплика — тело честнее слов
             enqueue(pick(L.actCaught), 3200, 'startled', 'user');
@@ -2584,7 +2461,7 @@
     }
 
     function actLabel(kind) {
-        var pool = L.actLabels[kind] || L.actLabelsV7[kind];
+        const pool = L.actLabels[kind] || L.actLabelsV7[kind];
         return pool ? pick(pool) : '';
     }
 
@@ -2595,7 +2472,7 @@
         // мгновенно гаснуться последующим fallAsleep)
         if (S.asleep) wakeUp();
         if (S.dodging || S.raging || S.sailing) return;
-        if (!force && (sayEl && sayEl.classList.contains('show'))) return;
+        if (!force && sayEl && sayEl.classList.contains('show')) return;
         // финал закрыл сюжет ключа — polish больше не разыгрывается
         if (kind === 'polish' && (memoryNum('key-turned') || memoryNum('key-given'))) return;
         currentAct = kind;
@@ -2606,9 +2483,9 @@
         if (kind === 'eat') {
             // ЖУЮЩАЯСЯ МИНИ-НОДА: честная нода холста — корпус + порт-вход
             // (кружок) + штрих-метка. Человек сразу видит ЧТО это.
-            var bite = document.createElement('div');
+            const bite = document.createElement('div');
             bite.className = 'um13g-eatbite';
-            var color = pick(EDIBLE_COLORS);
+            const color = pick(EDIBLE_COLORS);
             bite.style.background = color;
             bite.style.boxShadow = '0 0 8px ' + color;
             bite.innerHTML =
@@ -2618,12 +2495,12 @@
                 'border-radius:1px;background:rgba(7,11,18,.4);"></span>';
             hoverWrap.appendChild(bite);
             // крошки в такт укусов: 1 после первого, 2 после второго
-            var crumbDelays = [1.05, 2.35, 2.55];
-            for (var ci = 0; ci < crumbDelays.length; ci++) {
-                var crumb = document.createElement('div');
+            const crumbDelays = [1.05, 2.35, 2.55];
+            for (let ci = 0; ci < crumbDelays.length; ci++) {
+                const crumb = document.createElement('div');
                 crumb.className = 'um13g-crumb';
                 crumb.style.background = color;
-                crumb.style.setProperty('--cdx', (6 + ci * 5) + 'px');
+                crumb.style.setProperty('--cdx', 6 + ci * 5 + 'px');
                 crumb.style.animationDelay = crumbDelays[ci] + 's';
                 hoverWrap.appendChild(crumb);
             }
@@ -2634,9 +2511,9 @@
         if (kind === 'mime') setFace('normal', true); /* нода — лицо пустое и честное */
         if (kind === 'hungry') {
             // лежащая рядом нода — та же мини-нода с портом (связка «еда»)
-            var hn = document.createElement('div');
+            const hn = document.createElement('div');
             hn.className = 'um13g-hungrynode';
-            var hcolor = pick(EDIBLE_COLORS);
+            const hcolor = pick(EDIBLE_COLORS);
             hn.style.background = hcolor;
             hn.style.setProperty('--hc', hcolor);
             hn.innerHTML =
@@ -2647,7 +2524,11 @@
         }
         if (kind === 'peek') {
             // выглядывает из-за ЛЕВОГО края (поза двигает тело влево)
-            flyTo(0.04 * window.innerWidth, Math.max(0.18, Math.min(0.82, pos.y / window.innerHeight)) * window.innerHeight, true);
+            flyTo(
+                0.04 * window.innerWidth,
+                Math.max(0.18, Math.min(0.82, pos.y / window.innerHeight)) * window.innerHeight,
+                true,
+            );
         }
         if (kind === 'glitch') setFace('thinking', true);
         if (kind === 'dream') setFace('delight', true);
@@ -2660,17 +2541,24 @@
         // реплики (checking/байки) не должны её вытеснять
         actTimers.say = setTimeout(function () {
             if (currentAct !== kind) return;
-            sayQueue = sayQueue.filter(function (q) { return q.kind === 'page'; });
-            showSay(actLabel(kind), Math.min(4200, ACT_DURATION[kind] / 2), 'normal', 'act');
+            sayQueue = sayQueue.filter(function (q) {
+                return q.kind === 'page';
+            });
+            showSay(actLabel(kind), Math.min(4200, ACT_DURATION[kind] / 2), 'normal');
         }, 1400);
         // «досмотр»: пользователь заметил акт — реакция смущения
         actTimers.watch = setInterval(function () {
-            if (!currentAct) { clearInterval(actTimers.watch); return; }
-            var near = Math.abs(pos.x - mouse.x) < 140 && Math.abs(pos.y - mouse.y) < 140;
-            var activeMouse = Date.now() - lastMouseMoveAt < 1200;
+            if (!currentAct) {
+                clearInterval(actTimers.watch);
+                return;
+            }
+            const near = Math.abs(pos.x - mouse.x) < 140 && Math.abs(pos.y - mouse.y) < 140;
+            const activeMouse = Date.now() - lastMouseMoveAt < 1200;
             if (near && activeMouse) endAct(true);
         }, 500);
-        actTimers.end = setTimeout(function () { endAct(false); }, ACT_DURATION[kind]);
+        actTimers.end = setTimeout(function () {
+            endAct(false);
+        }, ACT_DURATION[kind]);
     }
 
     /* ═══ ХОРЕОГРАФИЯ АКТОВ (WAAPI; jsdom-фолбэк — статично) ═══ */
@@ -2679,15 +2567,16 @@
         в линию (команда→шаг→конец), смотрит… и разбрасывает. Лор:
         он когда-то был ретаймером — управлял нодами. */
     function startHerdChoreo() {
-        var spots = [
-            { dx: -46, dy: -8, color: NODE_COLORS[0] },   // команда (циан)
-            { dx: -6, dy: -26, color: NODE_COLORS[5] },    // шаг (жёлтый)
-            { dx: 34, dy: -8, color: NODE_COLORS[4] },    // конец (зелёный)
+        const spots = [
+            { dx: -46, dy: -8, color: NODE_COLORS[0] }, // команда (циан)
+            { dx: -6, dy: -26, color: NODE_COLORS[5] }, // шаг (жёлтый)
+            { dx: 34, dy: -8, color: NODE_COLORS[4] }, // конец (зелёный)
         ];
-        var cubes = spots.map(function (s) {
-            var c = document.createElement('div');
+        const cubes = spots.map(function (s) {
+            const c = document.createElement('div');
             c.className = 'um13g-herdcube';
-            c.style.width = '9px'; c.style.height = '9px';
+            c.style.width = '9px';
+            c.style.height = '9px';
             c.style.background = s.color;
             c.style.boxShadow = '0 0 8px ' + s.color;
             c.style.left = 'calc(50% + ' + s.dx + 'px)';
@@ -2697,27 +2586,58 @@
         });
         // такт «подталкивания»: каждые 1.8с кубик смещается к линии,
         // в конце акта — последний кубик «разлетается» (разброс)
-        var beat = 0;
+        let beat = 0;
         actTimers.flight = setInterval(function () {
-            if (currentAct !== 'herd') { clearInterval(actTimers.flight); return; }
+            if (currentAct !== 'herd') {
+                clearInterval(actTimers.flight);
+                return;
+            }
             beat++;
             cubes.forEach(function (c, i) {
                 if (typeof c.animate === 'function') {
                     // линия: кубики выстраиваются в ряд по y=-12
-                    c.animate([
-                        { transform: 'translateY(0)' },
-                        { transform: 'translateY(' + (-12 - i * 0.5) + 'px) rotate(' + (beat % 2 ? 6 : -6) + 'deg)' },
-                    ], { duration: 900, easing: 'ease-in-out' });
+                    c.animate(
+                        [
+                            { transform: 'translateY(0)' },
+                            {
+                                transform:
+                                    'translateY(' +
+                                    (-12 - i * 0.5) +
+                                    'px) rotate(' +
+                                    (beat % 2 ? 6 : -6) +
+                                    'deg)',
+                            },
+                        ],
+                        { duration: 900, easing: 'ease-in-out' },
+                    );
                 }
             });
-            if (beat >= 6) { // смотрит на готовую цепочку… и разбрасывает
+            if (beat >= 6) {
+                // смотрит на готовую цепочку… и разбрасывает
                 clearInterval(actTimers.flight);
                 cubes.forEach(function (c) {
                     if (typeof c.animate === 'function') {
-                        c.animate([
-                            { transform: 'translateY(-12px) rotate(0deg)', opacity: 1 },
-                            { transform: 'translate(' + rnd(-80, 80) + 'px,' + rnd(40, 130) + 'px) rotate(' + rnd(-180, 180) + 'deg)', opacity: 0 },
-                        ], { duration: 1000, easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'forwards' });
+                        c.animate(
+                            [
+                                { transform: 'translateY(-12px) rotate(0deg)', opacity: 1 },
+                                {
+                                    transform:
+                                        'translate(' +
+                                        rnd(-80, 80) +
+                                        'px,' +
+                                        rnd(40, 130) +
+                                        'px) rotate(' +
+                                        rnd(-180, 180) +
+                                        'deg)',
+                                    opacity: 0,
+                                },
+                            ],
+                            {
+                                duration: 1000,
+                                easing: 'cubic-bezier(.2,.7,.4,1)',
+                                fill: 'forwards',
+                            },
+                        );
                     }
                 });
                 setTimeout(function () {
@@ -2733,19 +2653,31 @@
     /** «Полирует ключ»: настоящий ключ-группа прячется (CSS), в
         руках — дубль, который протирают (вверх-вниз по дуге). */
     function startPolishChoreo() {
-        var held = document.createElement('div');
+        const held = document.createElement('div');
         held.className = 'um13g-keyheld';
         held.innerHTML =
             '<svg viewBox="0 0 14 14" width="14" height="14"><circle cx="7" cy="5" r="3" fill="none" stroke="#ff9d00" stroke-width="1.6"/><path d="M5.8 7.6 l-2.4 2.4 M7 8 v2" stroke="#ff9d00" stroke-width="1.6" stroke-linecap="round"/></svg>';
         hoverWrap.appendChild(held);
         if (typeof held.animate === 'function') {
-            held.animate([
-                { transform: 'translate(-50%,-50%) rotate(0deg)' },
-                { transform: 'translate(-50%,-50%) rotate(14deg) translateY(2px)', offset: .3 },
-                { transform: 'translate(-50%,-50%) rotate(-10deg) translateY(3px)', offset: .6 },
-                { transform: 'translate(-50%,-50%) rotate(0deg) translateY(-8px)', offset: .85 },
-                { transform: 'translate(-50%,-50%) rotate(0deg) translateY(0)' },
-            ], { duration: 4000, iterations: 3, easing: 'ease-in-out' });
+            held.animate(
+                [
+                    { transform: 'translate(-50%,-50%) rotate(0deg)' },
+                    {
+                        transform: 'translate(-50%,-50%) rotate(14deg) translateY(2px)',
+                        offset: 0.3,
+                    },
+                    {
+                        transform: 'translate(-50%,-50%) rotate(-10deg) translateY(3px)',
+                        offset: 0.6,
+                    },
+                    {
+                        transform: 'translate(-50%,-50%) rotate(0deg) translateY(-8px)',
+                        offset: 0.85,
+                    },
+                    { transform: 'translate(-50%,-50%) rotate(0deg) translateY(0)' },
+                ],
+                { duration: 4000, iterations: 3, easing: 'ease-in-out' },
+            );
         }
     }
 
@@ -2753,15 +2685,21 @@
         направо (дважды за акт), тело чуть поворачивается. Первый
         пролёт — сразу на старте акта (5.2с — пауза МЕЖДУ пролётами). */
     function startWatchChoreo() {
-        var pass = 0;
-        var runPass = function () {
-            if (currentAct !== 'watch') { clearInterval(actTimers.flight); return; }
+        let pass = 0;
+        const runPass = function () {
+            if (currentAct !== 'watch') {
+                clearInterval(actTimers.flight);
+                return;
+            }
             pass++;
             // невидимое летит слева направо за 4с: зрачки следят
-            var t0 = Date.now();
-            var track = setInterval(function () {
-                if (currentAct !== 'watch') { clearInterval(track); return; }
-                var p = Math.min(1, (Date.now() - t0) / 4000);
+            const t0 = Date.now();
+            const track = setInterval(function () {
+                if (currentAct !== 'watch') {
+                    clearInterval(track);
+                    return;
+                }
+                const p = Math.min(1, (Date.now() - t0) / 4000);
                 // -1 → +1: зрачки едут за объектом
                 body.style.setProperty('--um13-gaze-x', (p * 2 - 1).toFixed(2));
                 body.setAttribute('data-gaze', 'mouse');
@@ -2773,7 +2711,9 @@
             }, 120);
             // тело слегка поворачивается за объектом (наклон)
             body.style.setProperty('--um13-tilt', pass % 2 ? '8deg' : '-8deg');
-            setTimeout(function () { body.style.setProperty('--um13-tilt', '0deg'); }, 4000);
+            setTimeout(function () {
+                body.style.setProperty('--um13-tilt', '0deg');
+            }, 4000);
         };
         runPass();
         actTimers.flight = setInterval(runPass, 5200);
@@ -2782,17 +2722,37 @@
     /** Свободный акт: случайный, но танец — только «когда никто не смотрит»
         (курсор дальше 260px и не двигался >10с). */
     function pickAct() {
-        var mouseFar =
-            Math.abs(pos.x - mouse.x) > 260 || Math.abs(pos.y - mouse.y) > 260;
-        var mouseIdle = Date.now() - lastMouseMoveAt > 10_000;
+        const mouseFar = Math.abs(pos.x - mouse.x) > 260 || Math.abs(pos.y - mouse.y) > 260;
+        const mouseIdle = Date.now() - lastMouseMoveAt > 10_000;
         if (mouseFar && mouseIdle) return pick(ACTS); // никто не смотрит — любой
-        var pool = ACTS.filter(function (a) { return a !== 'dance'; });
+        const pool = ACTS.filter(function (a) {
+            return a !== 'dance';
+        });
         return pick(pool);
     }
 
     /* ═══ ЖИЗНЬ: таймеры ═══ */
     function clearStateTimers() {
-        ['idle', 'check', 'sleep', 'bark', 'wake', 'dodge', 'drift', 'sail', 'rage', 'warn', 'fly', 'arrive', 'shy', 'shyWatch', 'pressure', 'dream', 'fright', 'dreampic'].forEach(function (k) {
+        [
+            'idle',
+            'check',
+            'sleep',
+            'bark',
+            'wake',
+            'dodge',
+            'drift',
+            'sail',
+            'rage',
+            'warn',
+            'fly',
+            'arrive',
+            'shy',
+            'shyWatch',
+            'pressure',
+            'dream',
+            'fright',
+            'dreampic',
+        ].forEach(function (k) {
             clearTimeout(S.timers[k]);
             clearInterval(S.timers[k]); // поллинги bye-цепочки живут в тех же слотах
         });
@@ -2808,13 +2768,25 @@
         clearInterval(actTimers.flight);
         if (body) {
             body.classList.remove(
-                'um13g-act-glitch', 'um13g-act-eat', 'um13g-act-dream',
-                'um13g-act-dance', 'um13g-act-peek', 'um13g-act-defrag',
-                'um13g-act-herd', 'um13g-act-polish', 'um13g-act-watch', 'um13g-act-hungry', 'um13g-act-eatquick',
+                'um13g-act-glitch',
+                'um13g-act-eat',
+                'um13g-act-dream',
+                'um13g-act-dance',
+                'um13g-act-peek',
+                'um13g-act-defrag',
+                'um13g-act-herd',
+                'um13g-act-polish',
+                'um13g-act-watch',
+                'um13g-act-hungry',
+                'um13g-act-eatquick',
                 'um13g-act-mime',
             );
-            var bites = body.querySelectorAll('.um13g-eatbite, .um13g-crumb, .um13g-hungrynode, .um13g-herdcube, .um13g-keyheld');
-            bites.forEach(function (b) { b.remove(); });
+            const bites = body.querySelectorAll(
+                '.um13g-eatbite, .um13g-crumb, .um13g-hungrynode, .um13g-herdcube, .um13g-keyheld',
+            );
+            bites.forEach(function (b) {
+                b.remove();
+            });
         }
     }
 
@@ -2823,6 +2795,7 @@
         if (S.visible) return;
         S.visible = true;
         S.sailing = false;
+        setAway(false);
         // Телепорт на стартовую точку + fade-in: без этого transition
         // анимировал бы left/top с 0,0 — «прилёт из верхнего левого угла».
         // Двойной rAF вместо reflow-хака: две записи opacity в одном тике
@@ -2835,7 +2808,7 @@
         body.style.transition = 'none';
         body.style.opacity = '0';
         nextSpot();
-        var reveal = function () {
+        const reveal = function () {
             if (!S.visible) return; // успел уплыть до проявления
             body.style.transition = '';
             body.style.opacity = '1'; // мягкое проявление (opacity .6s)
@@ -2846,10 +2819,15 @@
         });
         setTimeout(reveal, 80);
         setFace('normal');
-        measurePressure();          // давление квоты проверяется на каждом визите
-        applyKeyFlags();           // финал приёмной отражается на теле
-        applyMissedLook();         // аудит A11: «постарел без тебя» до hello
-        applyPetCube();            // прирученная потеряшка — на цепочке
+        measurePressure(); // давление квоты проверяется на каждом визите
+        // …и раз в 30с, пока призрак на экране (clearStateTimers при уходе
+        // гасит интервал — раньше он запускался только в boot и после
+        // первого отплытия не возвращался)
+        clearInterval(S.timers.pressure);
+        S.timers.pressure = setInterval(measurePressure, 30_000);
+        applyKeyFlags(); // финал приёмной отражается на теле
+        applyMissedLook(); // аудит A11: «постарел без тебя» до hello
+        applyPetCube(); // прирученная потеряшка — на цепочке
         if (!instant) scheduleHello();
         armIdleTimers();
         scheduleFly(); // цикл перелётов живёт только при видимом призраке
@@ -2863,6 +2841,7 @@
             body.style.opacity = '0';
             body.style.pointerEvents = 'none'; // ушёл — не мешает кликам
         }
+        setAway(true);
         clearStateTimers();
     }
 
@@ -2872,85 +2851,115 @@
     function applyMissedLook() {
         if (!body) return;
         try {
-            var last = memoryRead()['last-seen'];
-            var stale = typeof last === 'number' && Date.now() - last > 7 * 24 * 3600_000;
+            const last = memoryRead()['last-seen'];
+            const stale = typeof last === 'number' && Date.now() - last > 7 * 24 * 3600_000;
             body.classList.toggle('um13g-missed', stale && !S.bootedHelloDone);
-        } catch (e) { /* приватный режим */ }
+        } catch (e) {
+            /* приватный режим */
+        }
     }
 
     function scheduleHello() {
-        setTimeout(function () {
-            if (!S.visible || S.asleep) return;
-            if (firstWordAt && Date.now() - firstWordAt < 8000) return;
-            markFirstMet();
-            var cal = calendarPools();
-            // давность возвращения: считаем от последнего визита (last-seen).
-            // Первый визит (нет last-seen) — обычное hello, метку ставим
-            var gapPool = returnGapPool();
-            var named = maybeNamed(L.hello);
-            var trust = trustLevel();
-            // НОЧНАЯ СМЕНА + НАСТРОЕНИЕ-ПАМЯТЬ: приоритет персонального
-            // hello — календарь > разрыв > обида/тепло прошлого визита >
-            // ночь > обычное. Каждое поверхнее — разовая история.
-            var moodPool = visitMoodPool();
-            var night = isNightShift();
-            var pool = cal ? cal[0] : gapPool || moodPool || (night ? L.nightHello : null) || named;
-            // ДОВЕРИЕ 0: незнакомцу — короткая реплика вместо полного
-            // hello. Но только если нечего сказать персонального: имя
-            // (терминал), давность И НАСТРОЕНИЕ прошлого визита ВАЖНЕЕ
-            // недоверия — обида возможна только к знакомому.
-            if (trust === 0 && !cal && !gapPool && !moodPool && !humanName() && Math.random() < 0.6) {
-                pool = L.strangerLines;
-            }
-            showSay(pick(pool), undefined, 'delight', 'hello');
-            // «ожил после разлуки»: тусклый контур уходит вместе с hello
-            S.bootedHelloDone = true;
-            body.classList.remove('um13g-missed');
-            markLastSeen();
-            if (Math.random() < 0.3) {
-                setTimeout(function () {
-                    if (!S.visible || S.asleep) return;
-                    if (firstWordAt && Date.now() - firstWordAt < 8000) return;
-                    // ночью вторая реплика — тоже ночная
-                    var night2 = isNightShift();
-                    showSay(pick(cal ? cal[1] : (night2 ? L.nightBark : L.bark)), undefined, 'smart', 'auto');
-                }, 6500);
-            }
-            // ДОВЕРИЕ 2 («свой»): раз за визит призрак дарит личное —
-            // секрет консоли, подсчёт спасённых ключей или КАРТОЧКУ
-            // ДРУЖБЫ (PNG-артефакт, который уносят в соцсети)
-            if (trust === 2 && Math.random() < 0.5) {
-                setTimeout(function () {
-                    if (!S.visible || S.asleep) return;
-                    var roll = Math.random();
-                    if (roll < 0.3) {
-                        // карточка: сказать и вручить (буфер/скачивание)
-                        showSay(pick(L.friendCardLines), undefined, 'delight', 'auto');
-                        setTimeout(function () {
-                            if (S.visible && !S.asleep) giftFriendCard();
-                        }, 3500);
-                        return;
-                    }
-                    var rescued = memoryNum('well-rescued');
-                    if (rescued > 0 && roll < 0.75) {
-                        showSay(pick(L.friendCountLines).replace('{k}', String(rescued)), undefined, 'delight', 'auto');
-                    } else {
-                        showSay(pick(L.friendGiftLines), undefined, 'smart', 'auto');
-                    }
-                }, 14_000);
-            }
-            // ПОТЕРЯШКА-ПИТОМЕЦ: кубик на цепочке — призрак представит
-            // его один раз за визит (после hello, в очередь)
-            setTimeout(maybePetCubeLine, 9000);
-        }, rnd(1000, 2000));
+        setTimeout(
+            function () {
+                if (!S.visible || S.asleep) return;
+                if (firstWordAt && Date.now() - firstWordAt < 8000) return;
+                markFirstMet();
+                const cal = calendarPools();
+                // давность возвращения: считаем от последнего визита (last-seen).
+                // Первый визит (нет last-seen) — обычное hello, метку ставим
+                const gapPool = returnGapPool();
+                const named = maybeNamed(L.hello);
+                const trust = trustLevel();
+                // НОЧНАЯ СМЕНА + НАСТРОЕНИЕ-ПАМЯТЬ: приоритет персонального
+                // hello — календарь > разрыв > обида/тепло прошлого визита >
+                // ночь > обычное. Каждое поверхнее — разовая история.
+                const moodPool = visitMoodPool();
+                const night = isNightShift();
+                let pool = cal
+                    ? cal[0]
+                    : gapPool || moodPool || (night ? L.nightHello : null) || named;
+                // ДОВЕРИЕ 0: незнакомцу — короткая реплика вместо полного
+                // hello. Но только если нечего сказать персонального: имя
+                // (терминал), давность И НАСТРОЕНИЕ прошлого визита ВАЖНЕЕ
+                // недоверия — обида возможна только к знакомому.
+                if (
+                    trust === 0 &&
+                    !cal &&
+                    !gapPool &&
+                    !moodPool &&
+                    !humanName() &&
+                    Math.random() < 0.6
+                ) {
+                    pool = L.strangerLines;
+                }
+                enqueue(pick(pool), undefined, 'delight', 'hello');
+                // «ожил после разлуки»: тусклый контур уходит вместе с hello
+                S.bootedHelloDone = true;
+                body.classList.remove('um13g-missed');
+                markLastSeen();
+                if (Math.random() < 0.3) {
+                    setTimeout(function () {
+                        if (!S.visible || S.asleep) return;
+                        if (firstWordAt && Date.now() - firstWordAt < 8000) return;
+                        // ночью вторая реплика — тоже ночная.
+                        // В очередь: длинное hello (до 11с) ещё читается
+                        // через 6.5с — прямой показ обрывал его на полуслове
+                        const night2 = isNightShift();
+                        enqueue(
+                            pick(cal ? cal[1] : night2 ? L.nightBark : L.bark),
+                            undefined,
+                            'smart',
+                            'auto',
+                        );
+                    }, 6500);
+                }
+                // ДОВЕРИЕ 2 («свой»): раз за визит призрак дарит личное —
+                // секрет консоли, подсчёт спасённых ключей или КАРТОЧКУ
+                // ДРУЖБЫ (PNG-артефакт, который уносят в соцсети)
+                if (trust === 2 && Math.random() < 0.5) {
+                    setTimeout(function () {
+                        if (!S.visible || S.asleep) return;
+                        const roll = Math.random();
+                        if (roll < 0.3) {
+                            // карточка: сказать и вручить (буфер/скачивание)
+                            enqueue(pick(L.friendCardLines), undefined, 'delight', 'auto');
+                            setTimeout(function () {
+                                if (S.visible && !S.asleep) giftFriendCard();
+                            }, 3500);
+                            return;
+                        }
+                        const rescued = memoryNum('well-rescued');
+                        if (rescued > 0 && roll < 0.75) {
+                            enqueue(
+                                pick(L.friendCountLines).replace('{k}', String(rescued)),
+                                undefined,
+                                'delight',
+                                'auto',
+                            );
+                        } else {
+                            enqueue(pick(L.friendGiftLines), undefined, 'smart', 'auto');
+                        }
+                    }, 14_000);
+                }
+                // ПОТЕРЯШКА-ПИТОМЕЦ: кубик на цепочке — призрак представит
+                // его один раз за визит (после hello, в очередь)
+                setTimeout(maybePetCubeLine, 9000);
+            },
+            rnd(1000, 2000),
+        );
     }
 
     /* ═══ ВИЗИТ: публичный счётчик встреч — основа доверия.
        Пишется один раз за загрузку страницы (boot), не на каждый appear. */
     function markVisit() {
-        var m = memoryRead();
+        const m = memoryRead();
         m['visits'] = (typeof m['visits'] === 'number' ? m['visits'] : 0) + 1;
-        try { localStorage.setItem('um13-memory', JSON.stringify(m)); } catch (e) { /* приватный режим */ }
+        try {
+            localStorage.setItem('um13-memory', JSON.stringify(m));
+        } catch (e) {
+            /* приватный режим */
+        }
     }
 
     /* ═══ ДАВНОСТЬ ВОЗВРАЩЕНИЯ ═══
@@ -2960,35 +2969,42 @@
        страницы в одной сессии «возвращалась бы». */
     function markLastSeen() {
         try {
-            var m = memoryRead();
+            const m = memoryRead();
             m['last-seen'] = Date.now();
             localStorage.setItem('um13-memory', JSON.stringify(m));
-        } catch (e) { /* приватный режим */ }
+        } catch (e) {
+            /* приватный режим */
+        }
     }
     function returnGapPool() {
         try {
-            var m = memoryRead();
-            var last = m['last-seen'];
+            const m = memoryRead();
+            const last = m['last-seen'];
             if (typeof last !== 'number' || last <= 0) return null;
-            var gap = Date.now() - last;
+            const gap = Date.now() - last;
             // слишком свежо (<6ч) или реплика о перерыве была недавно (<4ч)
             if (gap < 6 * 3600_000) return null;
-            if (typeof m['gap-said'] === 'number' && Date.now() - m['gap-said'] < 4 * 3600_000) return null;
-            var pool;
+            if (typeof m['gap-said'] === 'number' && Date.now() - m['gap-said'] < 4 * 3600_000)
+                return null;
+            let pool;
             if (gap < 2 * 24 * 3600_000) pool = L.returnAfter.day;
             else if (gap < 8 * 24 * 3600_000) pool = L.returnAfter.week;
             else if (gap < 45 * 24 * 3600_000) pool = L.returnAfter.month;
             else pool = L.returnAfter.long;
             // персонально, если имя известно
-            var name = humanName();
+            const name = humanName();
             if (name && Math.random() < 0.5) {
-                pool = [pool[Math.floor(pool.length / 2)] + ' привет, ' + name + '.'].concat(pool.slice(0, 1));
+                pool = [pool[Math.floor(pool.length / 2)] + ' привет, ' + name + '.'].concat(
+                    pool.slice(0, 1),
+                );
             }
-            var w = memoryRead();
+            const w = memoryRead();
             w['gap-said'] = Date.now();
             localStorage.setItem('um13-memory', JSON.stringify(w));
             return pool;
-        } catch (e) { return null; }
+        } catch (e) {
+            return null;
+        }
     }
 
     function armIdleTimers() {
@@ -3006,29 +3022,43 @@
             }, 60_000);
         }, 30_000);
         clearTimeout(S.timers.bark);
-        S.timers.bark = setTimeout(function barkTick() {
-            if (S.visible && !S.asleep && !S.dodging && !S.raging && !currentAct && Date.now() - S.lastBark > 30_000) {
-                var roll = Math.random();
-                if (roll < 0.12) {
-                    // вместо байки — грусть: мир не только весёлый
-                    showSay(pick(L.sadLines), 6000, 'sad');
-                } else if (roll < 0.40) {
-                    // бессловесный акт — жизнь без реплик (танец только
-                    // «когда никто не смотрит» — см. pickAct)
-                    startAct(pickAct());
-                } else if (keyKnownReminderDue()) {
-                    // человек знает про ключ (спрашивал в приёмной), но окно
-                    // №13 всё ещё ждёт: редкое напоминание вместо байки
-                    showSay(pick(L.keyKnownLines), 6000, 'thinking');
-                } else {
-                    var cal = calendarPools();
-                    // ночью 50% баек — ночные (смена чувствуется весь визит)
-                    var barkPool = cal ? cal[1] : (isNightShift() && Math.random() < 0.5 ? L.nightBark : L.bark);
-                    showSay(pick(barkPool), undefined, 'smart');
+        S.timers.bark = setTimeout(
+            function barkTick() {
+                if (
+                    S.visible &&
+                    !S.asleep &&
+                    !S.dodging &&
+                    !S.raging &&
+                    !currentAct &&
+                    Date.now() - S.lastBark > 30_000
+                ) {
+                    const roll = Math.random();
+                    if (roll < 0.12) {
+                        // вместо байки — грусть: мир не только весёлый
+                        showSay(pick(L.sadLines), 6000, 'sad');
+                    } else if (roll < 0.4) {
+                        // бессловесный акт — жизнь без реплик (танец только
+                        // «когда никто не смотрит» — см. pickAct)
+                        startAct(pickAct());
+                    } else if (keyKnownReminderDue()) {
+                        // человек знает про ключ (спрашивал в приёмной), но окно
+                        // №13 всё ещё ждёт: редкое напоминание вместо байки
+                        showSay(pick(L.keyKnownLines), 6000, 'thinking');
+                    } else {
+                        const cal = calendarPools();
+                        // ночью 50% баек — ночные (смена чувствуется весь визит)
+                        const barkPool = cal
+                            ? cal[1]
+                            : isNightShift() && Math.random() < 0.5
+                              ? L.nightBark
+                              : L.bark;
+                        showSay(pick(barkPool), undefined, 'smart');
+                    }
                 }
-            }
-            S.timers.bark = setTimeout(barkTick, rnd(35_000, 75_000));
-        }, rnd(35_000, 75_000));
+                S.timers.bark = setTimeout(barkTick, rnd(35_000, 75_000));
+            },
+            rnd(35_000, 75_000),
+        );
     }
 
     function fallAsleep(silent) {
@@ -3046,7 +3076,11 @@
         setSleepFavicon(true); // спящий живёт и во фавиконе вкладки
         sleepPats.primed = false; // сон-пат: калибровка заново
         // ЗВУК-КОНТРАКТ: страницы с аудио слушают это и приглушают
-        try { window.dispatchEvent(new CustomEvent('um13-asleep')); } catch (e) { /* jsdom */ }
+        try {
+            window.dispatchEvent(new CustomEvent('um13-asleep'));
+        } catch (e) {
+            /* jsdom */
+        }
     }
 
     /* ═══ СНЫ ИЗ ПАМЯТИ: спящий бормочет то, что человек РЕАЛЬНО
@@ -3056,24 +3090,30 @@
     function startDreaming() {
         clearTimeout(S.timers.dream);
         S.dreaming = false;
-        S.timers.dream = setTimeout(function () {
-            if (!S.asleep || !S.visible) return;
-            var m = memoryRead();
-            var pools = [];
-            if (m['well-visited']) pools.push(L.dreamMumble.well);
-            if (m['skynet-won']) pools.push(L.dreamMumble.skynet);
-            if (m['queue-waited']) pools.push(L.dreamMumble.queue);
-            if (m['pizza-courier']) pools.push(L.dreamMumble.courier);
-            if (!pools.length) pools.push(L.dreamMumble.generic);
-            var line = pick(pick(pools));
-            S.dreaming = true; // следующая побудка «помнит»
-            // сон — в очередь page-приоритета: не перебивает живых реплик
-            queueSay(line, 6500, 'asleep');
-            // сон не длится вечно: следующая фраза сна — снова через паузу
-            S.timers.dream = setTimeout(function () {
-                if (S.asleep && S.visible) startDreaming();
-            }, rnd(40_000, 90_000));
-        }, rnd(25_000, 50_000));
+        S.timers.dream = setTimeout(
+            function () {
+                if (!S.asleep || !S.visible) return;
+                const m = memoryRead();
+                const pools = [];
+                if (m['well-visited']) pools.push(L.dreamMumble.well);
+                if (m['skynet-won']) pools.push(L.dreamMumble.skynet);
+                if (m['queue-waited']) pools.push(L.dreamMumble.queue);
+                if (m['pizza-courier']) pools.push(L.dreamMumble.courier);
+                if (!pools.length) pools.push(L.dreamMumble.generic);
+                const line = pick(pick(pools));
+                S.dreaming = true; // следующая побудка «помнит»
+                // сон — в очередь page-приоритета: не перебивает живых реплик
+                queueSay(line, 6500, 'asleep');
+                // сон не длится вечно: следующая фраза сна — снова через паузу
+                S.timers.dream = setTimeout(
+                    function () {
+                        if (S.asleep && S.visible) startDreaming();
+                    },
+                    rnd(40_000, 90_000),
+                );
+            },
+            rnd(25_000, 50_000),
+        );
     }
 
     function wakeUp() {
@@ -3083,18 +3123,22 @@
         // СОМНАМБУЛА: побудка при живой грезе — рисунок рассыпается,
         // пробуждение говорит о рисунке (dreamCaughtDrawing первым,
         // как сны: реплика пробуждения неприкосновенна)
-        var caughtDrawing = sleepPic.els.length > 0;
+        const caughtDrawing = sleepPic.els.length > 0;
         clearSleepPic(false);
         // ЗВУК-КОНТРАКТ: мир может снова звучать в полный голос
-        try { window.dispatchEvent(new CustomEvent('um13-awake')); } catch (e) { /* jsdom */ }
+        try {
+            window.dispatchEvent(new CustomEvent('um13-awake'));
+        } catch (e) {
+            /* jsdom */
+        }
         // Реплика пробуждения — неприкосновенна: страница, дёрнувшая
         // react() в этот же момент, уйдёт в очередь и скажет своё ПОСЛЕ.
         // Поэтому ставим её через showSay напрямую (первой), а последующие
         // вызовы — через queueSay.
         setFace('startled');
         // Побудка персональна, если имя известно (знакомит терминал)
-        var name = humanName();
-        var pool = MODE === 'editor' ? L.editorWake : L.wake;
+        const name = humanName();
+        let pool = MODE === 'editor' ? L.editorWake : L.wake;
         // разбудили посреди сна — пробуждение помнит, ЧТО снилось
         if (S.dreaming && Math.random() < 0.7) pool = L.dreamCaughtLines;
         // разбудили С ЖИВЫМ РИСУНКОМ — пробуждение про рисунок: смущение
@@ -3103,7 +3147,7 @@
         if (name && Math.random() < 0.5 && !caughtDrawing) {
             pool = [name + '. ты вернулся. я ждал событий. и тебя.'].concat(pool.slice(0, 2));
         }
-        showSay(pick(pool), undefined, 'startled', 'wake');
+        showSay(pick(pool), undefined, 'startled');
         stopSleepDrift();
         clearTimeout(S.timers.dream);
         S.dreaming = false;
@@ -3115,7 +3159,7 @@
        перелетает в другие пятна, а лишь покачивается вокруг якоря
        в коридоре ±5px по каждой оси (с sleep-bob ±2.5px — суммарно
        заметное смещение не превышает ~8px). */
-    var sleepAnchor = null;
+    let sleepAnchor = null;
     function startSleepDrift() {
         stopSleepDrift();
         sleepAnchor = { x: pos.x, y: pos.y };
@@ -3147,7 +3191,7 @@
        при посадке — реплика приземления. Точку помнит до отлёта:
        перелёты продолжаются ОТТУДА. Тычок и драг различаем по
        смещению: <6px = клик, больше = перенос. */
-    var drag = { on: false, moved: false, dx: 0, dy: 0, resisted: false };
+    const drag = { on: false, moved: false, dx: 0, dy: 0, resisted: false };
 
     function onPointerDown(e) {
         if (!S.visible || S.sailing || S.dodging) return;
@@ -3161,15 +3205,19 @@
         drag.dy = pos.y - e.clientY;
         // захват pointer: призрак следует за курсором, даже когда курсор
         // выскочил за пределы капсулы (реальный «взял и тащишь»)
-        try { body.setPointerCapture(e.pointerId); } catch (err) { /* старые среды */ }
+        try {
+            body.setPointerCapture(e.pointerId);
+        } catch (err) {
+            /* старые среды */
+        }
         body.style.cursor = 'grabbing';
         // плавный «взял»: без наклона, но чуть масштаб
         body.style.setProperty('--um13-tilt', '0deg');
     }
     function onPointerMove(e) {
         if (!drag.on) return;
-        var nx = e.clientX + drag.dx;
-        var ny = e.clientY + drag.dy;
+        const nx = e.clientX + drag.dx;
+        let ny = e.clientY + drag.dy;
         if (!drag.moved && (Math.abs(nx - pos.x) > 6 || Math.abs(ny - pos.y) > 6)) {
             // ДОВЕРИЕ 0: незнакомец один раз за сессию выскальзывает из
             // руки — «мы ещё не настолько знакомы». Тело первее слов.
@@ -3195,7 +3243,7 @@
         if (drag.moved) {
             // ПРУЖИНА ВНИЗ: ниже 85% высоты — сопротивление нарастает,
             // призрак цепляется (низ экрана = колодец вселенной UM-13)
-            var limit = 0.85 * window.innerHeight;
+            const limit = 0.85 * window.innerHeight;
             if (ny > limit) {
                 if (!drag.resisted) {
                     drag.resisted = true;
@@ -3213,14 +3261,18 @@
     function onPointerUp(e) {
         if (!drag.on) return;
         drag.on = false;
-        try { body.releasePointerCapture(e.pointerId); } catch (err) { /* уже отпущен */ }
+        try {
+            body.releasePointerCapture(e.pointerId);
+        } catch (err) {
+            /* уже отпущен */
+        }
         body.style.cursor = '';
         body.style.transition = '';
         if (drag.moved) {
             // ВСПЛЫТИЕ: отпустили у нижней кромки (за «поверхностью
             // колодца») — призрак сам медленно дрейфует вверх, как
             // вынырнувший. Мир подхватывает того, кто не сдаётся.
-            var deep = pos.y > 0.82 * window.innerHeight;
+            const deep = pos.y > 0.82 * window.innerHeight;
             setFace('normal');
             enqueue(pick(L.dragDrop), 2600, 'thinking', 'user');
             // точка посадки становится домом до отлёта
@@ -3230,7 +3282,8 @@
                 setTimeout(function () {
                     if (!S.visible || S.sailing || S.dodging || S.raging) return;
                     flyTo(
-                        Math.max(0.08, Math.min(0.92, pos.x / window.innerWidth)) * window.innerWidth,
+                        Math.max(0.08, Math.min(0.92, pos.x / window.innerWidth)) *
+                            window.innerWidth,
                         Math.max(0.12, pos.y / window.innerHeight - 0.22) * window.innerHeight,
                     );
                     enqueue(pick(L.dragUpAfterLines), 2600, 'thinking', 'user');
@@ -3240,12 +3293,16 @@
         }
     }
     function nearestSpot(x, y) {
-        var best = 0;
-        var bestD = Infinity;
-        for (var i = 0; i < SPOTS.length; i++) {
-            var d = Math.abs(SPOTS[i].x * window.innerWidth - x) +
+        let best = 0;
+        let bestD = Infinity;
+        for (let i = 0; i < SPOTS.length; i++) {
+            const d =
+                Math.abs(SPOTS[i].x * window.innerWidth - x) +
                 Math.abs(SPOTS[i].y * window.innerHeight - y);
-            if (d < bestD) { bestD = d; best = i; }
+            if (d < bestD) {
+                bestD = d;
+                best = i;
+            }
         }
         return best;
     }
@@ -3261,12 +3318,12 @@
        ещё дальше — классический ПСИХ с кубиками. Первый тычок
        после долгой тишины — startled-вздрог + резкий отход:
        тело реагирует раньше реплики. */
-    var lastClickReaction = 0;
-    var lastPokeStage = ''; // последняя озвученная стадия дуги
-    var pokeResignCount = 0;
-    var catches = 0; // поимки за текущий побег: 3-я = псих («достали»)
-    var calmSince = 0; // тишина, после которой тычок снова «вздрог»
-    var lastShyAt = 0; // последний эпизод стеснительности (кулдаун ~2 мин)
+    let lastClickReaction = 0;
+    let lastPokeStage = ''; // последняя озвученная стадия дуги
+    let pokeResignCount = 0;
+    let catches = 0; // поимки за текущий побег: 3-я = псих («достали»)
+    let calmSince = 0; // тишина, после которой тычок снова «вздрог»
+    let lastShyAt = 0; // последний эпизод стеснительности (кулдаун ~2 мин)
 
     function pokeStage(n) {
         if (n <= 2) return 'giggle';
@@ -3279,17 +3336,18 @@
     function startledHop() {
         setFace('startled');
         // отскок от курсора — тело сначала, слова потом
-        var away = mouse.x < window.innerWidth / 2
-            ? rnd(0.55, 0.85) : rnd(0.15, 0.45);
-        var awayY = mouse.y < window.innerHeight / 2
-            ? rnd(0.5, 0.8) : rnd(0.2, 0.5);
+        const away = mouse.x < window.innerWidth / 2 ? rnd(0.55, 0.85) : rnd(0.15, 0.45);
+        const awayY = mouse.y < window.innerHeight / 2 ? rnd(0.5, 0.8) : rnd(0.2, 0.5);
         flyTo(away * window.innerWidth, awayY * window.innerHeight);
     }
 
     function onClick() {
         if (!S.visible || S.sailing) return;
         // драг закончился со смещением — это НЕ тычок
-        if (drag.moved) { drag.moved = false; return; }
+        if (drag.moved) {
+            drag.moved = false;
+            return;
+        }
         // тычок прерывает стеснительность (её «поймали» — смущение
         // уже прозвучало, дуга тычков важнее)
         if (S.shy) endShy();
@@ -3299,7 +3357,7 @@
         // КОРМЛЕНИЕ: клик по голодному — нода летит ко рту, delight,
         // благодарность. Тамагочи-момент: забота, замеченная призраком.
         if (currentAct === 'hungry') {
-            var hn = body.querySelector('.um13g-hungrynode');
+            const hn = body.querySelector('.um13g-hungrynode');
             if (hn) hn.classList.add('fed');
             currentAct = null; // акт закрыт ДОПОЛНИТЕЛЬНОЙ сценой, не «застукали»
             clearTimeout(actTimers.say);
@@ -3313,8 +3371,8 @@
                 enqueue(pick(L.feedLines), 4600, 'delight', 'user');
                 // «доесть» — КОРОТКИЙ профиль eat-quick (1 укус+жевок,
                 // не полный акт: полный в 1.1с успевал только прыжок)
-                var qb = document.createElement('div');
-                var qc = pick(EDIBLE_COLORS);
+                const qb = document.createElement('div');
+                const qc = pick(EDIBLE_COLORS);
                 qb.className = 'um13g-eatquick-bite';
                 qb.style.background = qc;
                 qb.style.boxShadow = '0 0 8px ' + qc;
@@ -3334,15 +3392,17 @@
         S.clicks.push(Date.now());
         if (S.clicks.length > 16) S.clicks.shift();
 
-        var now = Date.now();
-        var recent = S.clicks.filter(function (t) { return now - t < 4000; });
+        const now = Date.now();
+        const recent = S.clicks.filter(function (t) {
+            return now - t < 4000;
+        });
 
         // quiet: тычок по спящему = «извини, я тут спал» и тихий отлёт —
         // без полноценной сцены побудки (лендинг не его сцена)
         if (S.asleep) {
             if (MODE === 'quiet') {
                 wakeUp();
-                showSay(pick(L.quietByePoke), 2600, 'startled', 'user');
+                showSay(pick(L.quietByePoke), 2600, 'startled');
                 S.timers.sail = setTimeout(quietLeave, 2800);
                 return;
             }
@@ -3357,8 +3417,8 @@
         // (иначе догоняющие тычки сбрасывались каждой поимкой, и псих
         // был практически недостижим — дразнилка без развязки)
         if (S.dodging) {
-            var dx = Math.abs(pos.x - mouse.x);
-            var dy = Math.abs(pos.y - mouse.y);
+            const dx = Math.abs(pos.x - mouse.x);
+            const dy = Math.abs(pos.y - mouse.y);
             if (dx < 140 && dy < 140) {
                 catches++;
                 if (catches >= 3) {
@@ -3369,7 +3429,7 @@
                     return;
                 }
                 sayQueue = [];
-                showSay(pick(L.dodgeCaught), undefined, 'angry', 'user');
+                showSay(pick(L.dodgeCaught), undefined, 'angry');
                 dodgeStep(); // новый рывок — «догнал, но не удержишь»
                 S.clicks = [];
             } else if (recent.length >= 10) {
@@ -3382,36 +3442,46 @@
             return;
         }
 
-        var stage = pokeStage(recent.length);
+        const stage = pokeStage(recent.length);
 
         // Смирение: побег пережит, тычки продолжились — тихая покорность.
         // Прямой ответ на действие: фоновые И дуговые хвосты гасим —
         // «всё, хватит» неактуально, когда ты уже смирился
         if (pokeResignCount > 0 && stage !== 'flee') {
             if (recent.length >= pokeResignCount + 3) {
-                sayQueue = sayQueue.filter(function (q) { return q.kind === 'page'; });
-                showSay(pick(L.pokeResign), undefined, 'sad', 'user');
+                sayQueue = sayQueue.filter(function (q) {
+                    return q.kind === 'page';
+                });
+                showSay(pick(L.pokeResign), undefined, 'sad');
                 setFace('sad');
                 pokeResignCount = recent.length; // растёт вместе с упорством
-                if (recent.length >= 12) { pokeResignCount = 0; tantrum(); }
+                if (recent.length >= 12) {
+                    pokeResignCount = 0;
+                    tantrum();
+                }
                 return;
             }
         }
 
         // ПСИХ при запредельном упорстве и после смирения
-        if (recent.length >= 12) { tantrum(); return; }
+        if (recent.length >= 12) {
+            tantrum();
+            return;
+        }
 
         // ПОБЕГ
         if (stage === 'flee') {
             if (pokeResignCount === 0) {
                 // первый побег: нормальная дуга; повторный подряд — сразу псих
                 startDodging();
-            } else { tantrum(); }
+            } else {
+                tantrum();
+            }
             return;
         }
 
         // Тело реагирует раньше слова: первый тычок после тишины — вздрог
-        var sinceCalm = now - (calmSince || now);
+        const sinceCalm = now - (calmSince || now);
         if (recent.length === 1 && sinceCalm > 45_000) {
             startledHop();
             enqueue('ой.', 2000, 'startled', 'user');
@@ -3423,12 +3493,14 @@
         // уже другое — вчерашнее «может, не надо» неактуально); внутри
         // стадии — максимум одна реплика в 3с (анти-спам)
         if (stage !== lastPokeStage || now - lastClickReaction > 3000) {
-            var stageChanged = stage !== lastPokeStage;
+            const stageChanged = stage !== lastPokeStage;
             if (stageChanged) {
                 lastPokeStage = stage;
                 lastClickReaction = 0;
                 // хвост прошлой стадии дуги (kind 'user') — в расход
-                sayQueue = sayQueue.filter(function (q) { return q.kind !== 'user'; });
+                sayQueue = sayQueue.filter(function (q) {
+                    return q.kind !== 'user';
+                });
             } else {
                 lastClickReaction = now;
             }
@@ -3451,7 +3523,7 @@
         S.clicks = []; // контекст сменился: тычки → погоня; окно новое
         catches = 0; // счётчик поимок нового побега (3-я = псих)
         root.classList.add('um13g-dodging');
-        showSay(pick(L.dodgeStart), undefined, 'skeptic', 'user');
+        showSay(pick(L.dodgeStart), undefined, 'skeptic');
         dodgeStep();
         S.timers.dodge = setTimeout(stopDodging, 12_000);
     }
@@ -3460,7 +3532,8 @@
         if (!S.dodging) return;
         flyTo(
             (mouse.x < window.innerWidth / 2 ? rnd(0.55, 0.9) : rnd(0.1, 0.45)) * window.innerWidth,
-            (mouse.y < window.innerHeight / 2 ? rnd(0.55, 0.9) : rnd(0.1, 0.45)) * window.innerHeight,
+            (mouse.y < window.innerHeight / 2 ? rnd(0.55, 0.9) : rnd(0.1, 0.45)) *
+                window.innerHeight,
         );
     }
 
@@ -3472,11 +3545,11 @@
         // (тычки после побега — уже не «хихи», а покорность судьбе)
         pokeResignCount = 3;
         calmSince = Date.now();
-        if (!silent) showSay(pick(L.dodgeEnd), undefined, 'thinking', 'user');
+        if (!silent) showSay(pick(L.dodgeEnd), undefined, 'thinking');
     }
 
     /* ═══ МЫШЬ ═══ */
-    var mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     /* ВЗГЛЯД-СЛЕЖЕНИЕ: зрачки едут за курсором (троттл ~100мс).
        Пока мышь жива (<10с) — data-gaze="mouse", честное слежение;
        замерла — призрак «теряет интерес»: data-gaze убирается,
@@ -3487,10 +3560,10 @@
        бессознательно дрейфует к «теплу» курсора (сон тянется к человеку)
        и изредка бормочет. Открывается случайно — самый «можно оставить
        себе» момент. Скорость меряем между mousemove-тиками. */
-    var sleepPats = { lastAt: 0, lastX: 0, lastY: 0, mumbleAt: 0, primed: false };
+    const sleepPats = { lastAt: 0, lastX: 0, lastY: 0, mumbleAt: 0, primed: false };
     function sleepPat(e) {
         if (!S.asleep || !S.visible || S.sailing) return false;
-        var now = Date.now();
+        const now = Date.now();
         // первый тик после засыпания — только калибровка (нет истории:
         // dx от нулевых координат принял бы любой вход за рывок)
         if (!sleepPats.primed) {
@@ -3500,42 +3573,48 @@
             sleepPats.lastY = e.clientY;
             return true; // тихий тик: не будим
         }
-        var dt = Math.max(16, now - sleepPats.lastAt);
-        var dx = e.clientX - sleepPats.lastX;
-        var dy = e.clientY - sleepPats.lastY;
-        var speed = Math.sqrt(dx * dx + dy * dy) / dt * 1000; // px/сек
+        const dt = Math.max(16, now - sleepPats.lastAt);
+        const dx = e.clientX - sleepPats.lastX;
+        const dy = e.clientY - sleepPats.lastY;
+        const speed = (Math.sqrt(dx * dx + dy * dy) / dt) * 1000; // px/сек
         sleepPats.lastAt = now;
         sleepPats.lastX = e.clientX;
         sleepPats.lastY = e.clientY;
-        var dist = Math.abs(pos.x - e.clientX) + Math.abs(pos.y - e.clientY);
+        const dist = Math.abs(pos.x - e.clientX) + Math.abs(pos.y - e.clientY);
         // РЫВОК рядом (быстро и близко) — пугается и просыпается сам
-        if (dist < 150 && speed > 1800) { wakeUp(); return true; }
+        if (dist < 150 && speed > 1800) {
+            wakeUp();
+            return true;
+        }
         // МЯГКОСТЬ: медленно и в пределах тепла (160px) — дремлет, но
         // тянется к курсору (дрейф якоря сна, не телепорт)
         if (dist < 160 && speed < 600) {
-            var k = 0.06; // за тик — маленький шажок к теплу
+            const k = 0.06; // за тик — маленький шажок к теплу
             if (sleepAnchor) {
                 sleepAnchor.x += (e.clientX - sleepAnchor.x) * k;
                 sleepAnchor.y += (e.clientY - sleepAnchor.y) * k;
             }
             // бормотание — не чаще раза в 12с, тихое, во сне
-            if (now - sleepPats.mumbleAt > 12_000 && Math.random() < 0.2) {
+            // и не поверх живой реплики (засыпания «вот тут я посплю»)
+            const saying = sayEl && sayEl.classList.contains('show');
+            if (!saying && now - sleepPats.mumbleAt > 12_000 && Math.random() < 0.2) {
                 sleepPats.mumbleAt = now;
-                showSay(pick(L.sleepMumble), 3000, 'asleep', 'auto');
+                showSay(pick(L.sleepMumble), 3000, 'asleep');
             }
             return true; // движение «поглощено» сном: не будит
         }
         return false;
     }
-    var gazeThrottleAt = 0;
-    var dizzyAngle = 0; // накопленный угол вокруг призрака
-    var dizzySince = 0;
-    var lastDizzyAt = 0;
+    let gazeThrottleAt = 0;
+    let dizzyAngle = 0; // накопленный угол вокруг призрака
+    let dizzySince = 0;
+    let lastDizzyAt = 0;
     function onMouseMove(e) {
         // сон-пат: пока спит — мягкие движения НЕ будят (дрейф к теплу),
         // быстрый рывок рядом — просыпается испуганно
         if (S.asleep && S.visible && sleepPat(e)) {
-            mouse.x = e.clientX; mouse.y = e.clientY;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
             lastMouseMoveAt = Date.now();
             return;
         }
@@ -3545,16 +3624,16 @@
         trackGaze();
     }
     function trackGaze() {
-        var now = Date.now();
+        const now = Date.now();
         if (now - gazeThrottleAt < 100) return;
         gazeThrottleAt = now;
         if (!body || !S.visible || S.asleep) return;
         // вектор к курсору в нормализованных координатах, ограниченный
-        var dx = mouse.x - pos.x;
-        var dy = mouse.y - pos.y;
-        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        var nx = dx / dist;
-        var ny = dy / dist;
+        const dx = mouse.x - pos.x;
+        const dy = mouse.y - pos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const nx = dx / dist;
+        const ny = dy / dist;
         // ближе 500px — интерес; дальше — зрачки по центру (не пялится через весь экран)
         if (dist < 500) {
             body.setAttribute('data-gaze', 'mouse');
@@ -3571,17 +3650,24 @@
         // накопленный угол растёт; полтора оборота за 4с = валится на бок
         // (ровно 2π×2 — float-хрупко: просили два круга, получали границу)
         if (dist > 40 && dist < 400) {
-            var ang = Math.atan2(dy, dx);
+            const ang = Math.atan2(dy, dx);
             if (dizzySince && now - dizzySince < 4000) {
-                var d = ang - dizzyAngle;
+                let d = ang - dizzyAngle;
                 while (d > Math.PI) d -= 2 * Math.PI;
                 while (d < -Math.PI) d += 2 * Math.PI;
                 dizzyTurned += d;
-                if (Math.abs(dizzyTurned) > Math.PI * 3) { // полтора круга
+                if (Math.abs(dizzyTurned) > Math.PI * 3) {
+                    // полтора круга
                     dizzyTurned = 0;
                     dizzySince = 0;
-                    if (S.visible && !S.asleep && !S.raging && !S.dodging && !currentAct &&
-                        now - lastDizzyAt > 60_000) {
+                    if (
+                        S.visible &&
+                        !S.asleep &&
+                        !S.raging &&
+                        !S.dodging &&
+                        !currentAct &&
+                        now - lastDizzyAt > 60_000
+                    ) {
                         lastDizzyAt = now;
                         setFace('skeptic');
                         enqueue(pick(L.dizzyLines), 3600, 'skeptic', 'user');
@@ -3597,10 +3683,16 @@
             dizzyTurned = 0;
         }
     }
-    var dizzyTurned = 0;
+    let dizzyTurned = 0;
     function onHover() {
-        if (S.dodging) { dodgeStep(); return; }
-        if (S.asleep) { wakeUp(); return; }
+        if (S.dodging) {
+            dodgeStep();
+            return;
+        }
+        if (S.asleep) {
+            wakeUp();
+            return;
+        }
         /* СТЕСНИТЕЛЬНОСТЬ: взгляд 3с — правило «Бу наоборот».
            Не срабатывает: в психе, в акте (акт сам смущается своим
            «застукали»), при живой реплике (читаемость важнее) и чаще
@@ -3610,10 +3702,9 @@
            shy-гейт, и «постоявший 3с над спящим» получал побудку, а не
            стеснение. Решение: реплика ещё жива — shy НЕ отменяется,
            а откладывается до её конца (перепостановка таймера). */
-        if (S.visible && !S.raging && !currentAct && !S.shy &&
-            Date.now() - lastShyAt > 110_000) {
+        if (S.visible && !S.raging && !currentAct && !S.shy && Date.now() - lastShyAt > 110_000) {
             clearTimeout(S.timers.shy);
-            var armShy = function () {
+            const armShy = function () {
                 S.timers.shy = setTimeout(function () {
                     if (!S.visible || S.raging || S.dodging || currentAct || S.shy) return;
                     // реплика ещё доживает (побудка/говорение) — НЕ отказ:
@@ -3625,7 +3716,7 @@
                     // курсор всё ещё на призраке? :hover ненадёжен в средах
                     // без композитинга (headless, часть тач-окружений) —
                     // сверяем координаты: курсор в пределах тела (+запас)
-                    var near = Math.abs(pos.x - mouse.x) < 90 && Math.abs(pos.y - mouse.y) < 110;
+                    const near = Math.abs(pos.x - mouse.x) < 90 && Math.abs(pos.y - mouse.y) < 110;
                     if (!near) return;
                     S.shy = true;
                     lastShyAt = Date.now();
@@ -3655,9 +3746,15 @@
     function watchShyLeave() {
         clearTimeout(S.timers.shyWatch);
         S.timers.shyWatch = setInterval(function () {
-            if (!S.shy) { clearTimeout(S.timers.shyWatch); return; }
-            var far = Math.abs(pos.x - mouse.x) > 130 || Math.abs(pos.y - mouse.y) > 150;
-            if (far) { clearTimeout(S.timers.shyWatch); endShy(); }
+            if (!S.shy) {
+                clearTimeout(S.timers.shyWatch);
+                return;
+            }
+            const far = Math.abs(pos.x - mouse.x) > 130 || Math.abs(pos.y - mouse.y) > 150;
+            if (far) {
+                clearTimeout(S.timers.shyWatch);
+                endShy();
+            }
         }, 700);
     }
 
@@ -3665,8 +3762,11 @@
     function editorLoop() {
         clearTimeout(S.timers.idle);
         S.timers.idle = setTimeout(function () {
-            if (busyBridge.busy || blockedByHost) { editorLoop(); return; }
-            var active = document.activeElement;
+            if (busyBridge.busy || blockedByHost) {
+                editorLoop();
+                return;
+            }
+            const active = document.activeElement;
             if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
                 editorLoop();
                 return;
@@ -3678,9 +3778,9 @@
                 // 3) говорит «вот тут я посплю» (глаза ещё открыты);
                 // 4) реплика доживает (читаемость!) — и только потом сон.
                 appear(true);
-                var flyFrom = SPOTS[(spotIdx + 4) % SPOTS.length];
-                var toX = SPOTS[spotIdx].x * window.innerWidth;
-                var toY = SPOTS[spotIdx].y * window.innerHeight;
+                const flyFrom = SPOTS[(spotIdx + 4) % SPOTS.length];
+                const toX = SPOTS[spotIdx].x * window.innerWidth;
+                const toY = SPOTS[spotIdx].y * window.innerHeight;
                 // прилетаем «уставшим»: слегка заваленный наклон на подлёте
                 body.style.setProperty('--um13-tilt', '14deg');
                 flyTo(
@@ -3692,14 +3792,17 @@
                 // графия прилёта не должна сбрасываться чужими движениями
                 S.timers.arrive = setTimeout(function () {
                     if (!S.visible || S.asleep) return;
-                    var line = pick(L.editorArrive);
-                    showSay(line, undefined, 'thinking', 'user');
+                    const line = pick(L.editorArrive);
+                    showSay(line, undefined, 'thinking');
                     // сон — после того как реплика прочитана (жизнь реплики
                     // + пауза), глаза закрываются на глазах у пользователя
-                    S.timers.arrive = setTimeout(function () {
-                        if (!S.visible || S.asleep) return;
-                        fallAsleep(true);
-                    }, Math.max(4500, line.length * 85 + 3200));
+                    S.timers.arrive = setTimeout(
+                        function () {
+                            if (!S.visible || S.asleep) return;
+                            fallAsleep(true);
+                        },
+                        Math.max(4500, line.length * 85 + 3200),
+                    );
                 }, 2200);
             }
         }, 30_000);
@@ -3717,21 +3820,27 @@
             // mousemove: сцена стартовала — она должна дойти до конца.
             clearInterval(S.timers.wake);
             S.timers.wake = setInterval(function () {
-                if (!S.visible || S.sailing) { clearInterval(S.timers.wake); return; }
-                var showing = sayEl && sayEl.classList.contains('show');
+                if (!S.visible || S.sailing) {
+                    clearInterval(S.timers.wake);
+                    return;
+                }
+                const showing = sayEl && sayEl.classList.contains('show');
                 if (showing) return; // реплика пробуждения ещё читается
                 clearInterval(S.timers.wake);
-                var bye = pick(L.editorBye);
+                const bye = pick(L.editorBye);
                 enqueue(bye, undefined, 'wink', 'user');
                 setFace('wink', true);
                 // отплытие — когда прощание реально показалось и дожило:
                 // bye может подождать в очереди, поэтому поллим его показ
                 S.timers.sail = setInterval(function () {
-                    if (!S.visible) { clearInterval(S.timers.sail); return; }
+                    if (!S.visible) {
+                        clearInterval(S.timers.sail);
+                        return;
+                    }
                     if (!S.visible || S.sailing || !sayEl.classList.contains('show')) return;
                     if (sayEl.textContent.indexOf(bye) !== 0) return; // очередь ещё не дошла
                     clearInterval(S.timers.sail);
-                    var byeLife = Math.max(4500, bye.length * 85 + 800);
+                    const byeLife = Math.max(4500, bye.length * 85 + 800);
                     S.timers.sail = 0;
                     S.timers.wake = setTimeout(sailAway, byeLife);
                 }, 300);
@@ -3747,20 +3856,28 @@
     function leaveFrostSpot() {
         try {
             if (!root) return;
-            var old = root.querySelector('.um13g-frost');
+            const old = root.querySelector('.um13g-frost');
             if (old) old.remove();
-            var f = document.createElement('div');
+            const f = document.createElement('div');
             f.className = 'um13g-frost';
-            f.style.left = (pos.x - 90) + 'px';
-            f.style.top = (pos.y - 60) + 'px';
+            f.style.left = pos.x - 90 + 'px';
+            f.style.top = pos.y - 60 + 'px';
             root.appendChild(f);
-            requestAnimationFrame(function () { f.classList.add('on'); });
-            setTimeout(function () { f.classList.add('on'); }, 80); // headless-фолбэк
+            requestAnimationFrame(function () {
+                f.classList.add('on');
+            });
+            setTimeout(function () {
+                f.classList.add('on');
+            }, 80); // headless-фолбэк
             setTimeout(function () {
                 f.classList.add('bye');
-                setTimeout(function () { f.remove(); }, 30_000);
+                setTimeout(function () {
+                    f.remove();
+                }, 30_000);
             }, 2500);
-        } catch (e) { /* портал недоступен — обойдёмся */ }
+        } catch (e) {
+            /* портал недоступен — обойдёмся */
+        }
     }
 
     function sailAway() {
@@ -3774,8 +3891,8 @@
         // Только после реального сна (недремавшее место не остывает).
         if (S.asleep || S.sleptHere) leaveFrostSpot();
         S.sleptHere = false;
-        var fx = pos.x / window.innerWidth;
-        var fy = pos.y / window.innerHeight;
+        const fx = pos.x / window.innerWidth;
+        const fy = pos.y / window.innerHeight;
         flyTo(
             (fx < 0.5 ? -0.16 : 1.16) * window.innerWidth,
             (fy < 0.5 ? -0.18 : 1.18) * window.innerHeight,
@@ -3789,6 +3906,7 @@
             offscreen = false;
             S.sailing = false;
             S.visible = false;
+            setAway(true);
             hideSay();
             clearStateTimers();
             spotIdx = Math.floor(Math.random() * SPOTS.length);
@@ -3809,23 +3927,25 @@
     /** Первая встреча: метка first-met — годовщины считают от неё. */
     function markFirstMet() {
         try {
-            var m = memoryRead();
+            const m = memoryRead();
             if (typeof m['first-met'] !== 'number') {
                 m['first-met'] = Date.now();
                 localStorage.setItem('um13-memory', JSON.stringify(m));
             }
-        } catch (e) { /* приватный режим — без годовщин */ }
+        } catch (e) {
+            /* приватный режим — без годовщин */
+        }
     }
     function humanName() {
-        var n = memoryRead()['humanName'];
+        const n = memoryRead()['humanName'];
         return typeof n === 'string' && n.trim() ? n.trim().slice(0, 24) : '';
     }
 
     /* Персональные приветствия: имя доступно — 50% реплик с обращением */
     function maybeNamed(lines) {
-        var name = humanName();
+        const name = humanName();
         if (!name || Math.random() >= 0.5) return lines;
-        var templates = [
+        const templates = [
             'о. привет, {n}.',
             'ты пришёл, {n}. я почти сразу заметил. почти.',
             '{n}. у тебя имя есть, а у меня — номер. справедливо.',
@@ -3837,8 +3957,8 @@
     /* Календарные реплики: редкие даты меняют приветствие и байки.
        Возвращают [пул приветствий, пул баек] или null — если день обычный. */
     function calendarPools() {
-        var d = new Date();
-        var md = (d.getMonth() + 1) * 100 + d.getDate();
+        const d = new Date();
+        const md = (d.getMonth() + 1) * 100 + d.getDate();
         if (md === 401) {
             return [
                 ['сегодня всё, что я говорю, — ложь. кроме этого. может быть.'],
@@ -3848,30 +3968,40 @@
         if (md === 1031) {
             return [
                 ['31 октября. призраки выходят на праздничную смену. я, правда, всегда на смене.'],
-                ['в хэллоуин все ключи ходят друг к другу в гости. страшно только тем, кто не сохранён.'],
+                [
+                    'в хэллоуин все ключи ходят друг к другу в гости. страшно только тем, кто не сохранён.',
+                ],
             ];
         }
-        if (md >= 1225 && md <= 1231 || md === 101) {
+        if ((md >= 1225 && md <= 1231) || md === 101) {
             return [
-                ['с праздником. хранилище нарядили. гирлянда мигает. то есть — мерцает. то есть — сбоит. празднично.'],
+                [
+                    'с праздником. хранилище нарядили. гирлянда мигает. то есть — мерцает. то есть — сбоит. празднично.',
+                ],
                 ['в новогоднюю ночь эвикция тоже отдыхает. наверное. я не проверял — страшно.'],
             ];
         }
         // Годовщина первой встречи (по first-met из общей памяти): раз в год
-        var fm = memoryRead()['first-met'];
+        const fm = memoryRead()['first-met'];
         if (typeof fm === 'number' && fm > 0) {
-            var then = new Date(fm);
-            var years = d.getFullYear() - then.getFullYear();
-            var sameDay = (then.getMonth() === d.getMonth() && then.getDate() === d.getDate());
+            const then = new Date(fm);
+            const years = d.getFullYear() - then.getFullYear();
+            const sameDay = then.getMonth() === d.getMonth() && then.getDate() === d.getDate();
             if (years >= 1 && sameDay && !memoryRead()['met-' + d.getFullYear()]) {
                 try {
-                    var m = memoryRead();
+                    const m = memoryRead();
                     m['met-' + d.getFullYear()] = Date.now();
                     localStorage.setItem('um13-memory', JSON.stringify(m));
-                } catch (e) { /* приватный режим — годовщина молчит */ }
+                } catch (e) {
+                    /* приватный режим — годовщина молчит */
+                }
                 return [
                     [years + ' год(а) назад ты первый раз пришёл. я приготовил реплику. вот она.'],
-                    ['сегодня ровно ' + years + ' год(а), как мы знакомы. я поставил себе напоминание. оно сработало. я горжусь нами обоими.'],
+                    [
+                        'сегодня ровно ' +
+                            years +
+                            ' год(а), как мы знакомы. я поставил себе напоминание. оно сработало. я горжусь нами обоими.',
+                    ],
                 ];
             }
         }
@@ -3881,13 +4011,19 @@
     /* ═══ ПУБЛИЧНЫЙ API ═══ */
     window.UM13Ghost = {
         say: function (text, ms, mood) {
-            if (!S.booted) { pending.push({ type: 'say', text: text, ms: ms, mood: mood }); return; }
+            if (!S.booted) {
+                pending.push({ type: 'say', text: text, ms: ms, mood: mood });
+                return;
+            }
             if (!firstWordAt) firstWordAt = Date.now();
             if (S.asleep) wakeUp();
             queueSay(text, ms, mood || guessMood(text));
         },
         react: function (event) {
-            if (!S.booted) { pending.push({ type: 'react', event: event }); return; }
+            if (!S.booted) {
+                pending.push({ type: 'react', event: event });
+                return;
+            }
             if (!firstWordAt) firstWordAt = Date.now();
             if (!REACTIONS[event] || !REACTIONS[event].length) return;
             if (S.asleep) wakeUp();
@@ -3919,12 +4055,22 @@
                 if (payload.fx === 'confetti') CONFETTI_EVENTS[event] = 1;
             }
         },
-        mood: function (name, sticky) { setFace(name, sticky); },
-        tantrum: function () { if (S.booted) tantrum(); },
-        confetti: function () { if (S.booted) confetti(18); },
-        warn: function (kind) { if (S.booted) warn(kind); },
+        mood: function (name, sticky) {
+            setFace(name, sticky);
+        },
+        tantrum: function () {
+            if (S.booted) tantrum();
+        },
+        confetti: function () {
+            if (S.booted) confetti(18);
+        },
+        warn: function (kind) {
+            if (S.booted) warn(kind);
+        },
         /** Запустить акт-позу вручную (glitch|eat|dream|dance|peek|defrag). */
-        act: function (kind) { if (S.booted) startAct(kind, true); },
+        act: function (kind) {
+            if (S.booted) startAct(kind, true);
+        },
         /** ЛОВЕЦ УДАЛЁННЫХ НОД: человек удалил ноду — призрак
             ловит гаснущий кубик в подол и бережёт. Призрак, который
             сохраняет то, что ты выбрасываешь: самый тихий лор-ход
@@ -3935,13 +4081,13 @@
             // КУЛДАУН + ВАРИАТИВНОСТЬ (арт-директорское ревью): без этого
             // каждый Delete = sad-лицо, забота превращается в «призрак
             // осуждает каждый клик». Реакции: молча / с репликой / не заметил.
-            var now = Date.now();
+            const now = Date.now();
             if (now - catchNode._lastAt < 45_000) return;
             catchNode._lastAt = now;
-            var roll = Math.random();
+            const roll = Math.random();
             if (roll < 0.25) return; // не заметил: человек чистит холст
-            var caught = document.createElement('div');
-            var c = NODE_COLORS.indexOf(color) >= 0 ? color : pick(NODE_COLORS);
+            const caught = document.createElement('div');
+            const c = NODE_COLORS.indexOf(color) >= 0 ? color : pick(NODE_COLORS);
             caught.className = 'um13g-caught';
             caught.style.background = c;
             caught.style.boxShadow = '0 0 8px ' + c;
@@ -3952,7 +4098,9 @@
                 enqueue(pick(L.nodeCatchLines), 4200, 'sad', 'user');
             }
             // кубик «носится» в подоле пару секунд и тает — приберёг
-            setTimeout(function () { caught.remove(); }, 3200);
+            setTimeout(function () {
+                caught.remove();
+            }, 3200);
         },
         /** Настоящий сон: лицо asleep + Zzz + дрейф на месте (не только лицо). */
         sleep: function () {
@@ -3965,7 +4113,12 @@
             if (!S.booted) return;
             if (S.visible) wakeUp();
         },
-        hide: function () { if (S.booted) { blockedByHost = true; disappear(); } },
+        hide: function () {
+            if (S.booted) {
+                blockedByHost = true;
+                disappear();
+            }
+        },
         /** show() от хоста (React) = «разреши присутствие», НЕ «появись сейчас»:
          *  в editor-режиме призрак всё равно приходит только по 30с простоя.
          *  Иначе g.show() при каждом рендере App материализовывал его
@@ -3980,17 +4133,25 @@
                 if (!S.visible) editorLoop();
             }
         },
-        poke: function () { if (S.booted) onClick(); },
+        poke: function () {
+            if (S.booted) onClick();
+        },
         /** Смена языка на лету (редактор дёргает при смене локали):
          *  следующие реплики — уже на новом языке. */
         setLocale: function (loc) {
             if (loc === 'ru' || loc === 'en') {
                 LOCALE = loc;
-                try { localStorage.setItem('um13-locale', loc); } catch (e) { /* приватный режим */ }
+                try {
+                    localStorage.setItem('um13-locale', loc);
+                } catch (e) {
+                    /* приватный режим */
+                }
             }
         },
         /** Новая встреча: фиксирует ход визита — доверие растёт. */
-        visit: function () { if (S.booted) markVisit(); },
+        visit: function () {
+            if (S.booted) markVisit();
+        },
         /** Детектор клички (v1.1): React спрашивает, «слышит» ли
             призрак этот текст — «ум13»/«um13» как отдельное слово.
             Чистая функция: решает хост-страница, отвечает призрак. */
@@ -3999,13 +4160,15 @@
         },
         /** Колокольчик (три ноты) — для песочницы/теста; в проде он
          *  звучит только в финале приёмной (queue.html). */
-        chime: function () { if (S.booted) return playChime(); },
+        chime: function () {
+            if (S.booted) return playChime();
+        },
         /** Карточка дружбы (PNG): вручает «своим» — рендерит canvas,
          *  копирует в буфер (фолбэк — скачивание). */
         friendCard: function () {
             if (!S.booted) return false;
-            var ok = giftFriendCard();
-            if (ok) showSay(pick(L.friendCardLines), 5000, 'delight', 'user');
+            const ok = giftFriendCard();
+            if (ok) enqueue(pick(L.friendCardLines), 5000, 'delight', 'user');
             return ok;
         },
         /** Финал приёмной: ключ повёрнут/отдан — призрак узнаёт
@@ -4019,11 +4182,11 @@
             applyKeyFlags();
             if (kind === 'turned' && !S.keyLineSaid && S.visible && !S.asleep) {
                 S.keyLineSaid = true;
-                showSay(pick(L.keyTurnedLines), 6000, 'delight', 'user');
+                enqueue(pick(L.keyTurnedLines), 6000, 'delight', 'user');
             }
             if (kind === 'given' && !S.keyLineSaid && S.visible && !S.asleep) {
                 S.keyLineSaid = true;
-                showSay(pick(L.keyGivenLines), 6000, 'sad', 'user');
+                enqueue(pick(L.keyGivenLines), 6000, 'sad', 'user');
             }
         },
         /** Состояние для страниц/тестов: доверие, давление, финал. */
@@ -4031,12 +4194,22 @@
             return {
                 trust: trustLevel(),
                 pressure: pressureLevel,
-                keyState: memoryNum('key-turned') ? 'turned' : memoryNum('key-given') ? 'given' : 'none',
+                keyState: memoryNum('key-turned')
+                    ? 'turned'
+                    : memoryNum('key-given')
+                      ? 'given'
+                      : 'none',
             };
         },
-        get visible() { return S.visible; },
-        get asleep() { return S.asleep; },
-        get face() { return S.face; },
+        get visible() {
+            return S.visible;
+        },
+        get asleep() {
+            return S.asleep;
+        },
+        get face() {
+            return S.face;
+        },
     };
 
     /* ═══ СОБЫТИЯ ═══ */
@@ -4054,20 +4227,40 @@
         window.addEventListener('pointermove', onPointerMove, { passive: true });
         window.addEventListener('pointerup', onPointerUp, { passive: true });
         window.addEventListener('pointercancel', onPointerUp, { passive: true });
-        var acts = ['mousemove', 'keydown', 'mousedown', 'wheel', 'touchstart'];
+        const acts = ['mousemove', 'keydown', 'mousedown', 'wheel', 'touchstart'];
+        // mousemove/wheel летят 60–120 раз в секунду, а каждый noteActivity
+        // перевзводит таймеры простоя (check/sleep/bark, в редакторе — idle).
+        // Точность «30с тишины» ±250мс не важна — перевзводим не чаще 4 раз
+        // в секунду. Клавиши/клики/тапы и спящий призрак — без троттла.
+        let lastActivityAt = 0;
         acts.forEach(function (ev) {
-            window.addEventListener(ev, function (e) {
-                onMouseMove(e);
-                noteActivity();
-                if (MODE === 'editor') editorWatchActivity();
-                // quiet: активность = читатель вернулся — тихо уплываем
-                // (но не во время драга: его несут — он уже «с человеком»)
-                if (MODE === 'quiet' && S.visible && !drag.on) quietLeave();
-            }, { passive: true });
+            const frequent = ev === 'mousemove' || ev === 'wheel';
+            window.addEventListener(
+                ev,
+                function (e) {
+                    onMouseMove(e);
+                    const now = Date.now();
+                    if (frequent && !S.asleep && now - lastActivityAt < 250) {
+                        if (MODE === 'quiet' && S.visible && !drag.on) quietLeave();
+                        return;
+                    }
+                    lastActivityAt = now;
+                    noteActivity();
+                    if (MODE === 'editor') editorWatchActivity();
+                    // quiet: активность = читатель вернулся — тихо уплываем
+                    // (но не во время драга: его несут — он уже «с человеком»)
+                    if (MODE === 'quiet' && S.visible && !drag.on) quietLeave();
+                },
+                { passive: true },
+            );
         });
         window.addEventListener('resize', function () {
             if (!S.visible) return;
-            flyTo(SPOTS[spotIdx].x * window.innerWidth, SPOTS[spotIdx].y * window.innerHeight, true);
+            flyTo(
+                SPOTS[spotIdx].x * window.innerWidth,
+                SPOTS[spotIdx].y * window.innerHeight,
+                true,
+            );
         });
         // уход со страницы = конец визита: разрыв считают от этой метки
         window.addEventListener('pagehide', function () {
@@ -4077,9 +4270,11 @@
             // экспорт = тепло (лодка ушла — призрак благодарен). Экспорт
             // приоритетнее: добрый финал перекрывает шторм.
             try {
-                var mood = S.exportedThisVisit ? 'warm' : S.ragedThisVisit ? 'cold' : null;
+                const mood = S.exportedThisVisit ? 'warm' : S.ragedThisVisit ? 'cold' : null;
                 if (mood) memoryWrite({ 'last-mood': mood });
-            } catch (e) { /* приватный режим */ }
+            } catch (e) {
+                /* приватный режим */
+            }
             // ПОТЕРЯШКА-ПИТОМЕЦ: уходим, а кубик всё ещё прилип у края —
             // призрак забирает его «с собой» (флаг в общей памяти:
             // в следующем визите кубик будет висеть на его цепочке).
@@ -4089,7 +4284,9 @@
                     memoryWrite({ 'cube-adopted': Date.now(), 'cube-color': pick(NODE_COLORS) });
                     applyPetCube();
                 }
-            } catch (e) { /* приватный режим */ }
+            } catch (e) {
+                /* приватный режим */
+            }
         });
         document.addEventListener('visibilitychange', function () {
             if (document.hidden) {
@@ -4103,7 +4300,11 @@
                 // ТИТУЛ: человек ушёл на другую вкладку — призрак
                 // остался тут. Тихая реплика в заголовке (8с, раз в 4ч):
                 // территория за пределами страницы — самый честный панч.
-                if (S.booted && !titleState.saidAway && Date.now() - (titleState.lastAway || 0) > 4 * 3600_000) {
+                if (
+                    S.booted &&
+                    !titleState.saidAway &&
+                    Date.now() - (titleState.lastAway || 0) > 4 * 3600_000
+                ) {
                     titleState.saidAway = true;
                     titleState.lastAway = Date.now();
                     setTitle(S.asleep ? '…(тут кто-то спит)' : '…ты ушёл?', 8000);
@@ -4120,12 +4321,36 @@
                 } else if (sleepPic.els.length) {
                     clearSleepPic(false);
                 }
-                if (!sleepPic.els.length && S.visible && !S.asleep && !S.raging &&
-                    S.bootedAt && Date.now() - S.bootedAt > 15_000 && Math.random() < 0.4) {
-                    var name = humanName();
-                    showSay(pick(name
-                        ? ['о. ты вернулся, ' + name + '. я заметил. хранилище почти скучало.', 'с возвращением, ' + name + '. я не двигал твои ноды. честно.']
-                        : ['о. ты вернулся. я заметил.', 'с возвращением. хранилище почти скучало.']), undefined, 'delight');
+                if (
+                    !sleepPic.els.length &&
+                    S.visible &&
+                    !S.asleep &&
+                    !S.raging &&
+                    S.bootedAt &&
+                    Date.now() - S.bootedAt > 15_000 &&
+                    Math.random() < 0.4
+                ) {
+                    const name = humanName();
+                    enqueue(
+                        pick(
+                            name
+                                ? [
+                                      'о. ты вернулся, ' +
+                                          name +
+                                          '. я заметил. хранилище почти скучало.',
+                                      'с возвращением, ' +
+                                          name +
+                                          '. я не двигал твои ноды. честно.',
+                                  ]
+                                : [
+                                      'о. ты вернулся. я заметил.',
+                                      'с возвращением. хранилище почти скучало.',
+                                  ],
+                        ),
+                        undefined,
+                        'delight',
+                        'auto',
+                    );
                 }
             }
         });
@@ -4133,7 +4358,9 @@
         // что рядом дремлют — страницы с аудио (терминал, Скайнет)
         // приглушают звук, пока призрак спит. Событие — трансляция
         // состояния, слушать необязательно.
-        window.addEventListener('um13-asleep', function () { /* трансляция для страниц */ });
+        window.addEventListener('um13-asleep', function () {
+            /* трансляция для страниц */
+        });
     }
 
     /* ═══ СОБЫТИЯ РЕДАКТОРА: React дёргает window-события
@@ -4144,8 +4371,7 @@
        Формат detail: {x, y, name?, text?} — экранная точка цели. */
     function bindEditorEvents() {
         window.addEventListener('um13:review', function (e) {
-            var ev = e || window.event;
-            var d = (ev && ev.detail) || {};
+            const d = e.detail || {};
             if (!S.booted) return;
             // прилететь к ноде с ошибкой (если призрак есть или page-режим)
             if (typeof d.x === 'number' && typeof d.y === 'number') {
@@ -4153,19 +4379,22 @@
                     if (MODE === 'page') appear(true);
                     else return; // editor: не материализуемся из ничего
                 }
-                flyTo(Math.max(30, Math.min(window.innerWidth - 30, d.x)),
-                    Math.max(30, Math.min(window.innerHeight - 30, d.y - 90)));
+                flyTo(
+                    Math.max(30, Math.min(window.innerWidth - 30, d.x)),
+                    Math.max(30, Math.min(window.innerHeight - 30, d.y - 90)),
+                );
                 setTimeout(function () {
                     queueSay(pick(L.reviewLines), 6500, 'sad');
                 }, 1900);
             }
         });
         window.addEventListener('um13:review-name', function (e) {
-            var ev = e || window.event;
-            var d = (ev && ev.detail) || {};
+            const d = e.detail || {};
             if (!S.booted || !S.visible || S.asleep) return;
             // {n} в пуле — имя, которое дал человек
-            var n = String(d.name || '').slice(0, 24).replace(/\{\{|\}\}/g, '');
+            const n = String(d.name || '')
+                .slice(0, 24)
+                .replace(/\{\{|\}\}/g, '');
             if (!n) return;
             enqueue(pick(L.reviewNameLines).replace(/\{n\}/g, n), 5000, 'smart', 'user');
         });
@@ -4174,8 +4403,7 @@
             enqueue(pick(L.reviewEmptyLines), 5000, 'thinking', 'user');
         });
         window.addEventListener('um13:theme', function (e) {
-            var ev = e || window.event;
-            var d = (ev && ev.detail) || {};
+            const d = e.detail || {};
             if (!S.booted || d.theme !== 'light') return;
             if (S.visible && !S.asleep) {
                 enqueue(pick(L.lightLines), 4200, 'smart', 'user');
@@ -4186,11 +4414,10 @@
            детектирует (Um13Watches) и дёргает событие с текстом.
            Ответ — раз в 15 минут: имя драгоценно, спам убил бы магию.
            В quiet-режиме молчим: витрина не для бесед. */
-        window.addEventListener('um13:called', function onCalled(e) {
-            var ev = e || window.event;
-            var d = (ev && ev.detail) || {};
+        window.addEventListener('um13:called', function onCalled() {
             if (!S.booted || MODE === 'quiet') return;
-            if (typeof onCalled._lastAt === 'number' && Date.now() - onCalled._lastAt < 15 * 60_000) return;
+            if (typeof onCalled._lastAt === 'number' && Date.now() - onCalled._lastAt < 15 * 60_000)
+                return;
             onCalled._lastAt = Date.now();
             if (!S.visible) {
                 if (MODE === 'page') appear(true);
@@ -4205,8 +4432,7 @@
            Единственный контакт призрака с настоящим графом игрока.
            Сидит 6–10с, уплывает. Не в психе/побеге/укрытии хоста. */
         window.addEventListener('um13:perch', function (e) {
-            var ev = e || window.event;
-            var d = (ev && ev.detail) || {};
+            const d = e.detail || {};
             if (!S.booted || MODE === 'quiet') return;
             if (typeof d.x !== 'number' || typeof d.y !== 'number') return;
             if (S.dodging || S.raging || blockedByHost || S.sailing) return;
@@ -4222,18 +4448,20 @@
             setTimeout(function () {
                 if (S.visible && !S.asleep) enqueue(pick(L.perchLines), 3600, 'normal', 'user');
             }, 1400);
-            setTimeout(function () {
-                body.classList.remove('um13g-perched');
-                body.style.setProperty('--um13-tilt', '0deg');
-            }, rnd(6000, 10_000));
+            setTimeout(
+                function () {
+                    body.classList.remove('um13g-perched');
+                    body.style.setProperty('--um13-tilt', '0deg');
+                },
+                rnd(6000, 10_000),
+            );
         });
         /* ═══ СОАВТОРСТВО (v1.1, финал): React добавил ноду-записку
            от UM-13 (flowStore.addNode + addEdge) и дёргает событие
            с её экранными координатами. Призрак прилетает к ней —
            его собственный почерк теперь виден на холсте. Не в quiet. */
         window.addEventListener('um13:coauthor', function (e) {
-            var ev = e || window.event;
-            var d = (ev && ev.detail) || {};
+            const d = e.detail || {};
             if (!S.booted || MODE === 'quiet') return;
             if (typeof d.x !== 'number' || typeof d.y !== 'number') return;
             if (S.dodging || S.raging || S.sailing) return;
@@ -4249,7 +4477,7 @@
             );
             setTimeout(function () {
                 if (S.visible && !S.asleep && !S.sailing) {
-                    showSay(pick(L.coauthorLines), 8000, 'delight', 'user');
+                    enqueue(pick(L.coauthorLines), 8000, 'delight', 'user');
                     confetti(10);
                 }
             }, 1800);
@@ -4262,19 +4490,21 @@
         артефакт для тех, кто дошёл до «свой». Тёмная карточка в стиле
         вселенной, циановый контур, янтарный ключ. ═══ */
     function renderFriendCard() {
-        var W = 480, H = 320;
-        var cv = document.createElement('canvas');
-        cv.width = W; cv.height = H;
-        var ctx = cv.getContext && cv.getContext('2d');
+        const W = 480,
+            H = 320;
+        const cv = document.createElement('canvas');
+        cv.width = W;
+        cv.height = H;
+        const ctx = cv.getContext && cv.getContext('2d');
         if (!ctx) return null;
-        var m = memoryRead();
-        var visits = typeof m['visits'] === 'number' ? m['visits'] : 1;
-        var rescued = typeof m['well-rescued'] === 'number' ? m['well-rescued'] : 0;
-        var name = humanName();
+        const m = memoryRead();
+        const visits = typeof m['visits'] === 'number' ? m['visits'] : 1;
+        const rescued = typeof m['well-rescued'] === 'number' ? m['well-rescued'] : 0;
+        const name = humanName();
         // фон — хранилище
         ctx.fillStyle = '#070b12';
         ctx.fillRect(0, 0, W, H);
-        var grad = ctx.createRadialGradient(W * 0.8, H * 0.1, 10, W * 0.8, H * 0.1, W * 0.7);
+        const grad = ctx.createRadialGradient(W * 0.8, H * 0.1, 10, W * 0.8, H * 0.1, W * 0.7);
         grad.addColorStop(0, 'rgba(0,240,255,0.10)');
         grad.addColorStop(1, 'transparent');
         ctx.fillStyle = grad;
@@ -4295,59 +4525,107 @@
         ctx.quadraticCurveTo(100, 226, 80, 210);
         ctx.stroke();
         // глаза + усталый полуулыб
-        ctx.beginPath(); ctx.arc(112, 128, 5, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(148, 128, 5, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(120, 150); ctx.quadraticCurveTo(132, 156, 142, 148); ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(112, 128, 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(148, 128, 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(120, 150);
+        ctx.quadraticCurveTo(132, 156, 142, 148);
+        ctx.stroke();
         // янтарный ключ
         ctx.strokeStyle = '#ff9d00';
-        ctx.beginPath(); ctx.arc(186, 178, 7, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(186, 185); ctx.lineTo(186, 205); ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(186, 178, 7, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(186, 185);
+        ctx.lineTo(186, 205);
+        ctx.stroke();
         // текст
         ctx.fillStyle = '#00f0ff';
         ctx.font = '600 20px monospace';
-        ctx.fillText('UM-13 · ' + (LOCALE === 'en' ? 'friendship certificate' : 'справка о дружбе'), 220, 74);
+        ctx.fillText(
+            'UM-13 · ' + (LOCALE === 'en' ? 'friendship certificate' : 'справка о дружбе'),
+            220,
+            74,
+        );
         ctx.fillStyle = '#e8e8ef';
         ctx.font = '14px monospace';
-        var since = typeof m['first-met'] === 'number' ? new Date(m['first-met']).getFullYear() : new Date().getFullYear();
-        ctx.fillText((LOCALE === 'en'
-            ? 'name: ' + (name || 'human')
-            : 'имя: ' + (name || 'человек')), 220, 110);
-        ctx.fillText((LOCALE === 'en' ? 'visits together: ' : 'визитов вместе: ') + visits, 220, 136);
+        const since =
+            typeof m['first-met'] === 'number'
+                ? new Date(m['first-met']).getFullYear()
+                : new Date().getFullYear();
+        ctx.fillText(
+            LOCALE === 'en' ? 'name: ' + (name || 'human') : 'имя: ' + (name || 'человек'),
+            220,
+            110,
+        );
+        ctx.fillText(
+            (LOCALE === 'en' ? 'visits together: ' : 'визитов вместе: ') + visits,
+            220,
+            136,
+        );
         ctx.fillText((LOCALE === 'en' ? 'keys rescued: ' : 'спасено ключей: ') + rescued, 220, 162);
-        ctx.fillText((LOCALE === 'en' ? 'friends since ' : 'дружат с ') + since + (LOCALE === 'en' ? '' : ' г.'), 220, 188);
+        ctx.fillText(
+            (LOCALE === 'en' ? 'friends since ' : 'дружат с ') +
+                since +
+                (LOCALE === 'en' ? '' : ' г.'),
+            220,
+            188,
+        );
         ctx.fillStyle = 'rgba(232,232,239,0.55)';
         ctx.font = '12px monospace';
-        ctx.fillText(LOCALE === 'en'
-            ? 'eight years alone. then you.'
-            : 'восемь лет один. потом — ты.', 220, 232);
-        ctx.fillText(LOCALE === 'en' ? 'window 13 · localStorage · forever' : 'окно №13 · localStorage · навсегда', 220, 256);
+        ctx.fillText(
+            LOCALE === 'en' ? 'eight years alone. then you.' : 'восемь лет один. потом — ты.',
+            220,
+            232,
+        );
+        ctx.fillText(
+            LOCALE === 'en'
+                ? 'window 13 · localStorage · forever'
+                : 'окно №13 · localStorage · навсегда',
+            220,
+            256,
+        );
         return cv;
     }
     function giftFriendCard() {
-        var cv = renderFriendCard();
+        const cv = renderFriendCard();
         if (!cv) return false;
-        var url = cv.toDataURL('image/png');
+        const url = cv.toDataURL('image/png');
         // буфер — приоритет (карточку шарят); фолбэк — открыть dataURL
-        var done = false;
+        let done = false;
         try {
             if (navigator.clipboard && navigator.clipboard.write) {
                 cv.toBlob(function (blob) {
                     if (!blob) return;
-                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-                        .then(function () { done = true; })
-                        .catch(function () { /* фолбэк ниже */ });
+                    navigator.clipboard
+                        .write([new ClipboardItem({ 'image/png': blob })])
+                        .then(function () {
+                            done = true;
+                        })
+                        .catch(function () {
+                            /* фолбэк ниже */
+                        });
                 });
             }
-        } catch (e) { /* clipboard недоступен (http) — фолбэк */ }
+        } catch (e) {
+            /* clipboard недоступен (http) — фолбэк */
+        }
         // фолбэк/страховка: скачивание PNG (артефакт уходит с собой)
         setTimeout(function () {
             if (done) return;
             try {
-                var a = document.createElement('a');
+                const a = document.createElement('a');
                 a.href = url;
                 a.download = LOCALE === 'en' ? 'um13-friendship.png' : 'um13-druzhba.png';
                 a.click();
-            } catch (e) { /* и тут тихо — карточка была жестом */ }
+            } catch (e) {
+                /* и тут тихо — карточка была жестом */
+            }
         }, 700);
         return true;
     }
@@ -4357,26 +4635,30 @@
      *  и тест-кнопки (в проде звучит только в приёмной). */
     function playChime() {
         try {
-            var AC = window.AudioContext || window.webkitAudioContext;
+            const AC = window.AudioContext || window.webkitAudioContext;
             if (!AC) return false;
-            var ctx = new AC();
-            var gain = ctx.createGain();
+            const ctx = new AC();
+            const gain = ctx.createGain();
             gain.gain.value = 0.12;
             gain.connect(ctx.destination);
             [659.25, 783.99, 987.77].forEach(function (freq, i) {
-                var osc = ctx.createOscillator();
-                var g2 = ctx.createGain();
+                const osc = ctx.createOscillator();
+                const g2 = ctx.createGain();
                 osc.frequency.value = freq;
                 osc.type = 'sine';
-                var t0 = ctx.currentTime + i * 0.45;
+                const t0 = ctx.currentTime + i * 0.45;
                 g2.gain.setValueAtTime(0, t0);
                 g2.gain.linearRampToValueAtTime(1, t0 + 0.02);
                 g2.gain.exponentialRampToValueAtTime(0.001, t0 + 2.2);
-                osc.connect(g2); g2.connect(gain);
-                osc.start(t0); osc.stop(t0 + 2.3);
+                osc.connect(g2);
+                g2.connect(gain);
+                osc.start(t0);
+                osc.stop(t0 + 2.3);
             });
             return true;
-        } catch (e) { return false; }
+        } catch (e) {
+            return false;
+        }
     }
 
     /* ═══ ПУБЛИЧНЫЙ API ═══ */
@@ -4390,22 +4672,35 @@
         // позы телепортировал тело и обесценивал «подглядывает». Акты сами
         // по себе анимация — «движение всегда живое» не страдает.
         clearTimeout(S.timers.fly);
-        S.timers.fly = setTimeout(function () {
-            if (S.visible && !S.asleep && !S.dodging && !S.sailing && !S.raging && !currentAct &&
-                Date.now() - S.lastActivity > 1500) {
-                nextSpot();
-            }
-            if (S.visible) scheduleFly(); // скрытый — цикл умирает
-        }, rnd(16000, 28000));
+        S.timers.fly = setTimeout(
+            function () {
+                if (
+                    S.visible &&
+                    !S.asleep &&
+                    !S.dodging &&
+                    !S.sailing &&
+                    !S.raging &&
+                    !currentAct &&
+                    Date.now() - S.lastActivity > 1500
+                ) {
+                    nextSpot();
+                }
+                if (S.visible) scheduleFly(); // скрытый — цикл умирает
+            },
+            rnd(16000, 28000),
+        );
     }
 
     /* Переарминг полёта на время акта: акт стартует — ближайший тик
        перелёта обязан прийти ПОСЛЕ позы, а не посреди неё. */
     function postponeFlyForAct() {
         clearTimeout(S.timers.fly);
-        S.timers.fly = setTimeout(function () {
-            if (S.visible) scheduleFly();
-        }, rnd(16000, 28000));
+        S.timers.fly = setTimeout(
+            function () {
+                if (S.visible) scheduleFly();
+            },
+            rnd(16000, 28000),
+        );
     }
 
     /* ═══ СТАРТ ═══ */
@@ -4418,9 +4713,12 @@
     function quietLoop() {
         clearTimeout(S.timers.idle);
         S.timers.idle = setTimeout(function () {
-            if (busyBridge.busy || blockedByHost) { quietLoop(); return; }
+            if (busyBridge.busy || blockedByHost) {
+                quietLoop();
+                return;
+            }
             if (S.visible) return; // уже тут
-            var active = document.activeElement;
+            const active = document.activeElement;
             if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
                 quietLoop();
                 return;
@@ -4431,7 +4729,7 @@
             flyTo(0.82 * window.innerWidth, 0.86 * window.innerHeight);
             setTimeout(function () {
                 if (!S.visible) return;
-                showSay(pick(L.quietPerch), 4200, 'thinking', 'auto');
+                showSay(pick(L.quietPerch), 4200, 'thinking');
                 fallAsleep(true);
             }, 2100);
         }, 60_000);
@@ -4454,8 +4752,8 @@
     function consoleTease() {
         if (location.pathname.indexOf('secret') >= 0) return;
         try {
-            var en = LOCALE === 'en';
-            var art = [
+            const en = LOCALE === 'en';
+            const art = [
                 '  ╭──────────╮  ',
                 '  │  ▪    ▪  │  ',
                 '  │    ‿     │  ',
@@ -4487,46 +4785,55 @@
                     ? 'um-13. alive. napping sometimes. thanks for dropping by.'
                     : 'um-13. жив. иногда сплю. спасибо, что заглянул.';
             };
-        } catch (e) { /* консоль кому-то недоступна — молчим */ }
+        } catch (e) {
+            /* консоль кому-то недоступна — молчим */
+        }
     }
     /** Призыв из консоли, когда призрак на экране: прилетает и говорит */
     function reactNow() {
         if (S.asleep) wakeUp();
-        else showSay(LOCALE === 'en'
-            ? 'from the console? seriously? respect. rare breed.'
-            : 'из консоли? серьёзно? уважаю. таких мало.', 6000, 'delight');
+        else
+            enqueue(
+                LOCALE === 'en'
+                    ? 'from the console? seriously? respect. rare breed.'
+                    : 'из консоли? серьёзно? уважаю. таких мало.',
+                6000,
+                'delight',
+                'user',
+            );
     }
 
     function boot() {
-        if (!document.body) { setTimeout(boot, 40); return; }
+        if (!document.body) {
+            setTimeout(boot, 40);
+            return;
+        }
         S.booted = true;
         S.bootedAt = Date.now();
         calmSince = Date.now();
         lastMouseMoveAt = Date.now();
-        titleTease();            // титул-оригинал фиксируется на старте
+        titleTease(); // титул-оригинал фиксируется на старте
         buildDom();
         bindEvents();
-        bindEditorEvents();   // um13:review / um13:theme из React
+        bindEditorEvents(); // um13:review / um13:theme из React
         consoleTease();
-        markVisit();          // ход визита — доверие считает от них
-        measurePressure();    // квота чувствуется с первой секунды
-        applyKeyFlags();      // финал приёмной отражается на теле
-        // давление живёт вместе с хранилищем — перепроверяем раз в 30с
-        S.timers.pressure = setInterval(measurePressure, 30_000);
+        markVisit(); // ход визита — доверие считает от них
+        measurePressure(); // квота чувствуется с первой секунды
+        applyKeyFlags(); // финал приёмной отражается на теле
         if (MODE === 'editor') {
             editorLoop();
         } else if (MODE === 'quiet') {
             quietLoop(); // не появляемся: ждём 60с бездействия
         } else {
-            var said = externalHello || pending.length > 0 || firstWordAt > 0;
+            const said = externalHello || pending.length > 0 || firstWordAt > 0;
             appear(said);
         }
         scheduleFly();
-        var queued = pending.splice(0);
+        const queued = pending.splice(0);
         setTimeout(function () {
             queued.forEach(function (p, i) {
                 setTimeout(function () {
-                    if (p.type === 'say') showSay(p.text, p.ms, p.mood || guessMood(p.text));
+                    if (p.type === 'say') queueSay(p.text, p.ms, p.mood || guessMood(p.text));
                     else if (p.type === 'react') window.UM13Ghost.react(p.event);
                     else if (p.type === 'warn') warn(p.kind);
                 }, i * 6000);

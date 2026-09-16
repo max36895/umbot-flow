@@ -1,343 +1,165 @@
 <!doctype html>
 <html lang="ru">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112563287', 'ym');
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Типы блоков — Umbot Flow</title>
+    <meta
+        name="description"
+        content="Подробное описание каждого типа блока в Umbot Flow: команды, шаги, условия, действия, ответы, завершение и служебные блоки (старт, помощь, ответ по умолчанию)."
+    />
+    <link rel="canonical" href="https://flow.maxim-m.ru/docs/blocks/" />
+    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
+    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
+    <meta property="og:title" content="Типы блоков — Umbot Flow" />
+    <meta
+        property="og:description"
+        content="Подробное описание каждого типа блока в Umbot Flow: команды, шаги, условия, действия, ответы, завершение и служебные блоки."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/docs/blocks/" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    ym(112563287, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <!-- /Yandex.Metrika counter -->
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <title>Типы блоков — Umbot Flow Editor</title>
-        <meta
-            name="description"
-            content="Подробное описание каждого типа блока в Umbot Flow Editor: команды, шаги, условия, действия, ответы, завершение и служебные блоки (старт, помощь, ответ по умолчанию)."
-        />
-        <link rel="canonical" href="https://flow.maxim-m.ru/docs/blocks/" />
-        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
-        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
-        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
-        <meta property="og:title" content="Типы блоков — Umbot Flow Editor" />
-        <meta
-            property="og:description"
-            content="Подробное описание каждого типа блока в Umbot Flow Editor: команды, шаги, условия, действия, ответы, завершение и служебные блоки."
-        />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/docs/blocks/" />
-        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <meta property="og:locale" content="ru_RU" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="stylesheet" href="/docs/docs.css?v=1" />
+</head>
+<body>
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #0f0f14;
-                color: #e0e0e0;
-                line-height: 1.7;
-            }
-            .container {
-                max-width: 700px;
-                margin: 0 auto;
-                padding: 40px 20px;
-            }
-            h1 {
-                font-size: 2rem;
-                margin-bottom: 8px;
-                color: #fff;
-            }
-            h2 {
-                font-size: 1.3rem;
-                margin: 32px 0 12px;
-                color: #00f0ff;
-            }
-            .subtitle {
-                color: #888;
-                margin-bottom: 32px;
-            }
-            .back {
-                display: inline-block;
-                margin-bottom: 24px;
-                color: #00f0ff;
-                text-decoration: none;
-                font-size: 0.9rem;
-            }
-            .back:hover {
-                text-decoration: underline;
-            }
-            .topbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 24px;
-            }
-            .topbar .back {
-                margin-bottom: 0;
-            }
-            .lang {
-                color: #888;
-                text-decoration: none;
-                font-size: 0.85rem;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 4px 10px;
-            }
-            .lang:hover {
-                color: #00f0ff;
-                border-color: rgba(0, 240, 255, 0.3);
-            }
-            .block {
-                margin-bottom: 24px;
-                padding: 20px;
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-                border-left: 4px solid;
-            }
-            .block h3 {
-                font-size: 1.1rem;
-                margin-bottom: 8px;
-            }
-            .block p {
-                font-size: 0.9rem;
-                color: #888;
-            }
-            .block .example {
-                margin-top: 12px;
-                padding: 12px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                font-size: 0.85rem;
-            }
-            .block .example strong {
-                color: #aaa;
-            }
-            .cmd {
-                border-left-color: #00f0ff;
-            }
-            .cmd h3 {
-                color: #00f0ff;
-            }
-            .step {
-                border-left-color: #bc13fe;
-            }
-            .step h3 {
-                color: #bc13fe;
-            }
-            .cond {
-                border-left-color: #ff0055;
-            }
-            .cond h3 {
-                color: #ff0055;
-            }
-            .action {
-                border-left-color: #ff9d00;
-            }
-            .action h3 {
-                color: #ff9d00;
-            }
-            .response {
-                border-left-color: #00ff9d;
-            }
-            .response h3 {
-                color: #00ff9d;
-            }
-            .end {
-                border-left-color: #ef4444;
-            }
-            .end h3 {
-                color: #ef4444;
-            }
-            .welcome {
-                border-left-color: #22c55e;
-            }
-            .welcome h3 {
-                color: #22c55e;
-            }
-            .help {
-                border-left-color: #eab308;
-            }
-            .help h3 {
-                color: #eab308;
-            }
-            .fallback {
-                border-left-color: #ff9d00;
-            }
-            .fallback h3 {
-                color: #ff9d00;
-            }
-            code {
-                background: rgba(0, 240, 255, 0.1);
-                color: #00f0ff;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-family: 'SF Mono', 'Fira Code', monospace;
-                font-size: 0.85em;
-            }
-            a {
-                color: #00f0ff;
-            }
-            @media (max-width: 480px) {
-                body { padding: 0; }
-                .container { padding: 24px 14px; }
-                h1 { font-size: 1.5rem; }
-                h2 { font-size: 1.15rem; }
-                .step { flex-direction: column; gap: 10px; }
-                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
-                table { font-size: 0.8rem; }
-                th, td { padding: 6px 8px; }
-                pre { font-size: 0.75rem; padding: 12px; }
-                code { font-size: 0.8em; }
-                .topbar { flex-wrap: wrap; gap: 8px; }
-            }
+<div class="container">
+    <div class="topbar">
+        <a class="back" href="/docs/">← Документация</a>
+        <a class="lang" href="/docs/en/blocks/">EN</a>
+    </div>
+    <h1>Типы блоков</h1>
+    <p class="subtitle">Подробное описание каждого типа блока в редакторе</p>
 
-        </style>
-    </head>
-    <body>
-        <!-- Yandex.Metrika counter (noscript) -->
-        <noscript><div><img src="https://mc.yandex.ru/watch/112563287" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter (noscript) -->
-        <div class="container">
-            <div class="topbar">
-                <a class="back" href="/docs/">← Документация</a>
-                <a class="lang" href="/docs/en/blocks/">EN</a>
-            </div>
-            <h1>Типы блоков</h1>
-            <p class="subtitle">Подробное описание каждого типа блока в редакторе</p>
-
-            <div class="block cmd">
-                <h3>Команда</h3>
-                <p>
-                    Реагирует на определённые слова. Пользователь вводит слово — бот отвечает
-                    настроенным текстом и кнопками.
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Блок "Команда" со словами "привет", "здравствуй" и
-                    текстом "Привет! Как дела?" — бот ответит при вводе любого из этих слов.
-                </div>
-            </div>
-
-            <div class="block step">
-                <h3>Шаг</h3>
-                <p>
-                    Запрашивает ввод у пользователя и сохраняет его в поле. Используйте для сбора
-                    данных: имя, email, возраст и т.д.
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Блок "Шаг" с текстом "Как вас зовут?" и настройкой
-                    "Сохранить в" = "userName" — ответ пользователя сохранится в поле
-                    <code>userName</code>.
-                </div>
-            </div>
-
-            <div class="block cond">
-                <h3>Условие</h3>
-                <p>
-                    Проверяет значение переменной и ведёт диалог по разным веткам. Позволяет
-                    создавать ветвления: "если условие выполнено — идти туда, иначе — сюда".
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Если <code>возраст >= 18</code> — показать одно
-                    сообщение, иначе — другое.
-                </div>
-            </div>
-
-            <div class="block action">
-                <h3>Действие</h3>
-                <p>
-                    Выполняет дополнительные действия: установка переменных, генерация случайных
-                    чисел, HTTP-запросы. Показывает текст после выполнения.
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Генерация случайного числа от 1 до 100, отправка
-                    HTTP-запроса к API, установка переменной.
-                </div>
-            </div>
-
-            <div class="block response">
-                <h3>Ответ</h3>
-                <p>
-                    Показывает текст пользователю без запроса ввода. Используйте для информационных
-                    сообщений или как промежуточный блок.
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Блок "Ответ" с текстом "Это справка по боту" — просто
-                    покажет сообщение.
-                </div>
-            </div>
-
-            <div class="block end">
-                <h3>Завершение</h3>
-                <p>
-                    Завершает диалог. Бот перестаёт отвечать, пока пользователь не начнёт новый
-                    разговор.
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> После сообщения "До свидания!" диалог завершается.
-                </div>
-            </div>
-
-            <h2>Служебные блоки</h2>
-            <p style="color: #888; font-size: 0.9rem; margin-bottom: 16px">
-                Эти блоки не соединяются с другими — каждый из них существует в единственном
-                экземпляре и срабатывает в определённый момент.
-            </p>
-
-            <div class="block welcome">
-                <h3>Старт</h3>
-                <p>
-                    Приветствие при запуске бота. Показывается пользователю, когда он впервые
-                    открывает диалог или начинает новый разговор.
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Текст "Привет! Я помогу вам с заказом. Напишите
-                    'помощь', если что-то непонятно."
-                </div>
-            </div>
-
-            <div class="block help">
-                <h3>Помощь</h3>
-                <p>
-                    Ответ на команду помощи. Срабатывает, когда пользователь запрашивает справку
-                    (например, пишет "помощь" или нажимает кнопку помощи платформы).
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Текст "Я умею отвечать на команды 'заказ' и 'статус'.
-                    Напишите одно из этих слов."
-                </div>
-            </div>
-
-            <div class="block fallback">
-                <h3>Ответ по умолчанию</h3>
-                <p>
-                    Ответ, когда бот не распознал команду пользователя. Вместо молчания или
-                    системной ошибки пользователь получит понятное сообщение.
-                </p>
-                <div class="example">
-                    <strong>Пример:</strong> Текст "Извините, я вас не понял. Напишите 'помощь',
-                    чтобы увидеть список команд."
-                </div>
-            </div>
-
-            <h2>Как соединять блоки</h2>
-            <p style="color: #888; font-size: 0.9rem">
-                Перетаскивайте от края одного блока к другому, чтобы создать связь. Бот будет
-                двигаться по блокам в порядке соединений. Используйте условие для ветвления: один
-                выход для "да", другой для "нет".
-            </p>
+    <div class="block cmd">
+        <h3>Команда</h3>
+        <p>
+            Реагирует на определённые слова. Пользователь вводит слово — бот отвечает
+            настроенным текстом и кнопками.
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Блок "Команда" со словами "привет", "здравствуй" и
+            текстом "Привет! Как дела?" — бот ответит при вводе любого из этих слов.
         </div>
-    </body>
+    </div>
+
+    <div class="block step">
+        <h3>Шаг</h3>
+        <p>
+            Запрашивает ввод у пользователя и сохраняет его в поле. Используйте для сбора
+            данных: имя, email, возраст и т.д.
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Блок "Шаг" с текстом "Как вас зовут?" и настройкой
+            "Сохранить в" = "userName" — ответ пользователя сохранится в поле
+            <code>userName</code>.
+        </div>
+    </div>
+
+    <div class="block cond">
+        <h3>Условие</h3>
+        <p>
+            Проверяет значение переменной и ведёт диалог по разным веткам. Позволяет
+            создавать ветвления: "если условие выполнено — идти туда, иначе — сюда".
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Если <code>возраст >= 18</code> — показать одно
+            сообщение, иначе — другое.
+        </div>
+    </div>
+
+    <div class="block action">
+        <h3>Действие</h3>
+        <p>
+            Выполняет дополнительные действия: установка переменных, генерация случайных
+            чисел, HTTP-запросы. Показывает текст после выполнения.
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Генерация случайного числа от 1 до 100, отправка
+            HTTP-запроса к API, установка переменной.
+        </div>
+    </div>
+
+    <div class="block response">
+        <h3>Ответ</h3>
+        <p>
+            Показывает текст пользователю без запроса ввода. Используйте для информационных
+            сообщений или как промежуточный блок.
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Блок "Ответ" с текстом "Это справка по боту" — просто
+            покажет сообщение.
+        </div>
+    </div>
+
+    <div class="block end">
+        <h3>Завершение</h3>
+        <p>
+            Завершает диалог. Бот перестаёт отвечать, пока пользователь не начнёт новый
+            разговор.
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> После сообщения "До свидания!" диалог завершается.
+        </div>
+    </div>
+
+    <h2>Служебные блоки</h2>
+    <p class="muted spaced">
+        Эти блоки не соединяются с другими — каждый из них существует в единственном
+        экземпляре и срабатывает в определённый момент.
+    </p>
+
+    <div class="block welcome">
+        <h3>Старт</h3>
+        <p>
+            Приветствие при запуске бота. Показывается пользователю, когда он впервые
+            открывает диалог или начинает новый разговор.
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Текст "Привет! Я помогу вам с заказом. Напишите
+            'помощь', если что-то непонятно."
+        </div>
+    </div>
+
+    <div class="block help">
+        <h3>Помощь</h3>
+        <p>
+            Ответ на команду помощи. Срабатывает, когда пользователь запрашивает справку
+            (например, пишет "помощь" или нажимает кнопку помощи платформы).
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Текст "Я умею отвечать на команды 'заказ' и 'статус'.
+            Напишите одно из этих слов."
+        </div>
+    </div>
+
+    <div class="block fallback">
+        <h3>Ответ по умолчанию</h3>
+        <p>
+            Ответ, когда бот не распознал команду пользователя. Вместо молчания или
+            системной ошибки пользователь получит понятное сообщение.
+        </p>
+        <div class="example">
+            <strong>Пример:</strong> Текст "Извините, я вас не понял. Напишите 'помощь',
+            чтобы увидеть список команд."
+        </div>
+    </div>
+
+    <h2>Как соединять блоки</h2>
+    <p class="muted">
+        Перетаскивайте от края одного блока к другому, чтобы создать связь. Бот будет
+        двигаться по блокам в порядке соединений. Используйте условие для ветвления: один
+        выход для "да", другой для "нет".
+    </p>
+</div>
+<script src="/metrika.js" async></script>
+</body>
 </html>

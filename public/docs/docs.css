@@ -1,0 +1,440 @@
+/* Общие стили документации (/docs/*, /docs/en/*).
+   Файл лежит в public/ и не проходит через сборку, поэтому имя без хэша.
+   .htaccess кэширует .css на год (immutable): после правки поднимите
+   ?v=N в подключении на всех страницах документации. */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f0f14;
+    color: #e0e0e0;
+    line-height: 1.7;
+}
+
+a {
+    color: #00f0ff;
+}
+
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+h2 {
+    font-size: 1.3rem;
+    margin: 32px 0 12px;
+    color: #00f0ff;
+}
+
+h3 {
+    font-size: 1rem;
+    margin: 20px 0 8px;
+    color: #fff;
+}
+
+.subtitle {
+    color: #888;
+    margin-bottom: 32px;
+}
+
+/* Второстепенный текст: пояснения под заголовками разделов и списки ссылок */
+.muted {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+ul.muted {
+    margin-left: 20px;
+}
+
+.muted.spaced {
+    margin-bottom: 16px;
+}
+
+/* ===== Шапка: «назад» + переключатель языка ===== */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.back {
+    color: #00f0ff;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.back:hover {
+    text-decoration: underline;
+}
+
+.lang {
+    color: #888;
+    text-decoration: none;
+    font-size: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 4px 10px;
+}
+
+.lang:hover {
+    color: #00f0ff;
+    border-color: rgba(0, 240, 255, 0.3);
+}
+
+/* ===== Код, таблицы, заметки ===== */
+
+code {
+    background: rgba(0, 240, 255, 0.1);
+    color: #00f0ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.85em;
+}
+
+pre {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.9rem;
+}
+
+th,
+td {
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+}
+
+th {
+    background: rgba(255, 255, 255, 0.05);
+    color: #aaa;
+}
+
+td:first-child {
+    color: #00f0ff;
+    font-family: monospace;
+}
+
+.note {
+    background: rgba(0, 240, 255, 0.05);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    font-size: 0.9rem;
+}
+
+.note strong {
+    color: #00f0ff;
+}
+
+/* ===== Главная документации: карточки разделов ===== */
+
+.page-home {
+    line-height: 1.6;
+}
+
+.page-home .container {
+    max-width: 800px;
+}
+
+.page-home .subtitle {
+    margin-bottom: 40px;
+}
+
+.intro {
+    color: #888;
+    font-size: 0.95rem;
+    margin-bottom: 28px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    transition:
+        border-color 0.2s,
+        transform 0.2s;
+}
+
+.card:hover {
+    border-color: rgba(0, 240, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.card h2 {
+    font-size: 1.1rem;
+    color: #00f0ff;
+    margin: 0 0 8px;
+}
+
+.card p {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* ===== JSON-формат: код компактнее — примеры длинные ===== */
+
+.page-json pre {
+    font-size: 0.85rem;
+}
+
+/* ===== FAQ ===== */
+
+.faq-item {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.faq-item h2 {
+    font-size: 1.1rem;
+    color: #00f0ff;
+    margin: 0 0 8px;
+}
+
+.faq-item p {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* ===== Быстрый старт: пронумерованные шаги ===== */
+
+.step-card {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.step-num {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 240, 255, 0.15);
+    color: #00f0ff;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.step-content h3 {
+    font-size: 1rem;
+    color: #fff;
+    margin: 0 0 4px;
+}
+
+.step-content p {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.doc-shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    border-radius: 10px;
+    margin: 12px 0 4px;
+}
+
+/* ===== Типы блоков: карточки с цветом узла (как в редакторе) ===== */
+
+.block {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    border-left: 4px solid;
+}
+
+.block h3 {
+    font-size: 1.1rem;
+    margin: 0 0 8px;
+}
+
+.block p {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.block .example {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.block .example strong {
+    color: #aaa;
+}
+
+.block.cmd {
+    border-left-color: #00f0ff;
+}
+
+.block.cmd h3 {
+    color: #00f0ff;
+}
+
+.block.step {
+    border-left-color: #bc13fe;
+}
+
+.block.step h3 {
+    color: #bc13fe;
+}
+
+.block.cond {
+    border-left-color: #ff0055;
+}
+
+.block.cond h3 {
+    color: #ff0055;
+}
+
+.block.action {
+    border-left-color: #ff9d00;
+}
+
+.block.action h3 {
+    color: #ff9d00;
+}
+
+.block.response {
+    border-left-color: #00ff9d;
+}
+
+.block.response h3 {
+    color: #00ff9d;
+}
+
+.block.end {
+    border-left-color: #ef4444;
+}
+
+.block.end h3 {
+    color: #ef4444;
+}
+
+.block.welcome {
+    border-left-color: #22c55e;
+}
+
+.block.welcome h3 {
+    color: #22c55e;
+}
+
+.block.help {
+    border-left-color: #eab308;
+}
+
+.block.help h3 {
+    color: #eab308;
+}
+
+.block.fallback {
+    border-left-color: #ff9d00;
+}
+
+.block.fallback h3 {
+    color: #ff9d00;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 24px 14px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.15rem;
+    }
+
+    .step-card {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .step-num {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    table {
+        font-size: 0.8rem;
+    }
+
+    th,
+    td {
+        padding: 6px 8px;
+    }
+
+    pre,
+    .page-json pre {
+        font-size: 0.75rem;
+        padding: 12px;
+    }
+
+    code {
+        font-size: 0.8em;
+    }
+
+    .topbar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}

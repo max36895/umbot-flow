@@ -1,360 +1,205 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112563287', 'ym');
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Quick Start — Umbot Flow</title>
+    <meta
+        name="description"
+        content="Step-by-step guide to launching a bot with Umbot Flow. From opening the editor to a running bot in 15 minutes."
+    />
+    <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
+    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start/" />
+    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
+    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start/" />
+    <meta property="og:title" content="Quick Start — Umbot Flow" />
+    <meta
+        property="og:description"
+        content="Step-by-step guide to launching a bot with Umbot Flow. From opening the editor to a running bot in 15 minutes."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/quick-start/" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    ym(112563287, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <!-- /Yandex.Metrika counter -->
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <title>Quick Start — Umbot Flow Editor</title>
-        <meta
-            name="description"
-            content="Step-by-step guide to launching a bot with Umbot Flow Editor. From opening the editor to a running bot in 15 minutes."
-        />
-        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
-        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/quick-start/" />
-        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/quick-start/" />
-        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/quick-start/" />
-        <meta property="og:title" content="Quick Start — Umbot Flow Editor" />
-        <meta
-            property="og:description"
-            content="Step-by-step guide to launching a bot with Umbot Flow Editor. From opening the editor to a running bot in 15 minutes."
-        />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/quick-start/" />
-        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="stylesheet" href="/docs/docs.css?v=1" />
+</head>
+<body>
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #0f0f14;
-                color: #e0e0e0;
-                line-height: 1.7;
-            }
-            .container {
-                max-width: 700px;
-                margin: 0 auto;
-                padding: 40px 20px;
-            }
-            h1 {
-                font-size: 2rem;
-                margin-bottom: 8px;
-                color: #fff;
-            }
-            h2 {
-                font-size: 1.3rem;
-                margin: 32px 0 12px;
-                color: #00f0ff;
-            }
-            .subtitle {
-                color: #888;
-                margin-bottom: 32px;
-            }
-            .topbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 24px;
-            }
-            .back {
-                color: #00f0ff;
-                text-decoration: none;
-                font-size: 0.9rem;
-            }
-            .back:hover {
-                text-decoration: underline;
-            }
-            .lang {
-                color: #888;
-                text-decoration: none;
-                font-size: 0.85rem;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 4px 10px;
-            }
-            .lang:hover {
-                color: #00f0ff;
-                border-color: rgba(0, 240, 255, 0.3);
-            }
-            .step {
-                display: flex;
-                gap: 16px;
-                margin-bottom: 24px;
-                padding: 16px;
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-            }
-            .step-num {
-                flex-shrink: 0;
-                width: 32px;
-                height: 32px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                background: rgba(0, 240, 255, 0.15);
-                color: #00f0ff;
-                font-weight: bold;
-                font-size: 0.9rem;
-            }
-            .step-content h3 {
-                font-size: 1rem;
-                color: #fff;
-                margin-bottom: 4px;
-            }
-            .step-content p {
-                font-size: 0.9rem;
-                color: #888;
-            }
-            code {
-                background: rgba(0, 240, 255, 0.1);
-                color: #00f0ff;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-family: 'SF Mono', 'Fira Code', monospace;
-                font-size: 0.85em;
-            }
-            pre {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 8px;
-                padding: 16px;
-                overflow-x: auto;
-                margin: 12px 0;
-            }
-            pre code {
-                background: none;
-                padding: 0;
-            }
-            a {
-                color: #00f0ff;
-            }
-            .note {
-                background: rgba(0, 240, 255, 0.05);
-                border: 1px solid rgba(0, 240, 255, 0.2);
-                border-radius: 8px;
-                padding: 16px;
-                margin: 16px 0;
-                font-size: 0.9rem;
-            }
-            .note strong {
-                color: #00f0ff;
-            }
-            .doc-shot {
-                display: block;
-                width: 100%;
-                height: auto;
-                border: 1px solid rgba(0, 240, 255, 0.15);
-                border-radius: 10px;
-                margin: 12px 0 4px;
-            }
-            @media (max-width: 480px) {
-                body { padding: 0; }
-                .container { padding: 24px 14px; }
-                h1 { font-size: 1.5rem; }
-                h2 { font-size: 1.15rem; }
-                .step { flex-direction: column; gap: 10px; }
-                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
-                table { font-size: 0.8rem; }
-                th, td { padding: 6px 8px; }
-                pre { font-size: 0.75rem; padding: 12px; }
-                code { font-size: 0.8em; }
-                .topbar { flex-wrap: wrap; gap: 8px; }
-            }
+<div class="container">
+    <div class="topbar">
+        <a class="back" href="/docs/en/">← Documentation</a>
+        <a class="lang" href="/docs/quick-start/">RU</a>
+    </div>
+    <h1>Quick Start</h1>
+    <p class="subtitle">From opening the editor to a running bot in 15 minutes — no sign-up</p>
 
-        </style>
-    </head>
-    <body>
-        <!-- Yandex.Metrika counter (noscript) -->
-        <noscript><div><img src="https://mc.yandex.ru/watch/112563287" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter (noscript) -->
-        <div class="container">
-            <div class="topbar">
-                <a class="back" href="/docs/en/">← Documentation</a>
-                <a class="lang" href="/docs/quick-start/">RU</a>
-            </div>
-            <h1>Quick Start</h1>
-            <p class="subtitle">From opening the editor to a running bot in 15 minutes — no sign-up</p>
+    <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-content">
+            <h3>Open the editor</h3>
+            <p>
+                On the <a href="/">home page</a> click "Open the editor". The editor runs
+                entirely in your browser: block palette on the left, canvas in the middle,
+                toolbar at the top. Your project is saved automatically and the config
+                file can be downloaded at any moment.
+            </p>
+            <img
+                class="doc-shot"
+                loading="lazy"
+                decoding="async"
+                src="/docs/img/quick-start-overview.png"
+                width="1440"
+                height="900"
+                alt="Umbot Flow: block palette on the left, canvas with bot scenario blocks in the center, toolbar at the top"
+            />
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">1</div>
-                <div class="step-content">
-                    <h3>Open the editor</h3>
-                    <p>
-                        On the <a href="/">home page</a> click "Open the editor". The editor runs
-                        entirely in your browser: block palette on the left, canvas in the middle,
-                        toolbar at the top. Your project is saved automatically and the config
-                        file can be downloaded at any moment.
-                    </p>
-                    <img
-                        class="doc-shot"
-                        loading="lazy"
-                        decoding="async"
-                        src="/docs/img/quick-start-overview.png"
-                        width="1440"
-                        height="900"
-                        alt="Umbot Flow Editor: block palette on the left, canvas with bot scenario blocks in the center, toolbar at the top"
-                    />
-                </div>
-            </div>
+    <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-content">
+            <h3>Drop a Command block</h3>
+            <p>
+                Drag a "Command" block from the palette onto the canvas. A command reacts to
+                the user's words: they type "hello" — the bot replies with the configured
+                text. The demo blocks already on the canvas can be deleted (select a block
+                and press Delete) — or build your own scenario next to them.
+            </p>
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">2</div>
-                <div class="step-content">
-                    <h3>Drop a Command block</h3>
-                    <p>
-                        Drag a "Command" block from the palette onto the canvas. A command reacts to
-                        the user's words: they type "hello" — the bot replies with the configured
-                        text. The demo blocks already on the canvas can be deleted (select a block
-                        and press Delete) — or build your own scenario next to them.
-                    </p>
-                </div>
-            </div>
+    <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-content">
+            <h3>Set up triggers and the reply</h3>
+            <p>
+                Click the block — the properties panel opens. Fill in the trigger words
+                ("hello", "hi") and the reply text ("Hi! I'm a bookstore bot. What's your
+                name?"). Every field has a help tooltip explaining what it means.
+            </p>
+            <img
+                class="doc-shot"
+                loading="lazy"
+                decoding="async"
+                src="/docs/img/quick-start-props.png"
+                width="1440"
+                height="900"
+                alt="Block properties panel of the editor: fields for block name, trigger words and reply text"
+            />
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">3</div>
-                <div class="step-content">
-                    <h3>Set up triggers and the reply</h3>
-                    <p>
-                        Click the block — the properties panel opens. Fill in the trigger words
-                        ("hello", "hi") and the reply text ("Hi! I'm a bookstore bot. What's your
-                        name?"). Every field has a help tooltip explaining what it means.
-                    </p>
-                    <img
-                        class="doc-shot"
-                        loading="lazy"
-                        decoding="async"
-                        src="/docs/img/quick-start-props.png"
-                        width="1440"
-                        height="900"
-                        alt="Block properties panel of the editor: fields for block name, trigger words and reply text"
-                    />
-                </div>
-            </div>
+    <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-content">
+            <h3>Save the user's answer to a variable</h3>
+            <p>
+                Add a "Step" block and connect the first block to it. In the step, write
+                the question "What's your name?" and set "Save to: userName" — the user's
+                answer will be stored in the variable. Reference it in any later text as
+                <code>{{userName}}</code>, and a "Condition" block can check its value and
+                branch the dialog either way.
+            </p>
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">4</div>
-                <div class="step-content">
-                    <h3>Save the user's answer to a variable</h3>
-                    <p>
-                        Add a "Step" block and connect the first block to it. In the step, write
-                        the question "What's your name?" and set "Save to: userName" — the user's
-                        answer will be stored in the variable. Reference it in any later text as
-                        <code>{{userName}}</code>, and a "Condition" block can check its value and
-                        branch the dialog either way.
-                    </p>
-                </div>
-            </div>
+    <div class="step-card">
+        <div class="step-num">5</div>
+        <div class="step-content">
+            <h3>Test the scenario in the preview</h3>
+            <p>
+                Click "Chat Preview" in the top toolbar and type "hello". The preview plays
+                the scenario exactly as the platform will: shows the welcome message,
+                reacts to trigger words, stores variables. Errors are highlighted right on
+                the blocks — you'll spot a problem before the bot goes live.
+            </p>
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">5</div>
-                <div class="step-content">
-                    <h3>Test the scenario in the preview</h3>
-                    <p>
-                        Click "Chat Preview" in the top toolbar and type "hello". The preview plays
-                        the scenario exactly as the platform will: shows the welcome message,
-                        reacts to trigger words, stores variables. Errors are highlighted right on
-                        the blocks — you'll spot a problem before the bot goes live.
-                    </p>
-                </div>
-            </div>
+    <div class="step-card">
+        <div class="step-num">6</div>
+        <div class="step-content">
+            <h3>Export the configuration</h3>
+            <p>
+                Click "Validate & Export". The editor checks the scenario (empty replies,
+                orphan blocks, duplicate names) and lets you download
+                <code>flow.json</code> — your whole bot in one file. You can edit it by
+                hand and load it back into the editor.
+            </p>
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">6</div>
-                <div class="step-content">
-                    <h3>Export the configuration</h3>
-                    <p>
-                        Click "Validate & Export". The editor checks the scenario (empty replies,
-                        orphan blocks, duplicate names) and lets you download
-                        <code>flow.json</code> — your whole bot in one file. You can edit it by
-                        hand and load it back into the editor.
-                    </p>
-                </div>
-            </div>
+    <div class="note">
+        <strong>Don't want to deal with code?</strong> The <code>flow.json</code> file is a
+        complete task specification: hand it to a developer and they will launch the bot
+        for you.
+    </div>
 
-            <div class="note">
-                <strong>Don't want to deal with code?</strong> The <code>flow.json</code> file is a
-                complete task specification: hand it to a developer and they will launch the bot
-                for you.
-            </div>
+    <div class="step-card">
+        <div class="step-num">7</div>
+        <div class="step-content">
+            <h3>Install Node.js</h3>
+            <p>
+                To run the bot you need Node.js 18 or newer — download it from
+                <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a>.
+                If Node.js is already installed, check the version with <code>node -v</code>.
+            </p>
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">7</div>
-                <div class="step-content">
-                    <h3>Install Node.js</h3>
-                    <p>
-                        To run the bot you need Node.js 18 or newer — download it from
-                        <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a>.
-                        If Node.js is already installed, check the version with <code>node -v</code>.
-                    </p>
-                </div>
-            </div>
+    <div class="step-card">
+        <div class="step-num">8</div>
+        <div class="step-content">
+            <h3>Generate the project</h3>
+            <p>Open a terminal in the folder with <code>flow.json</code> and run:</p>
+            <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
+            <p>
+                The command creates a ready TypeScript project: the bot source code
+                (<code>src/index.ts</code>, <code>src/utils.ts</code>), <code>package.json</code>
+                and <code>tsconfig.json</code>.
+            </p>
+        </div>
+    </div>
 
-            <div class="step">
-                <div class="step-num">8</div>
-                <div class="step-content">
-                    <h3>Generate the project</h3>
-                    <p>Open a terminal in the folder with <code>flow.json</code> and run:</p>
-                    <pre><code>npx umbot create from-flow flow.json --output ./my-bot</code></pre>
-                    <p>
-                        The command creates a ready TypeScript project: the bot source code
-                        (<code>src/index.ts</code>, <code>src/utils.ts</code>), <code>package.json</code>
-                        and <code>tsconfig.json</code>.
-                    </p>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-num">9</div>
-                <div class="step-content">
-                    <h3>Launch the bot</h3>
-                    <p>Install the dependencies, build the project and start the bot:</p>
-                    <pre><code>cd my-bot
+    <div class="step-card">
+        <div class="step-num">9</div>
+        <div class="step-content">
+            <h3>Launch the bot</h3>
+            <p>Install the dependencies, build the project and start the bot:</p>
+            <pre><code>cd my-bot
 npm install
 npm run build
 npm start</code></pre>
-                    <p>
-                        The bot starts on <code>localhost:3000</code>. Platforms (Telegram, Alisa,
-                        VK, Marusia and others) are plugged in as adapters in <code>src/index.ts</code> —
-                        you supply the tokens on your side.
-                    </p>
-                </div>
-            </div>
-
-            <h2>What's next</h2>
-            <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
-                <li>
-                    <a href="/docs/en/blocks/">Block types</a> — how commands, steps, conditions
-                    and actions work
-                </li>
-                <li>
-                    <a href="/docs/en/json-format/">JSON format</a> — a reference of the
-                    configuration with every field and operator
-                </li>
-                <li>
-                    <a href="/docs/en/faq/">FAQ</a> — answers to common questions about the editor
-                    and launching
-                </li>
-            </ul>
+            <p>
+                The bot starts on <code>localhost:3000</code>. Platforms (Telegram, Alisa,
+                VK, Marusia and others) are plugged in as adapters in <code>src/index.ts</code> —
+                you supply the tokens on your side.
+            </p>
         </div>
-    </body>
+    </div>
+
+    <h2>What's next</h2>
+    <ul class="muted">
+        <li>
+            <a href="/docs/en/blocks/">Block types</a> — how commands, steps, conditions
+            and actions work
+        </li>
+        <li>
+            <a href="/docs/en/json-format/">JSON format</a> — a reference of the
+            configuration with every field and operator
+        </li>
+        <li>
+            <a href="/docs/en/faq/">FAQ</a> — answers to common questions about the editor
+            and launching
+        </li>
+    </ul>
+</div>
+<script src="/metrika.js" async></script>
+</body>
 </html>

@@ -28,7 +28,10 @@ export function buildStarterDocument(locale: Locale = getLocale()): FlowDocument
                 slots: [],
                 isPattern: false,
                 response: {
-                    text: t('Привет! Я демо-бот. Как тебя зовут?', "Hi! I'm a demo bot. What's your name?"),
+                    text: t(
+                        'Привет! Я демо-бот. Как тебя зовут?',
+                        "Hi! I'm a demo bot. What's your name?",
+                    ),
                     buttons: [],
                     sounds: [],
                 },
@@ -59,8 +62,8 @@ export function buildStarterDocument(locale: Locale = getLocale()): FlowDocument
                 name: 'greet_user',
                 response: {
                     text: t(
-                        'Приятно познакомиться, {{userName}}! Этот бот создан в Umbot Flow Editor. Откройте любой блок справа чтобы изменить его.',
-                        'Nice to meet you, {{userName}}! This bot was created in Umbot Flow Editor. Open any block on the right to change it.',
+                        'Приятно познакомиться, {{userName}}! Этот бот создан в Umbot Flow. Откройте любой блок справа чтобы изменить его.',
+                        'Nice to meet you, {{userName}}! This bot was created in Umbot Flow. Open any block on the right to change it.',
                     ),
                     buttons: [],
                     sounds: [],

@@ -1,83 +1,70 @@
 <!doctype html>
-    <!--
-    ═══════════════════════════════════════════════════════════════
-    редактор · да, и сюда тоже можно посмотреть исходник
-    ═══════════════════════════════════════════════════════════════
-    в этом холсте живёт кто-то. оставь браузер на 30 секунд —
-    сам поймёшь. а если знаешь старый код из игр — попробуй.
-    у нас тут принимают и WASD. призрак не приживается в полях
-    ввода, так что работать он работе не мешает.
-    ═══════════════════════════════════════════════════════════════
-    призрак живёт тут же, что и на остальных страницах сайта:
-    public/um13-ghost.js — режим editor (появляется только когда
-    ты не трогаешь редактор, шутит и уплывает)
-    ═══════════════════════════════════════════════════════════════
+<!--
+═══════════════════════════════════════════════════════════════
+редактор · да, и сюда тоже можно посмотреть исходник
+═══════════════════════════════════════════════════════════════
+в этом холсте живёт кто-то. оставь браузер на 30 секунд —
+сам поймёшь. а если знаешь старый код из игр — попробуй.
+у нас тут принимают и WASD. призрак не приживается в полях
+ввода, так что работать он работе не мешает.
+═══════════════════════════════════════════════════════════════
+призрак живёт тут же, что и на остальных страницах сайта:
+um13-ghost.js — режим editor (появляется только когда
+ты не трогаешь редактор, шутит и уплывает)
+═══════════════════════════════════════════════════════════════
 -->
 <html lang="ru">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112563287', 'ym');
-
-    ym(112563287, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <!-- /Yandex.Metrika counter -->
-        <title>Umbot Flow Editor — визуальный редактор ботов для Telegram, Алисы, VK</title>
-        <meta
-            name="description"
-            content="Визуальный редактор для создания ботов на базе umbot. Собирайте логику на холсте, экспортируйте конфигурацию и автоматически генерируйте готовый проект с кодом для Telegram, Алисы, VK и других платформ."
-        />
-        <meta
-            name="keywords"
-            content="визуальный редактор ботов, Telegram бот конструктор, Алиса навык, VK бот, umbot, флоу-редактор, генератор ботов"
-        />
-        <meta
-            property="og:title"
-            content="Umbot Flow Editor — визуальный редактор ботов для Telegram, Алисы, VK"
-        />
-        <meta
-            property="og:description"
-            content="Визуальный редактор для создания ботов на базе umbot. Собирайте логику на холсте, экспортируйте конфигурацию и автоматически генерируйте готовый проект с кодом."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/app" />
-        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Umbot Flow Editor" />
-        <meta
-            name="twitter:description"
-            content="Визуальный редактор ботов для Telegram, Алисы, VK с генерацией готового проекта"
-        />
-        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <link rel="canonical" href="https://flow.maxim-m.ru/app" />
-        <meta name="robots" content="noindex, follow" />
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "WebApplication",
-                "name": "Umbot Flow Editor",
-                "url": "https://flow.maxim-m.ru/app",
-                "applicationCategory": "DeveloperApplication",
-                "operatingSystem": "Web",
-                "isAccessibleForFree": true,
-                "inLanguage": "ru"
-            }
-        </script>
-    </head>
-    <body>
-        <!-- Yandex.Metrika counter (noscript) -->
-        <noscript><div><img src="https://mc.yandex.ru/watch/112563287" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter (noscript) -->
-        <div id="root"></div>
-        <script src="/um13-ghost.js?v=2" data-um13-mode="editor" defer></script>
-        <script type="module" src="/src/main.tsx"></script>
-    </body>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Собрать чат-бота онлайн | Визуальный редактор Umbot</title>
+    <meta
+        name="description"
+        content="Визуальный редактор для создания ботов на базе umbot. Собирайте логику на холсте, экспортируйте конфигурацию и автоматически генерируйте готовый проект с кодом для Telegram, Алисы, VK и других платформ."
+    />
+    <meta
+        name="keywords"
+        content="визуальный редактор ботов, Telegram бот конструктор, Алиса навык, VK бот, umbot, флоу-редактор, генератор ботов"
+    />
+    <meta
+        property="og:title"
+        content="Собрать чат-бота онлайн | Визуальный редактор Umbot"
+    />
+    <meta
+        property="og:description"
+        content="Откройте визуальный редактор Umbot и соберите чат-бота для Telegram, Алисы и VK из блоков. Скачивайте готовый код проекта. Работает в браузере, бесплатно и без регистрации."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/app" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Umbot Flow" />
+    <meta
+        name="twitter:description"
+        content="Откройте визуальный редактор Umbot и соберите чат-бота для Telegram, Алисы и VK из блоков. Скачивайте готовый код проекта. Работает в браузере, бесплатно и без регистрации."
+    />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="canonical" href="https://flow.maxim-m.ru/app" />
+    <link rel="stylesheet" href="/styles/um13-ghost.css" />
+</head>
+<body>
+<div id="root"></div>
+<script src="/um13-ghost.js?v=4" data-um13-mode="editor" defer></script>
+<script type="module" src="/src/main.tsx"></script>
+<script src="/metrika.js" async></script>
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Umbot Flow",
+        "url": "https://flow.maxim-m.ru/app",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "isAccessibleForFree": true,
+        "inLanguage": "ru"
+    }
+</script>
+</body>
 </html>

@@ -141,8 +141,7 @@ export default {
     'export.copyJson': 'Copy JSON',
     'export.download': 'Download flow.json',
     'export.copied': 'Copied to clipboard',
-    'toast.exported':
-        'flow.json downloaded. The project is also auto-saved in your browser.',
+    'toast.exported': 'flow.json downloaded. The project is also auto-saved in your browser.',
     'export.nodes': 'blocks',
 
     // Status bar
@@ -192,7 +191,7 @@ export default {
     'help.title': 'User Guide',
     'help.whatIs': 'What is this?',
     'help.whatIsDesc':
-        'Umbot Flow Editor is a visual editor for creating bots based on the umbot framework. You create a bot by placing blocks on a canvas and connecting them. Then export a configuration and automatically generate a ready project with code.',
+        'Umbot Flow is a visual editor for creating bots based on the umbot framework. You create a bot by placing blocks on a canvas and connecting them. Then export a configuration and automatically generate a ready project with code.',
     'help.howToStart': 'How to start?',
     'help.howToStartDesc':
         '1. Drag a "Command" block to the canvas\n2. Click it and fill in the trigger words (slots) and response text\n3. Add more blocks and connect them\n4. Click "Validate & Export" to download flow.json\n5. Run: npx umbot create from-flow flow.json --output ./my-bot',

@@ -1,189 +1,83 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112563287', 'ym');
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Documentation — Umbot Flow</title>
+    <meta
+        name="description"
+        content="Documentation for the Umbot Flow visual editor. Quick start, block types, JSON format specification, FAQ."
+    />
+    <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/" />
+    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
+    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
+    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
+    <meta property="og:title" content="Documentation — Umbot Flow" />
+    <meta
+        property="og:description"
+        content="Documentation for the Umbot Flow visual editor. Quick start, block types, JSON format specification."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    ym(112563287, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <!-- /Yandex.Metrika counter -->
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <title>Documentation — Umbot Flow Editor</title>
-        <meta
-            name="description"
-            content="Documentation for the Umbot Flow Editor visual editor. Quick start, block types, JSON format specification, FAQ."
-        />
-        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/" />
-        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
-        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
-        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
-        <meta property="og:title" content="Documentation — Umbot Flow Editor" />
-        <meta
-            property="og:description"
-            content="Documentation for the Umbot Flow Editor visual editor. Quick start, block types, JSON format specification."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/" />
-        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="stylesheet" href="/docs/docs.css?v=1" />
+</head>
+<body class="page-home">
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #0f0f14;
-                color: #e0e0e0;
-                line-height: 1.6;
-            }
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 40px 20px;
-            }
-            h1 {
-                font-size: 2rem;
-                margin-bottom: 8px;
-                color: #fff;
-            }
-            .subtitle {
-                color: #888;
-                margin-bottom: 40px;
-            }
-            .cards {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 16px;
-            }
-            .card {
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-                padding: 24px;
-                text-decoration: none;
-                color: inherit;
-                transition:
-                    border-color 0.2s,
-                    transform 0.2s;
-            }
-            .card:hover {
-                border-color: rgba(0, 240, 255, 0.3);
-                transform: translateY(-2px);
-            }
-            .card h2 {
-                font-size: 1.1rem;
-                color: #00f0ff;
-                margin-bottom: 8px;
-            }
-            .card p {
-                font-size: 0.9rem;
-                color: #888;
-            }
-            .topbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 24px;
-            }
-            .back {
-                color: #00f0ff;
-                text-decoration: none;
-                font-size: 0.9rem;
-            }
-            .back:hover {
-                text-decoration: underline;
-            }
-            .lang {
-                color: #888;
-                text-decoration: none;
-                font-size: 0.85rem;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 4px 10px;
-            }
-            .lang:hover {
-                color: #00f0ff;
-                border-color: rgba(0, 240, 255, 0.3);
-            }
-            @media (max-width: 480px) {
-                body { padding: 0; }
-                .container { padding: 24px 14px; }
-                h1 { font-size: 1.5rem; }
-                h2 { font-size: 1.15rem; }
-                .step { flex-direction: column; gap: 10px; }
-                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
-                table { font-size: 0.8rem; }
-                th, td { padding: 6px 8px; }
-                pre { font-size: 0.75rem; padding: 12px; }
-                code { font-size: 0.8em; }
-                .topbar { flex-wrap: wrap; gap: 8px; }
-            }
+<div class="container">
+    <div class="topbar">
+        <a class="back" href="/">← Home</a>
+        <a class="lang" href="/docs/">RU</a>
+    </div>
+    <h1>Documentation</h1>
+    <p class="subtitle">Everything you need to work with Umbot Flow</p>
 
-        </style>
-    </head>
-    <body>
-        <!-- Yandex.Metrika counter (noscript) -->
-        <noscript><div><img src="https://mc.yandex.ru/watch/112563287" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter (noscript) -->
-        <div class="container">
-            <div class="topbar">
-                <a class="back" href="/">← Home</a>
-                <a class="lang" href="/docs/">RU</a>
-            </div>
-            <h1>Documentation</h1>
-            <p class="subtitle">Everything you need to work with Umbot Flow Editor</p>
+    <p class="intro">
+        Umbot Flow is a visual chatbot builder: you assemble the scenario with blocks
+        on a canvas, the editor validates it and turns it into a ready TypeScript project
+        for Telegram, Alisa, VK and other platforms. Four sections below: start with the
+        quick start guide and keep the references handy.
+    </p>
 
-            <p style="color: #888; font-size: 0.95rem; margin-bottom: 28px">
-                Umbot Flow Editor is a visual chatbot builder: you assemble the scenario with blocks
-                on a canvas, the editor validates it and turns it into a ready TypeScript project
-                for Telegram, Alisa, VK and other platforms. Four sections below: start with the
-                quick start guide and keep the references handy.
+    <div class="cards">
+        <a class="card" href="/docs/en/quick-start/">
+            <h2>Quick Start</h2>
+            <p>
+                A step-by-step guide with examples and screenshots: from the first block on
+                the canvas to a running bot — in about 15 minutes.
             </p>
-
-            <div class="cards">
-                <a class="card" href="/docs/en/quick-start/">
-                    <h2>Quick Start</h2>
-                    <p>
-                        A step-by-step guide with examples and screenshots: from the first block on
-                        the canvas to a running bot — in about 15 minutes.
-                    </p>
-                </a>
-                <a class="card" href="/docs/en/blocks/">
-                    <h2>Block Types</h2>
-                    <p>
-                        A detailed description of every block type: commands with trigger words,
-                        input steps, conditions, actions, responses and end. With setup examples.
-                    </p>
-                </a>
-                <a class="card" href="/docs/en/json-format/">
-                    <h2>JSON Format</h2>
-                    <p>
-                        The flow.json reference: document structure, all node and edge types,
-                        condition operators and variable substitution. For editing the config by
-                        hand.
-                    </p>
-                </a>
-                <a class="card" href="/docs/en/faq/">
-                    <h2>FAQ</h2>
-                    <p>
-                        Answers to common questions: pricing and license, platform support,
-                        launching the generated bot on your own server.
-                    </p>
-                </a>
-            </div>
-        </div>
-    </body>
+        </a>
+        <a class="card" href="/docs/en/blocks/">
+            <h2>Block Types</h2>
+            <p>
+                A detailed description of every block type: commands with trigger words,
+                input steps, conditions, actions, responses and end. With setup examples.
+            </p>
+        </a>
+        <a class="card" href="/docs/en/json-format/">
+            <h2>JSON Format</h2>
+            <p>
+                The flow.json reference: document structure, all node and edge types,
+                condition operators and variable substitution. For editing the config by
+                hand.
+            </p>
+        </a>
+        <a class="card" href="/docs/en/faq/">
+            <h2>FAQ</h2>
+            <p>
+                Answers to common questions: pricing and license, platform support,
+                launching the generated bot on your own server.
+            </p>
+        </a>
+    </div>
+</div>
+<script src="/metrika.js" async></script>
+</body>
 </html>

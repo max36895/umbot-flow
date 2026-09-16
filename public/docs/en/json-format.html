@@ -1,208 +1,65 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112563287', 'ym');
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>JSON Format — Umbot Flow</title>
+    <meta
+        name="description"
+        content="Full specification of the JSON configuration for Umbot Flow. Document structure, node types, edges, variables."
+    />
+    <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/json-format/" />
+    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
+    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
+    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
+    <meta property="og:title" content="JSON Format — Umbot Flow" />
+    <meta
+        property="og:description"
+        content="Full specification of the JSON configuration for Umbot Flow. Document structure, node types, edges, variables."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/json-format/" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    ym(112563287, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <!-- /Yandex.Metrika counter -->
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <title>JSON Format — Umbot Flow Editor</title>
-        <meta
-            name="description"
-            content="Full specification of the JSON configuration for Umbot Flow Editor. Document structure, node types, edges, variables."
-        />
-        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/json-format/" />
-        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/json-format/" />
-        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/json-format/" />
-        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/json-format/" />
-        <meta property="og:title" content="JSON Format — Umbot Flow Editor" />
-        <meta
-            property="og:description"
-            content="Full specification of the JSON configuration for Umbot Flow Editor. Document structure, node types, edges, variables."
-        />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/json-format/" />
-        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="stylesheet" href="/docs/docs.css?v=1" />
+</head>
+<body class="page-json">
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #0f0f14;
-                color: #e0e0e0;
-                line-height: 1.7;
-            }
-            .container {
-                max-width: 700px;
-                margin: 0 auto;
-                padding: 40px 20px;
-            }
-            h1 {
-                font-size: 2rem;
-                margin-bottom: 8px;
-                color: #fff;
-            }
-            h2 {
-                font-size: 1.3rem;
-                margin: 32px 0 12px;
-                color: #00f0ff;
-            }
-            h3 {
-                font-size: 1rem;
-                margin: 20px 0 8px;
-                color: #fff;
-            }
-            .subtitle {
-                color: #888;
-                margin-bottom: 32px;
-            }
-            .topbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 24px;
-            }
-            .back {
-                color: #00f0ff;
-                text-decoration: none;
-                font-size: 0.9rem;
-            }
-            .back:hover {
-                text-decoration: underline;
-            }
-            .lang {
-                color: #888;
-                text-decoration: none;
-                font-size: 0.85rem;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 4px 10px;
-            }
-            .lang:hover {
-                color: #00f0ff;
-                border-color: rgba(0, 240, 255, 0.3);
-            }
-            pre {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 8px;
-                padding: 16px;
-                overflow-x: auto;
-                margin: 12px 0;
-                font-size: 0.85rem;
-            }
-            code {
-                background: rgba(0, 240, 255, 0.1);
-                color: #00f0ff;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-family: 'SF Mono', 'Fira Code', monospace;
-                font-size: 0.85em;
-            }
-            pre code {
-                background: none;
-                padding: 0;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 12px 0;
-                font-size: 0.9rem;
-            }
-            th,
-            td {
-                padding: 8px 12px;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                text-align: left;
-            }
-            th {
-                background: rgba(255, 255, 255, 0.05);
-                color: #aaa;
-            }
-            td:first-child {
-                color: #00f0ff;
-                font-family: monospace;
-            }
-            a {
-                color: #00f0ff;
-            }
-            .note {
-                background: rgba(0, 240, 255, 0.05);
-                border: 1px solid rgba(0, 240, 255, 0.2);
-                border-radius: 8px;
-                padding: 16px;
-                margin: 16px 0;
-                font-size: 0.9rem;
-            }
-            .note strong {
-                color: #00f0ff;
-            }
-            @media (max-width: 480px) {
-                body { padding: 0; }
-                .container { padding: 24px 14px; }
-                h1 { font-size: 1.5rem; }
-                h2 { font-size: 1.15rem; }
-                .step { flex-direction: column; gap: 10px; }
-                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
-                table { font-size: 0.8rem; }
-                th, td { padding: 6px 8px; }
-                pre { font-size: 0.75rem; padding: 12px; }
-                code { font-size: 0.8em; }
-                .topbar { flex-wrap: wrap; gap: 8px; }
-            }
+<div class="container">
+    <div class="topbar">
+        <a class="back" href="/docs/en/">← Documentation</a>
+        <a class="lang" href="/docs/json-format/">RU</a>
+    </div>
+    <h1>JSON configuration format</h1>
+    <p class="subtitle">
+        A reference for flow.json — the file the visual editor generates
+    </p>
 
-        </style>
-    </head>
-    <body>
-        <!-- Yandex.Metrika counter (noscript) -->
-        <noscript><div><img src="https://mc.yandex.ru/watch/112563287" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter (noscript) -->
-        <div class="container">
-            <div class="topbar">
-                <a class="back" href="/docs/en/">← Documentation</a>
-                <a class="lang" href="/docs/json-format/">RU</a>
-            </div>
-            <h1>JSON configuration format</h1>
-            <p class="subtitle">
-                A reference for flow.json — the file the visual editor generates
-            </p>
+    <p class="muted">
+        flow.json describes the whole bot scenario: nodes, the edges between them and the
+        project settings. The editor validates the file against a JSON Schema
+        (<code>schemaVersion: "1.0"</code>), so any exported config is guaranteed to load
+        back. Manual edits are safe too: load the file via "Import JSON" and the editor
+        checks it with the same schema.
+    </p>
 
-            <p style="color: #888; font-size: 0.9rem">
-                flow.json describes the whole bot scenario: nodes, the edges between them and the
-                project settings. The editor validates the file against a JSON Schema
-                (<code>schemaVersion: "1.0"</code>), so any exported config is guaranteed to load
-                back. Manual edits are safe too: load the file via "Import JSON" and the editor
-                checks it with the same schema.
-            </p>
+    <div class="note">
+        <strong>Tip:</strong> the complete specification with generated code examples is in
+        the
+        <a
+            href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
+        >GitHub repository</a
+        >.
+    </div>
 
-            <div class="note">
-                <strong>Tip:</strong> the complete specification with generated code examples is in
-                the
-                <a
-                    href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
-                    >GitHub repository</a
-                >.
-            </div>
-
-            <h2>Document structure</h2>
-            <pre><code>{
+    <h2>Document structure</h2>
+    <pre><code>{
     "schemaVersion": "1.0",
     "name": "my-bot",
     "version": "1.0.0",
@@ -214,91 +71,91 @@
     "welcome": { "text": "Hello!" }
 }</code></pre>
 
-            <table>
-                <tr>
-                    <th>Field</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td>schemaVersion</td>
-                    <td>Format version, currently always <code>"1.0"</code></td>
-                </tr>
-                <tr>
-                    <td>name</td>
-                    <td>Project name — used in package.json and the folder name</td>
-                </tr>
-                <tr>
-                    <td>version</td>
-                    <td>Project version (semver)</td>
-                </tr>
-                <tr>
-                    <td>platforms</td>
-                    <td>
-                        Platform list: <code>telegram</code>, <code>alisa</code>,
-                        <code>marusia</code>, <code>vk</code>, <code>max_app</code>,
-                        <code>viber</code>, <code>smart_app</code>
-                    </td>
-                </tr>
-                <tr>
-                    <td>database</td>
-                    <td>Data storage: <code>file</code>, <code>mongo</code> or <code>none</code></td>
-                </tr>
-                <tr>
-                    <td>nodes</td>
-                    <td>All scenario blocks (see the types below)</td>
-                </tr>
-                <tr>
-                    <td>edges</td>
-                    <td>Connections between blocks</td>
-                </tr>
-                <tr>
-                    <td>welcome</td>
-                    <td>Welcome message shown when the dialog starts</td>
-                </tr>
-                <tr>
-                    <td>fallback</td>
-                    <td>Reply to unrecognized input</td>
-                </tr>
-                <tr>
-                    <td>variables</td>
-                    <td>Variable comments: name → description</td>
-                </tr>
-            </table>
+    <table>
+        <tr>
+            <th>Field</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>schemaVersion</td>
+            <td>Format version, currently always <code>"1.0"</code></td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>Project name — used in package.json and the folder name</td>
+        </tr>
+        <tr>
+            <td>version</td>
+            <td>Project version (semver)</td>
+        </tr>
+        <tr>
+            <td>platforms</td>
+            <td>
+                Platform list: <code>telegram</code>, <code>alisa</code>,
+                <code>marusia</code>, <code>vk</code>, <code>max_app</code>,
+                <code>viber</code>, <code>smart_app</code>
+            </td>
+        </tr>
+        <tr>
+            <td>database</td>
+            <td>Data storage: <code>file</code>, <code>mongo</code> or <code>none</code></td>
+        </tr>
+        <tr>
+            <td>nodes</td>
+            <td>All scenario blocks (see the types below)</td>
+        </tr>
+        <tr>
+            <td>edges</td>
+            <td>Connections between blocks</td>
+        </tr>
+        <tr>
+            <td>welcome</td>
+            <td>Welcome message shown when the dialog starts</td>
+        </tr>
+        <tr>
+            <td>fallback</td>
+            <td>Reply to unrecognized input</td>
+        </tr>
+        <tr>
+            <td>variables</td>
+            <td>Variable comments: name → description</td>
+        </tr>
+    </table>
 
-            <h2>Node types</h2>
-            <table>
-                <tr>
-                    <th>Type</th>
-                    <th>Purpose</th>
-                </tr>
-                <tr>
-                    <td>command</td>
-                    <td>Command — reacts to trigger words</td>
-                </tr>
-                <tr>
-                    <td>step</td>
-                    <td>Step — asks for input and saves it to a variable</td>
-                </tr>
-                <tr>
-                    <td>condition</td>
-                    <td>Condition — branches on a variable</td>
-                </tr>
-                <tr>
-                    <td>action</td>
-                    <td>Action — HTTP requests, variables, random numbers</td>
-                </tr>
-                <tr>
-                    <td>response</td>
-                    <td>Response — shows text and buttons without asking for input</td>
-                </tr>
-                <tr>
-                    <td>end</td>
-                    <td>End — closes the dialog</td>
-                </tr>
-            </table>
+    <h2>Node types</h2>
+    <table>
+        <tr>
+            <th>Type</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td>command</td>
+            <td>Command — reacts to trigger words</td>
+        </tr>
+        <tr>
+            <td>step</td>
+            <td>Step — asks for input and saves it to a variable</td>
+        </tr>
+        <tr>
+            <td>condition</td>
+            <td>Condition — branches on a variable</td>
+        </tr>
+        <tr>
+            <td>action</td>
+            <td>Action — HTTP requests, variables, random numbers</td>
+        </tr>
+        <tr>
+            <td>response</td>
+            <td>Response — shows text and buttons without asking for input</td>
+        </tr>
+        <tr>
+            <td>end</td>
+            <td>End — closes the dialog</td>
+        </tr>
+    </table>
 
-            <h3>Command</h3>
-            <pre><code>{
+    <h3>Command</h3>
+    <pre><code>{
     "type": "command",
     "id": "node_123",
     "name": "greeting",
@@ -307,31 +164,31 @@
     "saveTo": "lastGreeting",
     "response": { "text": "Hi, {{userName}}!", "buttons": [] }
 }</code></pre>
-            <table>
-                <tr>
-                    <th>Field</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td>slots</td>
-                    <td>Trigger words, case-insensitive</td>
-                </tr>
-                <tr>
-                    <td>isPattern</td>
-                    <td>When <code>true</code>, slots are treated as regular expressions</td>
-                </tr>
-                <tr>
-                    <td>saveTo</td>
-                    <td>Save the user's input to a variable</td>
-                </tr>
-                <tr>
-                    <td>response</td>
-                    <td>Reply text, TTS, buttons, card, dialog end</td>
-                </tr>
-            </table>
+    <table>
+        <tr>
+            <th>Field</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>slots</td>
+            <td>Trigger words, case-insensitive</td>
+        </tr>
+        <tr>
+            <td>isPattern</td>
+            <td>When <code>true</code>, slots are treated as regular expressions</td>
+        </tr>
+        <tr>
+            <td>saveTo</td>
+            <td>Save the user's input to a variable</td>
+        </tr>
+        <tr>
+            <td>response</td>
+            <td>Reply text, TTS, buttons, card, dialog end</td>
+        </tr>
+    </table>
 
-            <h3>Step</h3>
-            <pre><code>{
+    <h3>Step</h3>
+    <pre><code>{
     "type": "step",
     "id": "node_456",
     "name": "ask_name",
@@ -339,13 +196,13 @@
     "saveTo": "userName",
     "saveAs": "original"
 }</code></pre>
-            <p style="color: #888; font-size: 0.9rem">
-                <code>saveAs: "original"</code> keeps the input as typed, <code>"lowercase"</code>
-                lowercases it. Where to go next is defined by the <code>next</code> edge.
-            </p>
+    <p class="muted">
+        <code>saveAs: "original"</code> keeps the input as typed, <code>"lowercase"</code>
+        lowercases it. Where to go next is defined by the <code>next</code> edge.
+    </p>
 
-            <h3>Condition</h3>
-            <pre><code>{
+    <h3>Condition</h3>
+    <pre><code>{
     "type": "condition",
     "id": "node_789",
     "name": "check_age",
@@ -353,89 +210,108 @@
     "operator": "gte",
     "value": 18
 }</code></pre>
-            <p style="color: #888; font-size: 0.9rem">
-                The yes/no branches are defined by <code>branch_true</code> and
-                <code>branch_false</code> edges. The value may be a number, a string or a variable
-                name.
-            </p>
+    <p class="muted">
+        The yes/no branches are defined by <code>branch_true</code> and
+        <code>branch_false</code> edges. The value may be a number, a string or a variable
+        name.
+    </p>
 
-            <h4>Comparison operators</h4>
-            <table>
-                <tr>
-                    <th>Code</th>
-                    <th>Check</th>
-                </tr>
-                <tr><td>eq / neq</td><td>Equals / not equals</td></tr>
-                <tr><td>gt / gte / lt / lte</td><td>Greater / greater-or-equal / less / less-or-equal</td></tr>
-                <tr><td>contains</td><td>String contains a substring</td></tr>
-                <tr><td>isEmpty / isNotEmpty</td><td>Variable is empty / not empty</td></tr>
-                <tr><td>isSayTrue / isSayFalse</td><td>User answered "yes" / "no" (natural language)</td></tr>
-                <tr><td>isUrl</td><td>Value is a valid URL</td></tr>
-            </table>
+    <h4>Comparison operators</h4>
+    <table>
+        <tr>
+            <th>Code</th>
+            <th>Check</th>
+        </tr>
+        <tr>
+            <td>eq / neq</td>
+            <td>Equals / not equals</td>
+        </tr>
+        <tr>
+            <td>gt / gte / lt / lte</td>
+            <td>Greater / greater-or-equal / less / less-or-equal</td>
+        </tr>
+        <tr>
+            <td>contains</td>
+            <td>String contains a substring</td>
+        </tr>
+        <tr>
+            <td>isEmpty / isNotEmpty</td>
+            <td>Variable is empty / not empty</td>
+        </tr>
+        <tr>
+            <td>isSayTrue / isSayFalse</td>
+            <td>User answered "yes" / "no" (natural language)</td>
+        </tr>
+        <tr>
+            <td>isUrl</td>
+            <td>Value is a valid URL</td>
+        </tr>
+    </table>
 
-            <h3>Action</h3>
-            <p style="color: #888; font-size: 0.9rem">
-                Three action types: <code>set_variable</code> (evaluate an expression and write it
-                to a variable), <code>random_number</code> (a random number between min and max)
-                and <code>http_request</code> (a GET/POST request with headers, body and saving the
-                response to a variable). The <code>{{variable}}</code> substitution works in URLs,
-                bodies and expressions.
-            </p>
+    <h3>Action</h3>
+    <p class="muted">
+        Three action types: <code>set_variable</code> (evaluate an expression and write it
+        to a variable), <code>random_number</code> (a random number between min and max)
+        and <code>http_request</code> (a GET/POST request with headers, body and saving the
+        response to a variable). The <code>{{variable}}</code> substitution works in URLs,
+        bodies and expressions.
+    </p>
 
-            <h2>Edges</h2>
-            <pre><code>{ "from": "node_123", "to": "node_456", "type": "next" }</code></pre>
-            <table>
-                <tr>
-                    <th>Type</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td>next</td>
-                    <td>Sequential transition to the next block</td>
-                </tr>
-                <tr>
-                    <td>branch_true</td>
-                    <td>The "yes" branch from a condition</td>
-                </tr>
-                <tr>
-                    <td>branch_false</td>
-                    <td>The "no" branch from a condition</td>
-                </tr>
-                <tr>
-                    <td>slot_match</td>
-                    <td>Transition on a slot match</td>
-                </tr>
-            </table>
+    <h2>Edges</h2>
+    <pre><code>{ "from": "node_123", "to": "node_456", "type": "next" }</code></pre>
+    <table>
+        <tr>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>next</td>
+            <td>Sequential transition to the next block</td>
+        </tr>
+        <tr>
+            <td>branch_true</td>
+            <td>The "yes" branch from a condition</td>
+        </tr>
+        <tr>
+            <td>branch_false</td>
+            <td>The "no" branch from a condition</td>
+        </tr>
+        <tr>
+            <td>slot_match</td>
+            <td>Transition on a slot match</td>
+        </tr>
+    </table>
 
-            <h2>Variable substitution</h2>
-            <p style="color: #888; font-size: 0.9rem">
-                Use <code>{{name}}</code> in any text — the value is substituted automatically:
-            </p>
-            <pre><code>"Hello, {{userName}}!"  →  setText(ctrl, `Hello, ${ctrl.userData.userName}!`)</code></pre>
+    <h2>Variable substitution</h2>
+    <p class="muted">
+        Use <code>{{name}}</code> in any text — the value is substituted automatically:
+    </p>
+    <pre><code>"Hello, {{userName}}!"  →  setText(ctrl, `Hello, ${ctrl.userData.userName}!`)</code></pre>
 
-            <h2>Validation and names</h2>
-            <p style="color: #888; font-size: 0.9rem">
-                Block names with spaces and special characters are automatically turned into valid
-                identifiers. The editor catches typical errors before export: empty replies,
-                unreachable blocks, duplicate names after sanitization, missing connections.
-                Conditions inside one block are isolated — two conditions on the same variable in
-                one block don't conflict.
-            </p>
+    <h2>Validation and names</h2>
+    <p class="muted">
+        Block names with spaces and special characters are automatically turned into valid
+        identifiers. The editor catches typical errors before export: empty replies,
+        unreachable blocks, duplicate names after sanitization, missing connections.
+        Conditions inside one block are isolated — two conditions on the same variable in
+        one block don't conflict.
+    </p>
 
-            <h2>More</h2>
-            <ul style="margin-left: 20px; color: #888; font-size: 0.9rem">
-                <li><a href="/docs/en/blocks/">Block types</a> — what nodes exist and how to connect them</li>
-                <li>
-                    <a href="/docs/en/quick-start/">Quick start</a> — from the first block to a
-                    running bot
-                </li>
-                <li>
-                    <a
-                        href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
-                        >Full specification on GitHub</a
-                    >
-                </li>
-            </ul>
-        </div>
-    </body>
+    <h2>More</h2>
+    <ul class="muted">
+        <li><a href="/docs/en/blocks/">Block types</a> — what nodes exist and how to connect them</li>
+        <li>
+            <a href="/docs/en/quick-start/">Quick start</a> — from the first block to a
+            running bot
+        </li>
+        <li>
+            <a
+                href="https://github.com/max36895/umbot-flow/blob/main/JSON_FORMAT.md"
+            >Full specification on GitHub</a
+            >
+        </li>
+    </ul>
+</div>
+<script src="/metrika.js" async></script>
+</body>
 </html>

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Исходник призрака как строка: Vite ?raw-импорт (типы — src/vite-env.d.ts)
 // работает и в Vitest, и в ts-проверке сборки, без node:fs в браузерном tsconfig.
-import ghostSource from '../../public/um13-ghost.js?raw';
+import ghostSource from '../../um13-ghost.js?raw';
+// Стили призрака живут отдельным файлом (подключаются <link> на страницах)
+import ghostCss from '../../styles/um13-ghost.css?raw';
 
 /**
- * Тесты общего модуля призрака (public/um13-ghost.js).
+ * Тесты общего модуля призрака (um13-ghost.js).
  *
  * Модуль — ванильный IIFE без экспортов: выполняем его исходник в jsdom
  * (скрипт сам создаёт портал #um13-ghost-root) и тестируем через
@@ -13,8 +15,28 @@ import ghostSource from '../../public/um13-ghost.js?raw';
  */
 
 const GHOST_SRC: string = ghostSource;
+/** Файл стилей отформатирован prettier; проверки ниже написаны в компактной
+ *  записи правил (`.a .b{display:none;}`, `rgba(0,0,0,.2)`). Приводим файл к ней:
+ *  без комментариев, пробелов вокруг {};:, и ведущих нулей у дробей; кавычки
+ *  двойные (prettier с singleQuote пишет [data-face='normal']). */
+function compactCss(css: string): string {
+    return css
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/'/g, '"')
+        .replace(/\s+/g, ' ')
+        .replace(/\s*([{};:,])\s*/g, '$1')
+        .replace(/(^|[^\d.])0\.(\d)/g, '$1.$2');
+}
+const GHOST_CSS: string = compactCss(ghostCss);
 
-/** Публичный API призрака (см. шапку public/um13-ghost.js). */
+/** Позиция словаря EN в исходнике (не завязана на var/let/const). */
+function enDictStart(): number {
+    const idx = GHOST_SRC.search(/\b(?:var|let|const) EN = \{/);
+    expect(idx).toBeGreaterThan(0);
+    return idx;
+}
+
+/** Публичный API призрака (см. шапку um13-ghost.js). */
 interface Um13GhostApi {
     say(text: string, ms?: number, mood?: string): void;
     react(event: string): void;
@@ -129,7 +151,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             advance(2200); // приветствие сыграло
             advance(35_000); // прошло 30с бездействия
             // новый пул checking шире — проверяем по смыслу, не по точным словам
-            expect(sayText()).toMatch(/ты ещё тут|ты тут|ушёл|тихо|живой|подожду|терпение|связи|сгущай|спящем/);
+            expect(sayText()).toMatch(
+                /ты ещё тут|ты тут|ушёл|тихо|живой|подожду|терпение|связи|сгущай|спящем/,
+            );
         });
 
         it('после ещё 60с тишины засыпает (Zzz ×3, лицо asleep)', () => {
@@ -152,7 +176,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // наведение мыши — как пользователь будит призрака
             ghostEl()!.dispatchEvent(new Event('mouseover'));
             expect(ghost().asleep).toBe(false);
-            expect(sayText()).toMatch(/не спал|продакшн|сохранился|погружения|undo|шевельнулось|нодах/);
+            expect(sayText()).toMatch(
+                /не спал|продакшн|сохранился|погружения|undo|шевельнулось|нодах/,
+            );
             // на page-режиме призрак НЕ уходит после побудки
             advance(20_000);
             expect(ghost().visible).toBe(true);
@@ -208,7 +234,10 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             expect(sayText()).toMatch(/хватит|серьёзно|обиделся|бесконечный/);
             advance(4500); // stop дожила — БЕЗ обнуления окна: 5 кликов выше
             // ── окно истекло: побег набираем одной плотной серией ──
-            for (let i = 0; i < 7; i++) { el.dispatchEvent(new Event('click')); advance(120); }
+            for (let i = 0; i < 7; i++) {
+                el.dispatchEvent(new Event('click'));
+                advance(120);
+            }
             expect(
                 document.getElementById('um13-ghost-root')!.classList.contains('um13g-dodging'),
             ).toBe(true);
@@ -245,7 +274,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             ghost().say('проснись, страница зовёт');
             expect(ghost().asleep).toBe(false);
             // побудка уже в пузыре (wake-реплика), say — в очереди за ней
-            expect(sayText()).toMatch(/не спал|продакшн|сохранился|погружения|undo|шевельнулось|нодах|вернулся/);
+            expect(sayText()).toMatch(
+                /не спал|продакшн|сохранился|погружения|undo|шевельнулось|нодах|вернулся/,
+            );
             // после прочтения пробуждения — слово страницы
             advance(10_000);
             expect(sayText()).toBe('проснись, страница зовёт');
@@ -262,6 +293,26 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // hello доживает → очередь откачивается → слово страницы
             advance(9000);
             expect(sayText()).toBe('страница поздоровалась');
+        });
+
+        it('пауза между репликами не выбрасывает очередь и не говорит без паузы', () => {
+            loadGhost('page');
+            advance(2200);
+            ghost().say('первая из очереди', 4000);
+            ghost().say('вторая из очереди', 4000);
+            // ждём, пока очередь дойдёт до первой
+            for (let i = 0; i < 200 && sayText() !== 'первая из очереди'; i++) advance(100);
+            expect(sayText()).toBe('первая из очереди');
+            advance(4000); // первая дожила — 500мс паузы перед второй
+            expect(sayEl()!.classList.contains('show')).toBe(false);
+            // регрессия: say в паузе считал пузырь свободным — выкидывал
+            // «вторую» из очереди и показывался сразу, без паузы
+            ghost().say('третья из очереди', 4000);
+            expect(sayEl()!.classList.contains('show')).toBe(false);
+            advance(600);
+            expect(sayText()).toBe('вторая из очереди');
+            advance(4600);
+            expect(sayText()).toBe('третья из очереди');
         });
     });
 
@@ -336,8 +387,7 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         it('SVG одинаковый в обоих режимах (одна капсула, глаза, рот)', () => {
             loadGhost('page');
             // v3: лицо — группы-эмоции без inline-стилей; канон = чистый SVG
-            const canon = (el: HTMLElement | null) =>
-                el!.querySelector('svg')!.outerHTML;
+            const canon = (el: HTMLElement | null) => el!.querySelector('svg')!.outerHTML;
             const pageSvg = canon(ghostEl());
             delete (window as unknown as Record<string, unknown>).UM13Ghost;
             document.getElementById('um13-ghost-root')!.remove();
@@ -346,7 +396,15 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             const editorSvg = canon(ghostEl());
             expect(editorSvg).toBe(pageSvg);
             // все семь лиц в разметке обоих режимов
-            for (const face of ['normal', 'startled', 'skeptic', 'delight', 'smart', 'thinking', 'asleep']) {
+            for (const face of [
+                'normal',
+                'startled',
+                'skeptic',
+                'delight',
+                'smart',
+                'thinking',
+                'asleep',
+            ]) {
                 expect(editorSvg).toContain(`um13g-f-${face}`);
                 expect(pageSvg).toContain(`um13g-f-${face}`);
             }
@@ -494,7 +552,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // without dodging hover ничего не делает; наклон проверяем через тайминги
             advance(200);
             // переменная всё ещё валидна (0 или число с deg)
-            expect(ghostEl()!.style.getPropertyValue('--um13-tilt')).toMatch(/^(-?\d+(\.\d+)?deg|0deg)$/);
+            expect(ghostEl()!.style.getPropertyValue('--um13-tilt')).toMatch(
+                /^(-?\d+(\.\d+)?deg|0deg)$/,
+            );
             expect(before).toBeTruthy();
         });
     });
@@ -570,16 +630,21 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             advance(11_000); // пузырь свободен
             const el = ghostEl()!;
             // 7 плотных тычков — побег
-            for (let i = 0; i < 7; i++) { el.dispatchEvent(new Event('click')); advance(120); }
+            for (let i = 0; i < 7; i++) {
+                el.dispatchEvent(new Event('click'));
+                advance(120);
+            }
             expect(
                 document.getElementById('um13-ghost-root')!.classList.contains('um13g-dodging'),
             ).toBe(true);
             // курсор «догнал»: двигаем мышь в точку призрака (style px)
             const st = ghostEl()!.style;
-            window.dispatchEvent(new MouseEvent('mousemove', {
-                clientX: parseFloat(st.left) || 512,
-                clientY: parseFloat(st.top) || 384,
-            }));
+            window.dispatchEvent(
+                new MouseEvent('mousemove', {
+                    clientX: parseFloat(st.left) || 512,
+                    clientY: parseFloat(st.top) || 384,
+                }),
+            );
             // тычок по беглецу при близком курсоре — поимка
             el.dispatchEvent(new Event('click'));
             advance(200);
@@ -592,13 +657,19 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             advance(11_000);
             const el = ghostEl()!;
             // побег
-            for (let i = 0; i < 7; i++) { el.dispatchEvent(new Event('click')); advance(120); }
+            for (let i = 0; i < 7; i++) {
+                el.dispatchEvent(new Event('click'));
+                advance(120);
+            }
             advance(12_500); // побег пережит → pokeResignCount=3, клики сброшены
             expect(
                 document.getElementById('um13-ghost-root')!.classList.contains('um13g-dodging'),
             ).toBe(false);
             // новые тычки: 3+ (порог смирения) — реплика покорности
-            for (let i = 0; i < 6; i++) { el.dispatchEvent(new Event('click')); advance(120); }
+            for (let i = 0; i < 6; i++) {
+                el.dispatchEvent(new Event('click'));
+                advance(120);
+            }
             // смирение могло уйти в очередь: откачиваем
             advance(9500);
             expect(sayText()).toMatch(/смирился|тыкай|не настоящий|мир не изменился|всё равно/);
@@ -666,15 +737,19 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             const style = ghostEl()!.style;
             const gx = parseFloat(style.left) || 512;
             const gy = parseFloat(style.top) || 384;
-            window.dispatchEvent(new MouseEvent('mousemove', {
-                clientX: gx + 10,
-                clientY: gy + 10,
-            }));
+            window.dispatchEvent(
+                new MouseEvent('mousemove', {
+                    clientX: gx + 10,
+                    clientY: gy + 10,
+                }),
+            );
             advance(600); // watch-тик 500мс
             expect(ghostEl()!.classList.contains('um13g-act-dream')).toBe(false);
             // смущённая реплика — в очереди/пузыре
             advance(9500);
-            expect(sayText()).toMatch(/не танцевал|ничего не видел|профессиональное|не подглядывай|не разговариваем/);
+            expect(sayText()).toMatch(
+                /не танцевал|ничего не видел|профессиональное|не подглядывай|не разговариваем/,
+            );
         });
     });
 
@@ -692,6 +767,21 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             advance(30_000);
             expect(ghost().visible).toBe(true);
             expect(el.style.pointerEvents).toBe('');
+        });
+
+        it('скрытый призрак не анимируется: um13g-away снят при появлении, стоит после ухода', () => {
+            loadGhost('editor');
+            const el = ghostEl()!;
+            // рождён скрытым — анимации на паузе с первой секунды
+            expect(el.classList.contains('um13g-away')).toBe(true);
+            advance(30_000);
+            expect(ghost().visible).toBe(true);
+            expect(el.classList.contains('um13g-away')).toBe(false);
+            ghost().hide();
+            // класс ставится после fade-out, не обрывая его
+            expect(el.classList.contains('um13g-away')).toBe(false);
+            advance(700);
+            expect(el.classList.contains('um13g-away')).toBe(true);
         });
 
         it('quiet: при загрузке не виден; после 60с — спит в углу', () => {
@@ -715,7 +805,10 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // с расширенными полями (код слушает clientX/Y, pointerId, button)
             const ptr = (type: string, x: number, y: number, target: Window | Element) => {
                 const e = new Event(type, { bubbles: true }) as Event & {
-                    clientX: number; clientY: number; pointerId: number; button: number;
+                    clientX: number;
+                    clientY: number;
+                    pointerId: number;
+                    button: number;
                 };
                 e.clientX = x;
                 e.clientY = y;
@@ -741,7 +834,10 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             advance(11_000);
             const el = ghostEl()!;
             const poke = () => el.dispatchEvent(new Event('click'));
-            for (let i = 0; i < 7; i++) { poke(); advance(110); }
+            for (let i = 0; i < 7; i++) {
+                poke();
+                advance(110);
+            }
             expect(
                 document.getElementById('um13-ghost-root')!.classList.contains('um13g-dodging'),
             ).toBe(true);
@@ -753,9 +849,12 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
                 window.dispatchEvent(new MouseEvent('mousemove', { clientX: left, clientY: top }));
                 g.dispatchEvent(new Event('click'));
             };
-            catchIt(); advance(400);
-            catchIt(); advance(400);
-            catchIt(); advance(300);
+            catchIt();
+            advance(400);
+            catchIt();
+            advance(400);
+            catchIt();
+            advance(300);
             // третья — детонатор: raging-псих с кубиками
             expect(
                 document.getElementById('um13-ghost-root')!.classList.contains('um13g-raging'),
@@ -800,7 +899,7 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
 
         it('CSS реворк: SVG 72px, тэг 11px, поза shy, качание ключа, БЕЗ фильтров-лагов', () => {
             loadGhost('page');
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             expect(css).toContain('width:72px');
             expect(css).toContain('font-size:11px');
             expect(css).toContain('um13g-shy');
@@ -856,10 +955,13 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         });
 
         it('давность возвращения: сутки без визита → hello-реплика о перерыве', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'first-met': Date.now() - 10 * 24 * 3600_000,
-                'last-seen': Date.now() - 24 * 3600_000,
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'first-met': Date.now() - 10 * 24 * 3600_000,
+                    'last-seen': Date.now() - 24 * 3600_000,
+                }),
+            );
             loadGhost('page');
             advance(2200); // приветствие сыграло
             expect(sayText()).toMatch(/сутки|день без событий|вернулся/);
@@ -872,10 +974,13 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
 
         it('давность: неделя/месяц/долго выбирают свои пулы', () => {
             const week = Date.now() - 5 * 24 * 3600_000;
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'first-met': week - 3600_000,
-                'last-seen': week,
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'first-met': week - 3600_000,
+                    'last-seen': week,
+                }),
+            );
             loadGhost('page');
             advance(2200);
             expect(sayText()).toMatch(/неделю|неделя|семь дней/);
@@ -883,10 +988,13 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         });
 
         it('давность молчит при свежем визите (<6ч)', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'first-met': Date.now() - 3600_000,
-                'last-seen': Date.now() - 3600_000,
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'first-met': Date.now() - 3600_000,
+                    'last-seen': Date.now() - 3600_000,
+                }),
+            );
             loadGhost('page');
             advance(2200);
             // обычное hello — не реплика о перерыве
@@ -907,7 +1015,7 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             expect(GHOST_SRC).toContain("location.pathname.indexOf('secret')");
         });
 
-        it('экспорт: react(\'flow-export\') — delight + конфетти', () => {
+        it("экспорт: react('flow-export') — delight + конфетти", () => {
             loadGhost('page');
             advance(2200);
             ghost().react('flow-export');
@@ -946,7 +1054,7 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             expect(el.querySelectorAll('.um13g-crumb').length).toBe(3);
             // лицо-обжора: глаза-дужки + рот «о» в разметке
             expect(el.querySelector('.um13g-eatface')).not.toBeNull();
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             // укус-анимация в 2 ступени + подход прыжками
             expect(css).toContain('um13g-bite-approach');
             expect(css).toContain('um13g-bite-eat1');
@@ -958,7 +1066,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             loadGhost('page');
             advance(2200);
             advance(11_000); // пузырь свободен
-            (window as unknown as { UM13Ghost?: { act(k: string): void } }).UM13Ghost?.act('hungry');
+            (window as unknown as { UM13Ghost?: { act(k: string): void } }).UM13Ghost?.act(
+                'hungry',
+            );
             advance(100);
             const el = ghostEl()!;
             expect(el.classList.contains('um13g-act-hungry')).toBe(true);
@@ -993,18 +1103,24 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             window.dispatchEvent(new MouseEvent('mousemove', { clientX: gx + 6, clientY: gy }));
             expect(ghost().asleep).toBe(true); // дремлет
             // БЫСТРЫЙ рывок рядом (45px за 20мс ≈ 2250px/с > порога 1800)
-            window.dispatchEvent(new MouseEvent('mousemove', { clientX: gx + 10, clientY: gy + 5 }));
+            window.dispatchEvent(
+                new MouseEvent('mousemove', { clientX: gx + 10, clientY: gy + 5 }),
+            );
             advance(20);
-            window.dispatchEvent(new MouseEvent('mousemove', { clientX: gx + 55, clientY: gy + 30 }));
+            window.dispatchEvent(
+                new MouseEvent('mousemove', { clientX: gx + 55, clientY: gy + 30 }),
+            );
             expect(ghost().asleep).toBe(false);
         });
 
         it('v7.4: моргают ТОЛЬКО глаза — брови и рот не мигают (регрессия «лицо мигало»)', () => {
             loadGhost('page');
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             // blinkface обязан висеть на .um13g-blink (обёртка глаз),
             // а НЕ на группе лица — иначе opacity-провал гасил брови и рот
-            expect(css).toContain('.um13g[data-face="normal"] .um13g-blink{animation:um13g-blinkface');
+            expect(css).toContain(
+                '.um13g[data-face="normal"] .um13g-blink{animation:um13g-blinkface',
+            );
             expect(css).not.toContain('.um13g-f-normal{animation:um13g-blinkface');
             // в разметке обёртка существует и содержит ровно два глаза,
             // брови/рот остаются ВНЕ её
@@ -1021,8 +1137,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             loadGhost('page');
             advance(2200);
             advance(11_000); // пузырь свободен
-            (window as unknown as { UM13Ghost?: { catchNode(c?: string): void } })
-                .UM13Ghost?.catchNode('#bc13fe');
+            (
+                window as unknown as { UM13Ghost?: { catchNode(c?: string): void } }
+            ).UM13Ghost?.catchNode('#bc13fe');
             advance(100);
             const caught = document.querySelector('.um13g-caught') as HTMLElement | null;
             expect(caught).not.toBeNull();
@@ -1068,10 +1185,12 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // каждый mousemove проходит throttle)
             for (let k = 0; k <= 16; k++) {
                 const a = (k / 16) * Math.PI * 4; // два оборота
-                window.dispatchEvent(new MouseEvent('mousemove', {
-                    clientX: gx + Math.cos(a) * r,
-                    clientY: gy + Math.sin(a) * r,
-                }));
+                window.dispatchEvent(
+                    new MouseEvent('mousemove', {
+                        clientX: gx + Math.cos(a) * r,
+                        clientY: gy + Math.sin(a) * r,
+                    }),
+                );
                 advance(150);
             }
             expect(ghost().face).toBe('skeptic');
@@ -1095,7 +1214,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             advance(20_000); // акт 18с кончился — поза снята
             expect(el.classList.contains('um13g-act-herd')).toBe(false);
 
-            (window as unknown as { UM13Ghost?: { act(k: string): void } }).UM13Ghost?.act('polish');
+            (window as unknown as { UM13Ghost?: { act(k: string): void } }).UM13Ghost?.act(
+                'polish',
+            );
             advance(200);
             expect(el.classList.contains('um13g-act-polish')).toBe(true);
             expect(el.querySelector('.um13g-keyheld')).not.toBeNull();
@@ -1124,7 +1245,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             loadGhost('page');
             advance(2200);
             advance(11_000);
-            (window as unknown as { UM13Ghost?: { act(k: string): void } }).UM13Ghost?.act('polish', );
+            (window as unknown as { UM13Ghost?: { act(k: string): void } }).UM13Ghost?.act(
+                'polish',
+            );
             advance(300);
             expect(ghostEl()!.classList.contains('um13g-act-polish')).toBe(false);
             localStorage.removeItem('um13-memory');
@@ -1140,9 +1263,15 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             const sy = parseFloat(el.style.top) || 384;
             const ptr = (type: string, x: number, y: number, target: Window | Element) => {
                 const e = new Event(type, { bubbles: true }) as Event & {
-                    clientX: number; clientY: number; pointerId: number; button: number;
+                    clientX: number;
+                    clientY: number;
+                    pointerId: number;
+                    button: number;
                 };
-                e.clientX = x; e.clientY = y; e.pointerId = 1; e.button = 0;
+                e.clientX = x;
+                e.clientY = y;
+                e.pointerId = 1;
+                e.button = 0;
                 target.dispatchEvent(e);
             };
             ptr('pointerdown', sx, sy, el);
@@ -1154,33 +1283,46 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // повторный драг в той же сессии — уже не выскальзывает (друзей не теряют дважды)
             advance(2000);
             ptr('pointerdown', parseFloat(el.style.left), parseFloat(el.style.top), el);
-            ptr('pointermove', parseFloat(el.style.left) + 130, parseFloat(el.style.top) + 40, window);
+            ptr(
+                'pointermove',
+                parseFloat(el.style.left) + 130,
+                parseFloat(el.style.top) + 40,
+                window,
+            );
             advance(300);
             expect(sayText()).not.toMatch(/не настолько знакомы/);
         });
 
         it('доверие 2 (свой): hello-подарок — um13(), счёт ключей или карточка дружбы', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'terminal-visited': Date.now(),
-                'well-visited': Date.now(),
-                confession: Date.now(),
-                visits: 12,
-                'well-rescued': 7,
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'terminal-visited': Date.now(),
+                    'well-visited': Date.now(),
+                    confession: Date.now(),
+                    visits: 12,
+                    'well-rescued': 7,
+                }),
+            );
             vi.spyOn(Math, 'random').mockReturnValue(0.01); // ветки «с именем» и подарка
             loadGhost('page');
             advance(2200); // hello
             advance(16_000); // подарок доверия (14с после hello)
             // random 0.01 → ветка карточки (<0.3): реплика вручения
-            expect(sayText()).toMatch(/карточк|справку о нас|дружба|um13\(\)|ключ\(ей\)|спасённых ключей|я всегда считаю/i);
+            expect(sayText()).toMatch(
+                /карточк|справку о нас|дружба|um13\(\)|ключ\(ей\)|спасённых ключей|я всегда считаю/i,
+            );
             localStorage.removeItem('um13-memory');
         });
 
         it('сны из памяти: спящий бормочет о колодце (по флагу well-visited)', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'well-visited': Date.now(),
-                'well-rescued': 5,
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'well-visited': Date.now(),
+                    'well-rescued': 5,
+                }),
+            );
             loadGhost('page');
             advance(2200);
             advance(35_000); // «ты ещё тут?»
@@ -1194,9 +1336,12 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         });
 
         it('пробуждение посреди сна помнит его (dreamCaughtLines)', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'well-visited': Date.now(),
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'well-visited': Date.now(),
+                }),
+            );
             vi.spyOn(Math, 'random').mockReturnValue(0.01); // все «случайные» — за нас
             loadGhost('page');
             advance(2200);
@@ -1221,15 +1366,24 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // КОНТРАКТ (клон-фавикон создаётся и снимается), не пиксели
             const noop = () => undefined;
             const ctx2d = {
-                fillRect: noop, beginPath: noop, arc: noop, moveTo: noop,
-                lineTo: noop, quadraticCurveTo: noop, stroke: noop, fill: noop,
-                fillStyle: '', strokeStyle: '', lineWidth: 0,
+                fillRect: noop,
+                beginPath: noop,
+                arc: noop,
+                moveTo: noop,
+                lineTo: noop,
+                quadraticCurveTo: noop,
+                stroke: noop,
+                fill: noop,
+                fillStyle: '',
+                strokeStyle: '',
+                lineWidth: 0,
             };
             const origCreate = document.createElement.bind(document);
             vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
                 const el = origCreate(tag);
                 if (tag === 'canvas') {
-                    (el as unknown as { toDataURL: () => string }).toDataURL = () => 'data:image/png;base64,x';
+                    (el as unknown as { toDataURL: () => string }).toDataURL = () =>
+                        'data:image/png;base64,x';
                     (el as unknown as { getContext: () => typeof ctx2d }).getContext = () => ctx2d;
                     (el as unknown as { width: number }).width = 16;
                     (el as unknown as { height: number }).height = 16;
@@ -1290,11 +1444,13 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             });
             loadGhost('page');
             // estimate — промис: микротаску резолва надо дождаться
-            await act(async () => { await vi.advanceTimersByTimeAsync(2200); });
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(2200);
+            });
             const root = document.getElementById('um13-ghost-root')!;
             expect(root.getAttribute('data-pressure')).toBe('2');
             // CSS тела на месте: юбка чаще + мерцание на уровне 2
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             expect(css).toContain('[data-pressure="2"]');
             expect(css).toContain('um13g-flicker');
         });
@@ -1322,9 +1478,11 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
                 lines: ['у этой ноды нет выхода. я знаю, каково это.'],
             });
             const before = ghostEl()!.style.left;
-            window.dispatchEvent(new CustomEvent('um13:review', {
-                detail: { x: 300, y: 200 },
-            }));
+            window.dispatchEvent(
+                new CustomEvent('um13:review', {
+                    detail: { x: 300, y: 200 },
+                }),
+            );
             advance(2000); // полёт 1.6с + реплика через 1.9с
             expect(ghostEl()!.style.left).not.toBe(before);
             advance(1000);
@@ -1335,9 +1493,11 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             loadGhost('page');
             advance(2200);
             advance(11_000); // пузырь свободен
-            window.dispatchEvent(new CustomEvent('um13:review-name', {
-                detail: { name: 'мостик' },
-            }));
+            window.dispatchEvent(
+                new CustomEvent('um13:review-name', {
+                    detail: { name: 'мостик' },
+                }),
+            );
             advance(200);
             expect(sayText()).toContain('мостик');
             expect(sayText()).not.toMatch(/\{n\}/); // плейсхолдер заменён, не показан
@@ -1398,10 +1558,13 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
 
         it('key-known затихает после финала: key-turned глушит напоминания', () => {
             localStorage.clear();
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'key-known': Date.now(),
-                'key-turned': Date.now(),
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'key-known': Date.now(),
+                    'key-turned': Date.now(),
+                }),
+            );
             vi.spyOn(Math, 'random').mockReturnValue(0.99);
             loadGhost('page');
             advance(2200);
@@ -1423,13 +1586,16 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         });
 
         it('state: геттер агрегирует доверие/давление/ключ', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'terminal-visited': Date.now(),
-                'well-visited': Date.now(),
-                confession: Date.now(),
-                visits: 12,
-                'key-turned': Date.now(),
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'terminal-visited': Date.now(),
+                    'well-visited': Date.now(),
+                    confession: Date.now(),
+                    visits: 12,
+                    'key-turned': Date.now(),
+                }),
+            );
             loadGhost('page');
             advance(2200);
             const s = ghost().state;
@@ -1447,7 +1613,7 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             const veil = svg.querySelector('.um13g-shyveil');
             expect(veil).not.toBeNull();
             // в базе занавесь спрятана, в позе shy — проявлена CSS-классом
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             expect(css).toContain('.um13g .um13g-shyveil{display:none;}');
             expect(css).toContain('.um13g.um13g-shy .um13g-shyveil{display:block');
             // ГЕОМЕТРИЯ (регрессия A1): занавесь — явный path в зоне лица,
@@ -1455,9 +1621,9 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // от origin y60) уводила ткань за канву (y79+) — «закрытие»
             // оставалось невидимым, строковые ассерты это пропускали.
             const d = veil!.getAttribute('d') || '';
-            expect(d).toMatch(/^M10 46/);           // левый край на кромке подола
-            expect(d).toContain('V31');             // ткань поднимается ВВЕРХ до бровей
-            expect(d).toContain('V46 z');            // и замыкается внизу — полоса ткани
+            expect(d).toMatch(/^M10 46/); // левый край на кромке подола
+            expect(d).toContain('V31'); // ткань поднимается ВВЕРХ до бровей
+            expect(d).toContain('V46 z'); // и замыкается внизу — полоса ткани
             // числа-вершины пути обязаны оставаться внутри грида 0–64
             const ys = [...d.matchAll(/[Vv](\d+)/g)].map((m) => Number(m[1]));
             ys.forEach((y) => {
@@ -1472,16 +1638,18 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         it('flip-down: пузырь у верхней кромки переходит ПОД призрака', () => {
             loadGhost('page');
             advance(2200);
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             expect(css).toContain('flip-down');
             expect(css).toContain('.um13g .um13g-say.flip-down{bottom:auto;top:calc(100% + 14px)');
             // fy-кламп тела поднят: 0.10 → 0.11 (запас на пузырь сверху)
-            expect(GHOST_SRC).toContain('Math.max(0.11, Math.min(0.92, pos.y / window.innerHeight))');
+            expect(GHOST_SRC).toContain(
+                'Math.max(0.11, Math.min(0.92, pos.y / window.innerHeight))',
+            );
         });
 
         it('глитч-расслоение читаемо: альфа поднята, сдвиг расширен', () => {
             loadGhost('page');
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             expect(css).toContain('rgba(255,0,85,.26)');
             expect(css).toContain('rgba(0,255,157,.24)');
             expect(css).toContain('translateX(-6px)');
@@ -1513,7 +1681,7 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             expect(sayText()).not.toMatch(/\(снится|\(мне снится|\(dreaming/i);
         });
 
-        it('двуязычие: setLocale(\'en\') — реплики призрака переключаются на лету', () => {
+        it("двуязычие: setLocale('en') — реплики призрака переключаются на лету", () => {
             loadGhost('page');
             advance(2200);
             advance(11_000);
@@ -1538,9 +1706,12 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         });
 
         it('«постарел без тебя»: давний last-seen → um13g-missed до hello, оживает после', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'last-seen': Date.now() - 10 * 24 * 3600_000,
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'last-seen': Date.now() - 10 * 24 * 3600_000,
+                }),
+            );
             loadGhost('page');
             advance(100);
             expect(ghostEl()!.classList.contains('um13g-missed')).toBe(true);
@@ -1593,7 +1764,7 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             expect(m['cube-color']).toBeTruthy();
             // визуал питомца — группа в SVG есть всегда, показывается классом
             // pet-cube на корне (вешается applyPetCube на следующем appear)
-            const css = document.getElementById('um13-ghost-style')!.textContent!;
+            const css = GHOST_CSS;
             expect(css).toContain('#um13-ghost-root.pet-cube .um13g-petcube{display:block');
             expect(document.querySelector('.um13g-petcube')).not.toBeNull();
             // клик по найденной потеряшке снимает флаг (кубик вернулся в стор)
@@ -1613,12 +1784,15 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         });
 
         it('friendCard(): canvas недоступен — тихий false (реплика не звучит)', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({
-                'terminal-visited': Date.now(),
-                'well-visited': Date.now(),
-                confession: Date.now(),
-                visits: 12,
-            }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({
+                    'terminal-visited': Date.now(),
+                    'well-visited': Date.now(),
+                    confession: Date.now(),
+                    visits: 12,
+                }),
+            );
             loadGhost('page');
             advance(2200);
             const g = ghost() as unknown as { friendCard(): boolean };
@@ -1655,16 +1829,19 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             // часы честные — детерминизм недостижим, проверяем контракт:
             // функция существует, пулы присутствуют в обеих локалях
             expect(GHOST_SRC).toContain('function isNightShift');
-            const ruTail = GHOST_SRC.slice(0, GHOST_SRC.indexOf('var EN = {'));
+            const ruTail = GHOST_SRC.slice(0, enDictStart());
             expect(ruTail).toContain('nightHello: [');
             expect(ruTail).toContain('nightBark: [');
-            const enTail = GHOST_SRC.slice(GHOST_SRC.indexOf('var EN = {'));
+            const enTail = GHOST_SRC.slice(enDictStart());
             expect(enTail).toContain('nightHello: [');
             expect(enTail).toContain('nightBark: [');
         });
 
         it('настроение-память: last-mood=cold → холодное hello, метка стирается', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({ 'last-mood': 'cold', visits: 10 }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({ 'last-mood': 'cold', visits: 10 }),
+            );
             loadGhost('page');
             advance(2200); // hello
             expect(sayText()).toMatch(/помню, чем кончилось|не дуюсь|просто помню|старые обиды/);
@@ -1675,7 +1852,10 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         });
 
         it('настроение-память: warm (после экспорта) → тёплое hello', () => {
-            localStorage.setItem('um13-memory', JSON.stringify({ 'last-mood': 'warm', visits: 10 }));
+            localStorage.setItem(
+                'um13-memory',
+                JSON.stringify({ 'last-mood': 'warm', visits: 10 }),
+            );
             loadGhost('page');
             advance(2200);
             expect(sayText()).toMatch(/лодку|хорошее настроение|спасатель|хорошо отзывается/);
@@ -1702,9 +1882,11 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         it('провод: um13:perch сажает на связь (класс + наклон), потом слезает', () => {
             loadGhost('page');
             advance(2200);
-            window.dispatchEvent(new CustomEvent('um13:perch', {
-                detail: { x: 300, y: 200, angle: 12 },
-            }));
+            window.dispatchEvent(
+                new CustomEvent('um13:perch', {
+                    detail: { x: 300, y: 200, angle: 12 },
+                }),
+            );
             const el = ghostEl()!;
             expect(el.classList.contains('um13g-perched')).toBe(true);
             expect(el.style.getPropertyValue('--um13-tilt')).toBe('12deg');
@@ -1725,12 +1907,17 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
         it('соавторство: um13:coauthor — прилетает к ноде, delight + реплика записки', () => {
             loadGhost('page');
             advance(2200);
-            window.dispatchEvent(new CustomEvent('um13:coauthor', {
-                detail: { x: 400, y: 300 },
-            }));
-            advance(1800); // прилетел и говорит
+            window.dispatchEvent(
+                new CustomEvent('um13:coauthor', {
+                    detail: { x: 400, y: 300 },
+                }),
+            );
+            advance(1800); // прилетел к ноде
+            // hello (живёт ≥4.5с) ещё читается — записка его НЕ обрывает
+            expect(sayText()).not.toMatch(/добавил ноду|записку|чиркнул|подписью|выбрался/);
+            advance(11_000); // hello дочитано → пауза → записка из очереди
             expect(sayText()).toMatch(/добавил ноду|записку|чиркнул|подписью|выбрался/);
-            const enTail = GHOST_SRC.slice(GHOST_SRC.indexOf('var EN = {'));
+            const enTail = GHOST_SRC.slice(enDictStart());
             expect(enTail).toContain('coauthorLines: [');
         });
     });

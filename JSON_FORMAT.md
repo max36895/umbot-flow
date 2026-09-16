@@ -1,4 +1,4 @@
-# JSON Format Specification — Umbot Flow Editor
+# JSON Format Specification — Umbot Flow
 
 > Полное описание формата JSON для генератора umbot-проектов.
 > На основе этого описания можно построить генератор для любой платформы (Telegram, Alisa и т.д.).

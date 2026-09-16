@@ -1,0 +1,1133 @@
+/* ===== Дизайн-токены — синхронизированы с редактором (src/index.css, dark) ===== */
+:root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #16161f;
+    --fg: #e8e8ef;
+    --fg-dim: rgba(232, 232, 239, 0.55);
+    --fg-faint: rgba(232, 232, 239, 0.38);
+    --accent: #00f0ff;
+    --info: #bc13fe;
+    --success: #00ff9d;
+    --node-command: #00f0ff;
+    --node-step: #bc13fe;
+    --node-action: #ff9d00;
+    --node-condition: #ff0055;
+    --node-response: #00ff9d;
+    --node-end: #ef4444;
+    --node-start: #22c55e;
+    --node-help: #eab308;
+}
+
+/* Акцент элемента в цвете типа ноды: .orbit-item, .platform и .feature
+   читают --tone (по умолчанию — --accent) */
+.tone-command {
+    --tone: var(--node-command);
+}
+
+.tone-step {
+    --tone: var(--node-step);
+}
+
+.tone-action {
+    --tone: var(--node-action);
+}
+
+.tone-condition {
+    --tone: var(--node-condition);
+}
+
+.tone-response {
+    --tone: var(--node-response);
+}
+
+.tone-start {
+    --tone: var(--node-start);
+}
+
+.tone-help {
+    --tone: var(--node-help);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family:
+        'Inter',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+::-moz-selection {
+    background: rgba(0, 240, 255, 0.25);
+    color: #fff;
+}
+
+::selection {
+    background: rgba(0, 240, 255, 0.25);
+    color: #fff;
+}
+
+.container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ===== SVG-иконки (фирменные, вместо эмодзи) ===== */
+.icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+/* ===== Хиро ===== */
+.hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 110px 0 140px;
+    overflow: hidden;
+}
+
+/* Фоновая сетка холста */
+.hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(232, 232, 239, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 232, 239, 0.045) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, #000 40%, transparent 100%);
+    animation: grid-drift 24s linear infinite;
+}
+
+@keyframes grid-drift {
+    to {
+        background-position:
+            36px 36px,
+            36px 36px;
+    }
+}
+
+/* Плавающие мини-ноды вокруг хиро (SVG, в стиле редактора) */
+.orbit {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.orbit-item {
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid rgba(232, 232, 239, 0.1);
+    display: grid;
+    place-items: center;
+    opacity: 0.85;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.35);
+    animation: float 9s ease-in-out infinite;
+    color: var(--tone, var(--accent));
+}
+
+.orbit-item .icon {
+    width: 26px;
+    height: 26px;
+}
+
+/* Позиции иконок орбиты; сдвиг фазы, чтобы «плавали» вразнобой */
+.orbit-item--top-left {
+    top: 18%;
+    left: 7%;
+    animation-delay: -1s;
+}
+
+.orbit-item--top-right {
+    top: 30%;
+    right: 8%;
+    animation-delay: -3.5s;
+}
+
+.orbit-item--bottom-left {
+    bottom: 24%;
+    left: 12%;
+    animation-delay: -2s;
+}
+
+.orbit-item--bottom-right {
+    bottom: 30%;
+    right: 11%;
+    animation-delay: -5s;
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-14px);
+    }
+}
+
+/* На узких экранах мини-ноды залезают на текст — убираем */
+@media (max-width: 1023px) {
+    .orbit {
+        display: none;
+    }
+}
+
+.hero-inner {
+    position: relative;
+    text-align: center;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    background: rgba(0, 240, 255, 0.06);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    margin-bottom: 28px;
+}
+
+.badge::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulse-dot 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+h1 {
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+}
+
+.grad-text {
+    background: linear-gradient(
+        92deg,
+        var(--accent) 0%,
+        var(--info) 60%,
+        var(--node-condition) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.subtitle {
+    font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+    color: var(--fg-dim);
+    max-width: 680px;
+    margin: 0 auto 44px;
+}
+
+.subtitle strong {
+    color: var(--fg);
+    font-weight: 600;
+}
+
+/* ===== Кнопки ===== */
+.cta-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+}
+
+.btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 34px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #051015;
+    background: linear-gradient(135deg, var(--accent), var(--info));
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    box-shadow: 0 8px 32px rgba(0, 240, 255, 0.25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 44px rgba(0, 240, 255, 0.4);
+}
+
+.btn-primary .arrow {
+    transition: transform 0.2s ease;
+}
+
+.btn-primary:hover .arrow {
+    transform: translateX(4px);
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 30px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--fg);
+    border: 1px solid rgba(232, 232, 239, 0.16);
+    background: rgba(232, 232, 238, 0.04);
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.btn-ghost:hover {
+    border-color: rgba(0, 240, 255, 0.4);
+    background: rgba(0, 240, 255, 0.06);
+}
+
+.cta-note {
+    font-size: 14px;
+    color: var(--fg-faint);
+}
+
+/* ===== Скролл-хинт ===== */
+.scroll-hint {
+    position: absolute;
+    bottom: 34px;
+    left: 50%;
+    translate: -50% 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--fg-faint);
+    letter-spacing: 0.06em;
+}
+
+.scroll-hint::after {
+    content: '';
+    width: 1px;
+    height: 36px;
+    background: linear-gradient(var(--fg-faint), transparent);
+    animation: scroll-line 2s ease-in-out infinite;
+}
+
+@keyframes scroll-line {
+    0% {
+        opacity: 0;
+        transform: scaleY(0);
+        transform-origin: top;
+    }
+    45% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scaleY(1);
+        transform-origin: bottom;
+    }
+}
+
+/* ===== Демо-флоу: живой граф нод ===== */
+.demo-section {
+    padding: 0 0 90px;
+}
+
+.demo-wrap {
+    position: relative;
+    border-radius: 18px;
+    border: 1px solid rgba(232, 232, 239, 0.09);
+    background: linear-gradient(180deg, rgba(18, 18, 26, 0.9), rgba(10, 10, 15, 0.9));
+    overflow: hidden;
+}
+
+.demo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(232, 232, 239, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 232, 239, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+}
+
+/* Верхняя панель «приложения» */
+.demo-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 18px;
+    border-bottom: 1px solid rgba(232, 232, 239, 0.07);
+    background: rgba(10, 10, 15, 0.7);
+    position: relative;
+    z-index: 2;
+}
+
+.demo-bar .dots span {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    margin-right: 6px;
+    background: rgba(232, 232, 239, 0.14);
+}
+
+.demo-bar .url {
+    margin-left: 14px;
+    font-size: 12px;
+    color: var(--fg-faint);
+    background: rgba(232, 232, 238, 0.05);
+    border: 1px solid rgba(232, 232, 239, 0.07);
+    padding: 4px 14px;
+    border-radius: 8px;
+    font-family: 'SF Mono', Consolas, monospace;
+}
+
+/* Сам холст с нодами (SVG) */
+.demo-canvas {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Горизонтальный флоу — десктоп. На мобильном заменяется вертикальным. */
+.demo-flow-h {
+    display: block;
+}
+
+.demo-flow-v {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .demo-flow-h {
+        display: none;
+    }
+
+    .demo-flow-v {
+        display: block;
+    }
+}
+
+/* Нода редактора. Цвет обводки — через CSS (var() не работает в SVG-атрибутах) */
+.node {
+    fill: var(--surface);
+    stroke-width: 1.4;
+    rx: 10;
+}
+
+.node.c-start {
+    stroke: var(--node-start);
+}
+
+.node.c-command {
+    stroke: var(--node-command);
+}
+
+.node.c-step {
+    stroke: var(--node-step);
+}
+
+.node.c-response {
+    stroke: var(--node-response);
+}
+
+.node.c-condition {
+    stroke: var(--node-condition);
+}
+
+.node-label {
+    font-size: 13px;
+    font-weight: 500;
+    fill: var(--fg);
+}
+
+.node-sub {
+    font-size: 10px;
+    fill: var(--fg-faint);
+}
+
+/* В вертикальном (мобильном) флоу текст крупнее — читается на 390px */
+.demo-flow-v .node-label {
+    font-size: 11px;
+}
+
+.demo-flow-v .node-sub {
+    font-size: 8.5px;
+}
+
+/* Ребро */
+.edge {
+    fill: none;
+    stroke: rgba(232, 232, 239, 0.22);
+    stroke-width: 1.5;
+}
+
+/* Бегущая искра по ребру */
+.spark {
+    fill: var(--accent);
+    filter: drop-shadow(0 0 4px var(--accent));
+}
+
+.spark.s-step {
+    fill: var(--node-step);
+    filter: drop-shadow(0 0 4px var(--node-step));
+}
+
+.spark.s-response {
+    fill: var(--node-response);
+    filter: drop-shadow(0 0 4px var(--node-response));
+}
+
+.spark.s-condition {
+    fill: var(--node-condition);
+    filter: drop-shadow(0 0 4px var(--node-condition));
+}
+
+/* «Активная» нода подсвечивается */
+.node-active-glow {
+    animation: node-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes node-glow {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ===== Платформы ===== */
+.platforms {
+    padding: 90px 0;
+    border-top: 1px solid rgba(232, 232, 239, 0.06);
+    border-bottom: 1px solid rgba(232, 232, 239, 0.06);
+    background: rgba(18, 18, 26, 0.35);
+}
+
+.platforms-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.platform {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(232, 232, 239, 0.12);
+    background: rgba(232, 232, 238, 0.03);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--fg-dim);
+    transition:
+        border-color 0.2s,
+        color 0.2s,
+        transform 0.2s;
+}
+
+.platform .icon {
+    width: 20px;
+    height: 20px;
+    color: var(--tone, var(--accent));
+}
+
+.platform:hover {
+    border-color: rgba(0, 240, 255, 0.35);
+    color: var(--fg);
+    transform: translateY(-2px);
+}
+
+/* ===== Секции: фичи, шаги ===== */
+section.block {
+    padding: 100px 0;
+}
+
+.block-head {
+    max-width: 640px;
+    margin: 0 auto 56px;
+    text-align: center;
+}
+
+.block-head--compact {
+    margin-bottom: 36px;
+}
+
+.block-head h2 {
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+}
+
+.block-head p {
+    color: var(--fg-dim);
+    font-size: 1.1rem;
+}
+
+/* Фичи: карточки с цветными акцентами нод */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+}
+
+.feature {
+    position: relative;
+    padding: 28px 26px;
+    border-radius: 16px;
+    border: 1px solid rgba(232, 232, 239, 0.08);
+    background: var(--surface);
+    overflow: hidden;
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.feature:hover {
+    transform: translateY(-4px);
+    border-color: rgba(232, 232, 239, 0.18);
+}
+
+/* неоновая полоска сверху в цвете типа ноды */
+.feature::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 26px;
+    right: 26px;
+    height: 2px;
+    border-radius: 0 0 4px 4px;
+    background: var(--tone, var(--accent));
+    box-shadow: 0 0 12px var(--tone, var(--accent));
+}
+
+.feature .f-icon {
+    color: var(--tone, var(--accent));
+    margin-bottom: 14px;
+    display: flex;
+}
+
+.feature .f-icon .icon {
+    width: 28px;
+    height: 28px;
+}
+
+.feature h3 {
+    font-size: 1.12rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.feature p {
+    font-size: 0.95rem;
+    color: var(--fg-dim);
+}
+
+/* ===== Как это работает (шаги) ===== */
+.steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 26px;
+    counter-reset: step;
+}
+
+.step {
+    position: relative;
+    padding-top: 64px;
+}
+
+.step::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--node-start);
+    border: 1px solid color-mix(in srgb, var(--node-start) 35%, transparent);
+    background: color-mix(in srgb, var(--node-start) 10%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--node-start) 20%, transparent);
+}
+
+.step h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.step p {
+    font-size: 0.93rem;
+    color: var(--fg-dim);
+}
+
+/* ===== Терминальная карточка «экспорта» ===== */
+.export-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+}
+
+@media (max-width: 860px) {
+    .export-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+.export-text h2 {
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 18px;
+}
+
+.export-text p {
+    color: var(--fg-dim);
+    margin-bottom: 14px;
+}
+
+.check-list {
+    list-style: none;
+    margin-top: 20px;
+}
+
+.check-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    color: var(--fg-dim);
+    font-size: 0.97rem;
+}
+
+.check-list li::before {
+    content: '✓';
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    color: var(--node-response);
+    background: color-mix(in srgb, var(--node-response) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--node-response) 30%, transparent);
+    margin-top: 1px;
+}
+
+.terminal {
+    border-radius: 14px;
+    border: 1px solid rgba(0, 255, 157, 0.18);
+    background: #0b0e12;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(232, 232, 239, 0.07);
+}
+
+.terminal-bar span.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(232, 232, 239, 0.14);
+}
+
+.terminal-bar .t-title {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--fg-faint);
+    font-family: 'SF Mono', Consolas, monospace;
+}
+
+.terminal-body {
+    padding: 18px 20px;
+    font-family: 'SF Mono', Consolas, 'Cascadia Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #b6e6c9;
+    white-space: pre-wrap;
+}
+
+.terminal-body .p {
+    color: var(--accent);
+}
+
+.terminal-body .c {
+    color: var(--fg-faint);
+}
+
+.terminal-body .ok {
+    color: var(--node-response);
+}
+
+/* курсор мигает */
+.cursor {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    background: var(--node-response);
+    vertical-align: text-bottom;
+    animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* ===== FAQ ===== */
+.faq {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    border-bottom: 1px solid rgba(232, 232, 239, 0.08);
+    min-width: 0;
+}
+
+.faq-item details {
+    border-bottom: none;
+}
+
+.faq-item summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 4px 22px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    transition: color 0.2s;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item summary:hover {
+    color: var(--accent);
+}
+
+/* Текст вопроса — отдельный блок, чтобы шеврон не растягивал строку */
+.faq-item summary .q {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow-wrap: anywhere;
+}
+
+.faq-item summary .chev {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    color: var(--fg-faint);
+    border: 1px solid rgba(232, 232, 239, 0.12);
+    transition:
+        transform 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.faq-item summary .chev .icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.4;
+}
+
+.faq-item details[open] summary .chev {
+    transform: rotate(45deg);
+    color: var(--accent);
+    border-color: rgba(0, 240, 255, 0.35);
+}
+
+.faq-item details[open] summary {
+    color: var(--accent);
+}
+
+.faq-item .a {
+    padding: 0 4px 22px;
+    color: var(--fg-dim);
+    font-size: 0.97rem;
+    max-width: 640px;
+}
+
+.faq-more {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--fg-dim);
+}
+
+/* ===== Финальный CTA ===== */
+.final-cta {
+    position: relative;
+    text-align: center;
+    padding: 110px 0 120px;
+    overflow: hidden;
+}
+
+.final-cta::before {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    background: radial-gradient(
+        ellipse 40% 45% at 50% 55%,
+        rgba(0, 240, 255, 0.09),
+        transparent 70%
+    );
+    pointer-events: none;
+}
+
+.final-cta h2 {
+    position: relative;
+    font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+}
+
+.final-cta p {
+    position: relative;
+    color: var(--fg-dim);
+    font-size: 1.12rem;
+    margin-bottom: 40px;
+}
+
+.final-cta .btn-primary {
+    position: relative;
+    font-size: 18px;
+    padding: 18px 44px;
+}
+
+/* ===== Хедер ===== */
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    border-bottom: 1px solid transparent;
+    transition:
+        background 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.site-header.scrolled {
+    background: rgba(10, 10, 15, 0.82);
+    backdrop-filter: blur(14px);
+    border-bottom-color: rgba(232, 232, 239, 0.08);
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+}
+
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--fg);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+}
+
+.logo-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--info));
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.3);
+}
+
+.logo-mark svg {
+    width: 16px;
+    height: 16px;
+}
+
+nav.main a {
+    color: var(--fg-dim);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    margin-left: 26px;
+    transition: color 0.2s;
+}
+
+nav.main a:hover {
+    color: var(--fg);
+}
+
+nav.main a.cta-mini {
+    color: var(--accent);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    padding: 7px 16px;
+    border-radius: 9px;
+    transition:
+        background 0.2s,
+        color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+nav.main a.cta-mini:hover {
+    background: rgba(0, 240, 255, 0.08);
+}
+
+/* На мобильном — короткая надпись, чтобы кнопка не переносилась */
+.cta-short {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    nav.main a:not(.cta-mini) {
+        display: none;
+    }
+
+    nav.main a.cta-mini .cta-full {
+        display: none;
+    }
+
+    nav.main a.cta-mini .cta-short {
+        display: inline;
+    }
+
+    nav.main a.cta-mini {
+        margin-left: auto;
+        padding: 8px 14px;
+    }
+}
+
+/* ===== Появление при скролле ===== */
+.reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+        opacity 0.7s ease,
+        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: none;
+}
+
+/* ===== Футер ===== */
+footer {
+    border-top: 1px solid rgba(232, 232, 239, 0.07);
+    padding: 42px 0;
+    font-size: 14px;
+    color: var(--fg-faint);
+}
+
+.footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.footer-inner a {
+    color: var(--fg-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-inner a:hover {
+    color: var(--accent);
+}
+
+.footer-links {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+}

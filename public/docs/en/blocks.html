@@ -1,339 +1,166 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112563287', 'ym');
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Block Types — Umbot Flow</title>
+    <meta
+        name="description"
+        content="Detailed description of each block type in Umbot Flow: commands, steps, conditions, actions, responses, end, and service blocks (start, help, fallback)."
+    />
+    <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
+    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
+    <meta property="og:title" content="Block Types — Umbot Flow" />
+    <meta
+        property="og:description"
+        content="Detailed description of each block type in Umbot Flow: commands, steps, conditions, actions, responses, end, and service blocks."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/blocks/" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    ym(112563287, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <!-- /Yandex.Metrika counter -->
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <title>Block Types — Umbot Flow Editor</title>
-        <meta
-            name="description"
-            content="Detailed description of each block type in Umbot Flow Editor: commands, steps, conditions, actions, responses, end, and service blocks (start, help, fallback)."
-        />
-        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/blocks/" />
-        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
-        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
-        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
-        <meta property="og:title" content="Block Types — Umbot Flow Editor" />
-        <meta
-            property="og:description"
-            content="Detailed description of each block type in Umbot Flow Editor: commands, steps, conditions, actions, responses, end, and service blocks."
-        />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/blocks/" />
-        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="stylesheet" href="/docs/docs.css?v=1" />
+</head>
+<body>
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #0f0f14;
-                color: #e0e0e0;
-                line-height: 1.7;
-            }
-            .container {
-                max-width: 700px;
-                margin: 0 auto;
-                padding: 40px 20px;
-            }
-            h1 {
-                font-size: 2rem;
-                margin-bottom: 8px;
-                color: #fff;
-            }
-            h2 {
-                font-size: 1.3rem;
-                margin: 32px 0 12px;
-                color: #00f0ff;
-            }
-            .subtitle {
-                color: #888;
-                margin-bottom: 32px;
-            }
-            .topbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 24px;
-            }
-            .back {
-                color: #00f0ff;
-                text-decoration: none;
-                font-size: 0.9rem;
-            }
-            .back:hover {
-                text-decoration: underline;
-            }
-            .lang {
-                color: #888;
-                text-decoration: none;
-                font-size: 0.85rem;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 4px 10px;
-            }
-            .lang:hover {
-                color: #00f0ff;
-                border-color: rgba(0, 240, 255, 0.3);
-            }
-            .block {
-                margin-bottom: 24px;
-                padding: 20px;
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-                border-left: 4px solid;
-            }
-            .block h3 {
-                font-size: 1.1rem;
-                margin-bottom: 8px;
-            }
-            .block p {
-                font-size: 0.9rem;
-                color: #888;
-            }
-            .block .example {
-                margin-top: 12px;
-                padding: 12px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                font-size: 0.85rem;
-            }
-            .block .example strong {
-                color: #aaa;
-            }
-            .cmd {
-                border-left-color: #00f0ff;
-            }
-            .cmd h3 {
-                color: #00f0ff;
-            }
-            .step {
-                border-left-color: #bc13fe;
-            }
-            .step h3 {
-                color: #bc13fe;
-            }
-            .cond {
-                border-left-color: #ff0055;
-            }
-            .cond h3 {
-                color: #ff0055;
-            }
-            .action {
-                border-left-color: #ff9d00;
-            }
-            .action h3 {
-                color: #ff9d00;
-            }
-            .response {
-                border-left-color: #00ff9d;
-            }
-            .response h3 {
-                color: #00ff9d;
-            }
-            .end {
-                border-left-color: #ef4444;
-            }
-            .end h3 {
-                color: #ef4444;
-            }
-            .welcome {
-                border-left-color: #22c55e;
-            }
-            .welcome h3 {
-                color: #22c55e;
-            }
-            .help {
-                border-left-color: #eab308;
-            }
-            .help h3 {
-                color: #eab308;
-            }
-            .fallback {
-                border-left-color: #ff9d00;
-            }
-            .fallback h3 {
-                color: #ff9d00;
-            }
-            code {
-                background: rgba(0, 240, 255, 0.1);
-                color: #00f0ff;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-family: 'SF Mono', 'Fira Code', monospace;
-                font-size: 0.85em;
-            }
-            a {
-                color: #00f0ff;
-            }
-            @media (max-width: 480px) {
-                body { padding: 0; }
-                .container { padding: 24px 14px; }
-                h1 { font-size: 1.5rem; }
-                h2 { font-size: 1.15rem; }
-                .step { flex-direction: column; gap: 10px; }
-                .step-num { width: 28px; height: 28px; font-size: 0.8rem; }
-                table { font-size: 0.8rem; }
-                th, td { padding: 6px 8px; }
-                pre { font-size: 0.75rem; padding: 12px; }
-                code { font-size: 0.8em; }
-                .topbar { flex-wrap: wrap; gap: 8px; }
-            }
+<div class="container">
+    <div class="topbar">
+        <a class="back" href="/docs/en/">← Documentation</a>
+        <a class="lang" href="/docs/blocks/">RU</a>
+    </div>
+    <h1>Block Types</h1>
+    <p class="subtitle">Detailed description of each block type in the editor</p>
 
-        </style>
-    </head>
-    <body>
-        <!-- Yandex.Metrika counter (noscript) -->
-        <noscript><div><img src="https://mc.yandex.ru/watch/112563287" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter (noscript) -->
-        <div class="container">
-            <div class="topbar">
-                <a class="back" href="/docs/en/">← Documentation</a>
-                <a class="lang" href="/docs/blocks/">RU</a>
-            </div>
-            <h1>Block Types</h1>
-            <p class="subtitle">Detailed description of each block type in the editor</p>
-
-            <div class="block cmd">
-                <h3>Command</h3>
-                <p>
-                    Reacts to specific words. The user types a word — the bot replies with the
-                    configured text and buttons.
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> A "Command" block with the words "hello", "hi" and the
-                    text "Hello! How are you?" — the bot replies when any of these words is typed.
-                </div>
-            </div>
-
-            <div class="block step">
-                <h3>Step</h3>
-                <p>
-                    Asks the user for input and saves it into a field. Use it to collect data: name,
-                    email, age, etc.
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> A "Step" block with the text "What is your name?" and
-                    "Save to" = "userName" — the user's answer is stored in the
-                    <code>userName</code> field.
-                </div>
-            </div>
-
-            <div class="block cond">
-                <h3>Condition</h3>
-                <p>
-                    Checks a variable's value and routes the dialog along different branches. Lets
-                    you create branching: "if the condition is true — go there, otherwise — go
-                    here".
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> If <code>age >= 18</code> — show one message,
-                    otherwise — another.
-                </div>
-            </div>
-
-            <div class="block action">
-                <h3>Action</h3>
-                <p>
-                    Performs additional operations: setting variables, generating random numbers,
-                    HTTP requests. Shows text after execution.
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> Generating a random number from 1 to 100, sending an
-                    HTTP request to an API, setting a variable.
-                </div>
-            </div>
-
-            <div class="block response">
-                <h3>Response</h3>
-                <p>
-                    Shows text to the user without asking for input. Use it for informational
-                    messages or as an intermediate block.
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> A "Response" block with the text "This is the bot
-                    help" — it simply shows the message.
-                </div>
-            </div>
-
-            <div class="block end">
-                <h3>End</h3>
-                <p>
-                    Ends the dialog. The bot stops responding until the user starts a new
-                    conversation.
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> After the message "Goodbye!" the dialog ends.
-                </div>
-            </div>
-
-            <h2>Service blocks</h2>
-            <p style="color: #888; font-size: 0.9rem; margin-bottom: 16px">
-                These blocks are not connected to others — each exists as a single instance and
-                triggers at a specific moment.
-            </p>
-
-            <div class="block welcome">
-                <h3>Start</h3>
-                <p>
-                    Greeting shown when the bot starts. Displayed to the user when they first open
-                    the dialog or start a new conversation.
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> The text "Hi! I can help you with your order. Type
-                    'help' if something is unclear."
-                </div>
-            </div>
-
-            <div class="block help">
-                <h3>Help</h3>
-                <p>
-                    Response to the help command. Triggers when the user asks for help (for example,
-                    types "help" or presses the platform's help button).
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> The text "I can respond to the 'order' and 'status'
-                    commands. Type one of these words."
-                </div>
-            </div>
-
-            <div class="block fallback">
-                <h3>Fallback</h3>
-                <p>
-                    Response when the bot does not recognize the user's command. Instead of silence
-                    or a system error, the user gets a clear message.
-                </p>
-                <div class="example">
-                    <strong>Example:</strong> The text "Sorry, I didn't understand. Type 'help' to
-                    see the list of commands."
-                </div>
-            </div>
-
-            <h2>How to connect blocks</h2>
-            <p style="color: #888; font-size: 0.9rem">
-                Drag from the edge of one block to another to create a connection. The bot moves
-                through the blocks in the order of the connections. Use a condition for branching:
-                one output for "yes", another for "no".
-            </p>
+    <div class="block cmd">
+        <h3>Command</h3>
+        <p>
+            Reacts to specific words. The user types a word — the bot replies with the
+            configured text and buttons.
+        </p>
+        <div class="example">
+            <strong>Example:</strong> A "Command" block with the words "hello", "hi" and the
+            text "Hello! How are you?" — the bot replies when any of these words is typed.
         </div>
-    </body>
+    </div>
+
+    <div class="block step">
+        <h3>Step</h3>
+        <p>
+            Asks the user for input and saves it into a field. Use it to collect data: name,
+            email, age, etc.
+        </p>
+        <div class="example">
+            <strong>Example:</strong> A "Step" block with the text "What is your name?" and
+            "Save to" = "userName" — the user's answer is stored in the
+            <code>userName</code> field.
+        </div>
+    </div>
+
+    <div class="block cond">
+        <h3>Condition</h3>
+        <p>
+            Checks a variable's value and routes the dialog along different branches. Lets
+            you create branching: "if the condition is true — go there, otherwise — go
+            here".
+        </p>
+        <div class="example">
+            <strong>Example:</strong> If <code>age >= 18</code> — show one message,
+            otherwise — another.
+        </div>
+    </div>
+
+    <div class="block action">
+        <h3>Action</h3>
+        <p>
+            Performs additional operations: setting variables, generating random numbers,
+            HTTP requests. Shows text after execution.
+        </p>
+        <div class="example">
+            <strong>Example:</strong> Generating a random number from 1 to 100, sending an
+            HTTP request to an API, setting a variable.
+        </div>
+    </div>
+
+    <div class="block response">
+        <h3>Response</h3>
+        <p>
+            Shows text to the user without asking for input. Use it for informational
+            messages or as an intermediate block.
+        </p>
+        <div class="example">
+            <strong>Example:</strong> A "Response" block with the text "This is the bot
+            help" — it simply shows the message.
+        </div>
+    </div>
+
+    <div class="block end">
+        <h3>End</h3>
+        <p>
+            Ends the dialog. The bot stops responding until the user starts a new
+            conversation.
+        </p>
+        <div class="example">
+            <strong>Example:</strong> After the message "Goodbye!" the dialog ends.
+        </div>
+    </div>
+
+    <h2>Service blocks</h2>
+    <p class="muted spaced">
+        These blocks are not connected to others — each exists as a single instance and
+        triggers at a specific moment.
+    </p>
+
+    <div class="block welcome">
+        <h3>Start</h3>
+        <p>
+            Greeting shown when the bot starts. Displayed to the user when they first open
+            the dialog or start a new conversation.
+        </p>
+        <div class="example">
+            <strong>Example:</strong> The text "Hi! I can help you with your order. Type
+            'help' if something is unclear."
+        </div>
+    </div>
+
+    <div class="block help">
+        <h3>Help</h3>
+        <p>
+            Response to the help command. Triggers when the user asks for help (for example,
+            types "help" or presses the platform's help button).
+        </p>
+        <div class="example">
+            <strong>Example:</strong> The text "I can respond to the 'order' and 'status'
+            commands. Type one of these words."
+        </div>
+    </div>
+
+    <div class="block fallback">
+        <h3>Fallback</h3>
+        <p>
+            Response when the bot does not recognize the user's command. Instead of silence
+            or a system error, the user gets a clear message.
+        </p>
+        <div class="example">
+            <strong>Example:</strong> The text "Sorry, I didn't understand. Type 'help' to
+            see the list of commands."
+        </div>
+    </div>
+
+    <h2>How to connect blocks</h2>
+    <p class="muted">
+        Drag from the edge of one block to another to create a connection. The bot moves
+        through the blocks in the order of the connections. Use a condition for branching:
+        one output for "yes", another for "no".
+    </p>
+</div>
+<script src="/metrika.js" async></script>
+</body>
 </html>
