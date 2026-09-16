@@ -1,0 +1,1387 @@
+/* ═══ UM-13 GHOST — стили призрака-спутника ═══
+   Подключается на каждой странице с um13-ghost.js:
+     <link rel="stylesheet" href="/styles/um13-ghost.css" />
+   Разметка (SVG, классы um13g-*) создаётся скриптом; без этого файла
+   призрак останется невидимым контейнером.
+   Без prefers-reduced-motion: призрак всегда живой. ═══ */
+#um13-ghost-root {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2147483000;
+    overflow: visible;
+}
+#um13-ghost-root * {
+    box-sizing: border-box;
+}
+
+/* Капсула: наклон задаётся в rotate(var(--um13-tilt)), парение — bob.
+   Наклон живёт на .um13g (не svg), чтобы не спорил с дыханием.
+   user-select:none + touch-action:none — перенос призрака не выделяет
+   текст под ним и не скроллит страницу на тач-устройствах. */
+.um13g {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -50%) rotate(var(--um13-tilt, 0deg));
+    cursor: pointer;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    transition:
+        left 1.6s cubic-bezier(0.45, 0.05, 0.35, 1),
+        top 1.6s cubic-bezier(0.45, 0.05, 0.35, 1),
+        opacity 0.6s ease,
+        transform 0.5s ease;
+}
+
+/* Ушёл (opacity:0 уже догорела): бесконечные bob/skirt/keyswing/
+   моргание иначе крутятся всё время отсутствия — стили SVG
+   пересчитываются каждый кадр, в редакторе поверх React Flow */
+.um13g.um13g-away {
+    visibility: hidden;
+}
+.um13g.um13g-away,
+.um13g.um13g-away * {
+    animation-play-state: paused !important;
+}
+#um13-ghost-root.um13g-dodging .um13g {
+    transition:
+        left 0.45s cubic-bezier(0.3, 1.4, 0.5, 1),
+        top 0.45s cubic-bezier(0.3, 1.4, 0.5, 1),
+        opacity 0.6s ease,
+        transform 0.5s ease;
+}
+
+/* уплытие: к краю с уменьшением и таянием */
+.um13g.um13g-sailing {
+    transform: translate(-50%, -50%) scale(0.25) rotate(20deg);
+    opacity: 0;
+    transition:
+        left 1.6s cubic-bezier(0.4, 0, 0.7, 0.4),
+        top 1.6s cubic-bezier(0.4, 0, 0.7, 0.4),
+        opacity 1.6s ease,
+        transform 1.6s ease;
+}
+
+/* парение-покачивание на месте (бесконечное, мягкое) */
+.um13g .um13g-hoverwrap {
+    animation: um13g-bob 3.1s ease-in-out infinite;
+}
+@keyframes um13g-bob {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* во сне призрак почти не движется: парение сжимается до 2.5px,
+   остальное — микродрейф вокруг точки засыпания (см. startSleepDrift) */
+#um13-ghost-root.um13g-sleeping .um13g .um13g-hoverwrap {
+    animation: um13g-bob-sleep 5.2s ease-in-out infinite;
+}
+@keyframes um13g-bob-sleep {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2.5px);
+    }
+}
+
+/* дыхание капсулы. Свечение — БЕЗ фильтра на svg: drop-shadow
+   заставлял пересчитывать свечение КАЖДЫЙ КАДР бесконечных
+   анимаций (глаза/ключ/моргание) — редечил FPS перелётов.
+   Дешёвый заменитель: radial-подложка на hoverwrap, статична. */
+.um13g svg {
+    width: 72px;
+    height: 72px;
+    position: relative;
+    z-index: 1;
+    animation: um13g-breathe 3.6s ease-in-out infinite;
+}
+.um13g .um13g-glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        circle,
+        rgba(0, 240, 255, 0.16) 0%,
+        rgba(0, 240, 255, 0.05) 45%,
+        transparent 70%
+    );
+}
+#um13-ghost-root.um13g-sleeping .um13g svg {
+    animation: um13g-breathe 5.4s ease-in-out infinite;
+}
+@keyframes um13g-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+.um13g-skirt {
+    animation: um13g-skirt 2.6s ease-in-out infinite;
+    transform-origin: 32px 46px;
+}
+@keyframes um13g-skirt {
+    0%,
+    100% {
+        transform: scaleY(1);
+    }
+    50% {
+        transform: scaleY(1.3);
+    }
+}
+
+/* испуг: дрожь всей капсулы */
+#um13-ghost-root.um13g-scared .um13g .um13g-hoverwrap {
+    animation: um13g-shake 0.09s linear infinite;
+}
+@keyframes um13g-shake {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(-1.5px, 1px) rotate(-1deg);
+    }
+    50% {
+        transform: translate(1px, -1.5px) rotate(1deg);
+    }
+    75% {
+        transform: translate(-1px, -1px) rotate(-0.5deg);
+    }
+    100% {
+        transform: translate(1.5px, 1px) rotate(0.5deg);
+    }
+}
+
+/* псих: тряска + красное СВЕЧЕНИЕ-подложка (не фильтр на svg) */
+#um13-ghost-root.um13g-raging .um13g .um13g-hoverwrap {
+    animation: um13g-shake 0.07s linear infinite;
+}
+#um13-ghost-root.um13g-raging .um13g .um13g-glow {
+    background: radial-gradient(
+        circle,
+        rgba(255, 0, 85, 0.22) 0%,
+        rgba(255, 0, 85, 0.07) 45%,
+        transparent 70%
+    );
+}
+
+/* грусть: слеза сползает по щеке ДО ПОДОЛА (кромка y46) и капает */
+.um13g-f-sad .um13g-tear {
+    animation: um13g-tear 2.2s ease-in infinite;
+}
+@keyframes um13g-tear {
+    0% {
+        transform: translateY(0);
+        opacity: 0.9;
+    }
+    70% {
+        transform: translateY(6px);
+        opacity: 0.9;
+    }
+    85% {
+        transform: translateY(9px) scaleY(1.3);
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* группы-лица */
+.um13g-f {
+    display: none;
+}
+.um13g[data-face='normal'] .um13g-f-normal {
+    display: block;
+}
+.um13g[data-face='startled'] .um13g-f-startled {
+    display: block;
+}
+.um13g[data-face='skeptic'] .um13g-f-skeptic {
+    display: block;
+}
+.um13g[data-face='delight'] .um13g-f-delight {
+    display: block;
+}
+.um13g[data-face='smart'] .um13g-f-smart {
+    display: block;
+}
+.um13g[data-face='thinking'] .um13g-f-thinking {
+    display: block;
+}
+.um13g[data-face='angry'] .um13g-f-angry {
+    display: block;
+}
+.um13g[data-face='sad'] .um13g-f-sad {
+    display: block;
+}
+.um13g[data-face='wink'] .um13g-f-wink {
+    display: block;
+}
+.um13g[data-face='asleep'] .um13g-f-asleep {
+    display: block;
+}
+
+/* нормальное лицо — усталый полуулыб; моргание + дрейф взгляда:
+   Pac-Man-призраки продают эмоцию направлением зрачков — пара
+   глаз медленно «оглядывается» (±2px) без новых лиц */
+.um13g[data-face='normal'] .um13g-blink {
+    animation: um13g-blinkface 4.7s ease-in-out infinite;
+}
+@keyframes um13g-blinkface {
+    0%,
+    92.5%,
+    100% {
+        opacity: 1;
+    }
+    95% {
+        opacity: 0.06;
+    }
+}
+.um13g[data-face='normal'] .um13g-eye {
+    animation: um13g-gaze 7.2s ease-in-out infinite;
+}
+@keyframes um13g-gaze {
+    0%,
+    28% {
+        transform: translateX(0);
+    }
+    36%,
+    64% {
+        transform: translateX(2.2px);
+    }
+    72%,
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* ключ на цепочке качается — маховик мелкой жизни (origin = крепление к подолу) */
+.um13g-key {
+    animation: um13g-keyswing 3.4s ease-in-out infinite;
+    transform-origin: 54px 44px;
+}
+@keyframes um13g-keyswing {
+    0%,
+    100% {
+        transform: rotate(-7deg);
+    }
+    50% {
+        transform: rotate(7deg);
+    }
+}
+
+/* ══ СТЕСНИТЕЛЬНОСТЬ (правило «Бу наоборот») ══
+   3с наведённого курсора — призрак отворачивается и ЗАКРЫВАЕТ
+   ЛИЦО ЗАНАВЕСЬЮ подола: фирменная механика, замечают и
+   пересказывают. Занавесь — зеркальный веер подола, поднятый
+   ВВЕРХ от кромки (origin y60, scaleY отрицательный): в
+   прошлой версии юбка тянулась вниз от y46 и лицо оставалось
+   открытым — обещание не выполнялось (креативный аудит A1). */
+.um13g .um13g-shyveil {
+    display: none;
+}
+.um13g.um13g-shy .um13g-hoverwrap {
+    animation: um13g-shy 2.6s ease-in-out infinite;
+}
+@keyframes um13g-shy {
+    0%,
+    100% {
+        transform: translateX(6px) rotate(10deg);
+    }
+    50% {
+        transform: translateX(10px) rotate(14deg);
+    }
+}
+.um13g.um13g-shy .um13g-skirt {
+    animation: um13g-shyskirt 1.3s ease-in-out infinite;
+    transform-origin: 32px 46px;
+}
+@keyframes um13g-shyskirt {
+    0%,
+    100% {
+        transform: scaleY(1) scaleX(1);
+    }
+    50% {
+        transform: scaleY(1.6) scaleX(1.15);
+    }
+}
+
+/* занавесь: ткань поднята и дышит в пределах лица (y24–46) */
+.um13g.um13g-shy .um13g-shyveil {
+    display: block;
+    transform-origin: 32px 46px;
+    animation: um13g-shyveil 1.3s ease-in-out infinite;
+}
+@keyframes um13g-shyveil {
+    0%,
+    100% {
+        transform: scaleY(1) scaleX(1);
+    }
+    50% {
+        transform: scaleY(1.06) scaleX(1.04);
+    }
+}
+
+/* ═══ «ПОСТАРЕЛ БЕЗ ТЕБЯ» (давность на теле): разрыв > недели —
+   чуть более тусклый контур ДО первого hello, потом оживает ═══ */
+.um13g.um13g-missed {
+    opacity: 0.55;
+}
+.um13g.um13g-missed .um13g-glow {
+    background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, transparent 60%);
+}
+
+/* вздрагивание при клике */
+
+/* вздрагивание при клике */
+.um13g svg.um13g-startled-pop {
+    animation: um13g-pop 0.5s ease-out;
+}
+@keyframes um13g-pop {
+    0% {
+        transform: scale(0.92);
+    }
+    55% {
+        transform: scale(1.14);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Zzz */
+.um13g-zzz {
+    position: absolute;
+    top: -12px;
+    right: -8px;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-weight: 700;
+    color: #00f0ff;
+    font-size: 13px;
+    pointer-events: none;
+    animation: um13g-zz 2.2s ease-out infinite;
+    opacity: 0;
+}
+.um13g-zzz.z2 {
+    top: -22px;
+    right: -18px;
+    font-size: 16px;
+    animation-delay: 0.5s;
+}
+.um13g-zzz.z3 {
+    top: -30px;
+    right: -24px;
+    font-size: 18px;
+    animation-delay: 1s;
+}
+@keyframes um13g-zz {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.7);
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(8px, -18px) scale(1.1);
+    }
+}
+
+/* ══ КУБИКИ-ЧАСТИЦЫ ══ */
+.um13g-cube {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 2.5px;
+    pointer-events: none;
+    z-index: 2;
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+}
+
+/* конфетти-победа: падают с дрейфом */
+@keyframes um13g-confetti {
+    0% {
+        transform: translate(0, 0) rotate(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--dx, 20px), 140px) rotate(540deg);
+        opacity: 0;
+    }
+}
+
+/* ══ ПУЗЫРЬ-ОБЛАЧКО: СВЕРХУ с хвостиком ══
+   Сжат к призраку: раньше 150–250px против 72px тела —
+   текст хоронил персонажа (пузырь был в 5 раз больше говорящего) */
+.um13g .um13g-say {
+    pointer-events: none;
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px) scale(0.95);
+    min-width: 120px;
+    max-width: 200px;
+    padding: 9px 13px;
+    border-radius: 14px;
+    background: rgba(8, 12, 20, 0.94);
+    border: 1px solid rgba(0, 240, 255, 0.45);
+    color: #e8e8ef;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+    opacity: 0;
+    white-space: normal;
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.5),
+        0 0 18px rgba(0, 240, 255, 0.14);
+}
+.um13g .um13g-say::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    margin-left: -7px;
+    width: 12px;
+    height: 12px;
+    background: rgba(8, 12, 20, 0.94);
+    border-right: 1px solid rgba(0, 240, 255, 0.45);
+    border-bottom: 1px solid rgba(0, 240, 255, 0.45);
+    transform: rotate(45deg);
+}
+.um13g .um13g-say.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    pointer-events: auto;
+    cursor: pointer;
+}
+.um13g .um13g-say b {
+    color: #00f0ff;
+    font-weight: 600;
+}
+.um13g .um13g-say.flip-left {
+    left: auto;
+    right: 10px;
+    transform: translateX(0) translateY(6px) scale(0.95);
+}
+.um13g .um13g-say.flip-left.show {
+    transform: translateX(0) translateY(0) scale(1);
+}
+.um13g .um13g-say.flip-left::after {
+    left: auto;
+    right: 24px;
+    margin-left: 0;
+}
+.um13g .um13g-say.flip-right {
+    left: 10px;
+    right: auto;
+    transform: translateX(0) translateY(6px) scale(0.95);
+}
+.um13g .um13g-say.flip-right.show {
+    transform: translateX(0) translateY(0) scale(1);
+}
+.um13g .um13g-say.flip-right::after {
+    left: 24px;
+    margin-left: 0;
+}
+
+/* ═══ АУДИТ A3: вертикальный кламп — у верхней кромки пузырь
+   уходит за экран (реплика живёт НАД телом). flip-down ставит
+   пузырь ПОД призрака с хвостиком сверху; вернуть нечего —
+   снизу пузырь упирается в экран только на гигантских репликах
+   у самого пола, но fy-кламп (0.92) оставляет там запас. ═══ */
+.um13g .um13g-say.flip-down {
+    bottom: auto;
+    top: calc(100% + 14px);
+    transform: translateX(-50%) translateY(-6px) scale(0.95);
+}
+.um13g .um13g-say.flip-down.show {
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+.um13g .um13g-say.flip-down::after {
+    bottom: auto;
+    top: -7px;
+    border: none;
+    border-left: 1px solid rgba(0, 240, 255, 0.45);
+    border-top: 1px solid rgba(0, 240, 255, 0.45);
+}
+.um13g .um13g-tag {
+    margin-top: 5px;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 11px;
+    color: rgba(0, 240, 255, 0.55);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+
+/* ═══ АКТЫ-ПОЗЫ: бессловесная жизнь между репликами ═══
+   Паузные анимации из игр: тело говорит без текста. Классы вешаются
+   на КАПСУЛУ (.um13g) и включают свою хореографию. */
+
+/* глитч-завис: капсула дёргается и рассыпается по каналам.
+   Цветные сдвиги — ТОНИРОВАННЫЕ ПОДЛОЖКИ (не drop-shadow-цепочка
+   на svg: тройной фильтр выедал FPS вместе с бесконечным skew).
+   Аудит A4: альфа 0.14/0.12 на тёмном фоне глазом не читалась —
+   поднята до читаемого расслоения, сдвиг расширен до ±6px. */
+.um13g.um13g-act-glitch .um13g-hoverwrap {
+    animation: um13g-glitch 0.32s steps(2) infinite;
+}
+.um13g.um13g-act-glitch svg {
+    animation: um13g-glitch-skew 1.4s steps(3) infinite;
+}
+.um13g.um13g-act-glitch .um13g-glow::before,
+.um13g.um13g-act-glitch .um13g-glow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+}
+.um13g.um13g-act-glitch .um13g-glow::before {
+    background: radial-gradient(circle, rgba(255, 0, 85, 0.26), transparent 60%);
+    transform: translateX(-6px);
+    mix-blend-mode: screen;
+}
+.um13g.um13g-act-glitch .um13g-glow::after {
+    background: radial-gradient(circle, rgba(0, 255, 157, 0.24), transparent 60%);
+    transform: translateX(6px);
+    mix-blend-mode: screen;
+}
+@keyframes um13g-glitch {
+    0% {
+        transform: translate(0, 0);
+    }
+    25% {
+        transform: translate(-3px, 1px);
+    }
+    50% {
+        transform: translate(2px, -2px);
+    }
+    75% {
+        transform: translate(-1px, 2px);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+@keyframes um13g-glitch-skew {
+    0%,
+    100% {
+        transform: scale(1) skewX(0);
+    }
+    33% {
+        transform: scale(1.02, 0.96) skewX(-4deg);
+    }
+    66% {
+        transform: scale(0.98, 1.03) skewX(3deg);
+    }
+}
+
+/* ═══ АКТ «ЕСТ НОДУ» (хореография по правкам арт-директора):
+   подход прыжками с anticipation → укус В МОМЕНТ касания рта →
+   жевок тела/рта синхронно с укусом (без мёртвой зоны 1.35с) →
+   проглат вниз по телу с «бульком» (не scale-схлопывание) →
+   крошки. Съедобная нода крупная (16px, порт+метка читаются).
+   eat-quick — короткий профиль «доесть» для кормления ═══ */
+.um13g .um13g-eatbite {
+    position: absolute;
+    left: 50%;
+    top: 66%;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1.5px solid rgba(7, 11, 18, 0.55);
+    pointer-events: none;
+    z-index: 2;
+    animation:
+        um13g-bite-approach 0.9s cubic-bezier(0.3, 0.9, 0.4, 1),
+        um13g-bite-eat1 0.55s cubic-bezier(0.4, 0, 0.8, 0.6) 0.95s both,
+        um13g-bite-chew1 0.7s ease-in-out 1.5s 1,
+        um13g-bite-eat2 0.5s cubic-bezier(0.4, 0, 0.8, 0.6) 2.25s both,
+        um13g-bite-chew2 0.7s ease-in-out 2.8s 1,
+        um13g-bite-gulp 0.55s cubic-bezier(0.5, 0, 0.9, 0.5) 3.5s both;
+}
+
+/* подход: anticipation (микро-отлёт) → прыжок ко рту со squash */
+@keyframes um13g-bite-approach {
+    0% {
+        transform: translate(44px, -38px) scale(1) rotate(-14deg);
+        opacity: 0;
+    }
+    15% {
+        transform: translate(50px, -42px) scale(1) rotate(-18deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 0) scale(1.15, 0.85) rotate(4deg);
+        opacity: 1;
+    }
+}
+
+/* укус 1: мгновенное сплющивание У РТА, нода откусана (scale .62) */
+@keyframes um13g-bite-eat1 {
+    0% {
+        transform: translate(0, 0) scale(1.15, 0.85) rotate(4deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 1px) scale(0.62) rotate(2deg);
+        opacity: 1;
+    }
+}
+
+/* жевок 1: ноду жуют (лёгкое покачивание остатка) */
+@keyframes um13g-bite-chew1 {
+    0%,
+    100% {
+        transform: translate(0, 1px) scale(0.62) rotate(2deg);
+    }
+    50% {
+        transform: translate(0, 2px) scale(0.62) rotate(-3deg);
+    }
+}
+
+/* укус 2: добивание до крошки */
+@keyframes um13g-bite-eat2 {
+    0% {
+        transform: translate(0, 1px) scale(0.62) rotate(2deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-1px, 2px) scale(0.28) rotate(10deg);
+        opacity: 1;
+    }
+}
+@keyframes um13g-bite-chew2 {
+    0%,
+    100% {
+        transform: translate(-1px, 2px) scale(0.28) rotate(10deg);
+    }
+    50% {
+        transform: translate(-1px, 3px) scale(0.28) rotate(-6deg);
+    }
+}
+
+/* ПРОГЛАТ: остаток уходит ВНИЗ по телу (не схлопывается) */
+@keyframes um13g-bite-gulp {
+    0% {
+        transform: translate(-1px, 2px) scale(0.28);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 34px) scale(0.22, 0.5);
+        opacity: 0;
+    }
+}
+
+/* крошки: в такт укусов (после первого — 1шт, после второго — 2шт) */
+.um13g .um13g-crumb {
+    position: absolute;
+    left: 50%;
+    top: 66%;
+    width: 4px;
+    height: 4px;
+    border-radius: 1px;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    animation: um13g-crumb 0.9s ease-out forwards;
+}
+@keyframes um13g-crumb {
+    0% {
+        transform: translate(2px, 6px) scale(1);
+        opacity: 0.95;
+    }
+    100% {
+        transform: translate(var(--cdx, 8px), 48px) rotate(160deg) scale(0.7);
+        opacity: 0;
+    }
+}
+
+/* тело: жуёт СИНХРОННО укусам — кивок в кадр касания (0.95с),
+   «бульк» при проглате (микро-scale на 3.5с) */
+.um13g.um13g-act-eat .um13g-hoverwrap {
+    animation: um13g-chew-idle 0.7s ease-in-out 3;
+    animation-delay: 0.95s;
+}
+@keyframes um13g-chew-idle {
+    0%,
+    100% {
+        transform: translateY(0) scaleY(1);
+    }
+    50% {
+        transform: translateY(2.5px) scaleY(0.94);
+    }
+}
+.um13g.um13g-act-eat .um13g-hoverwrap .um13g-gulpwave {
+    opacity: 0;
+}
+
+/* лицо обжоры: базовое лицо гасим ЦЕЛИКОМ (полуулыб нормала
+   просвечивал сквозь «о» — два рта в одном), рот в такт укусов */
+.um13g.um13g-act-eat .um13g-f {
+    opacity: 0;
+}
+.um13g.um13g-act-eat .um13g-eatface {
+    display: block;
+}
+.um13g .um13g-eatface {
+    display: none;
+}
+.um13g .um13g-eatface .um13g-mouth-o {
+    animation: um13g-chewmouth 0.7s ease-in-out 3;
+    animation-delay: 0.95s;
+    transform-origin: 32px 44px;
+}
+@keyframes um13g-chewmouth {
+    0%,
+    100% {
+        transform: scaleY(1);
+    }
+    50% {
+        transform: scaleY(0.3);
+    }
+}
+
+/* ═══ EAT-QUICK: короткий профиль «доесть» (кормление кликом) —
+   один укус + один жевок, 1.1с. Без длинного подхода ═══ */
+.um13g.um13g-act-eatquick .um13g-f {
+    opacity: 0;
+}
+.um13g.um13g-act-eatquick .um13g-eatface {
+    display: block;
+}
+.um13g.um13g-act-eatquick .um13g-hoverwrap {
+    animation: um13g-chew-idle 0.7s ease-in-out 1;
+}
+.um13g.um13g-act-eatquick .um13g-eatface .um13g-mouth-o {
+    animation: um13g-chewmouth 0.7s ease-in-out 1;
+    transform-origin: 32px 44px;
+}
+.um13g .um13g-eatquick-bite {
+    position: absolute;
+    left: 50%;
+    top: 66%;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1.5px solid rgba(7, 11, 18, 0.55);
+    pointer-events: none;
+    z-index: 2;
+    animation:
+        um13g-qeat 0.5s cubic-bezier(0.4, 0, 0.8, 0.6) 0.15s forwards,
+        um13g-qchew 0.55s ease-in-out 0.55s 1,
+        um13g-bite-gulp 0.5s cubic-bezier(0.5, 0, 0.9, 0.5) 0.95s both;
+}
+@keyframes um13g-qeat {
+    0% {
+        transform: translate(20px, -14px) scale(1);
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 1px) scale(0.5) rotate(3deg);
+        opacity: 1;
+    }
+}
+@keyframes um13g-qchew {
+    0%,
+    100% {
+        transform: translate(0, 1px) scale(0.5) rotate(3deg);
+    }
+    50% {
+        transform: translate(0, 2px) scale(0.5) rotate(-4deg);
+    }
+}
+
+/* мечты: парит выше обычного, мягко вращаясь */
+.um13g.um13g-act-dream .um13g-hoverwrap {
+    animation: um13g-dream 4.4s ease-in-out infinite;
+}
+@keyframes um13g-dream {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-2deg);
+    }
+    50% {
+        transform: translateY(-14px) rotate(2deg);
+    }
+}
+
+/* танец: «никто же не смотрит» — приседания с бёдрами, юбка вдвое чаще */
+.um13g.um13g-act-dance .um13g-hoverwrap {
+    animation: um13g-dance 1.15s ease-in-out infinite;
+}
+@keyframes um13g-dance {
+    0%,
+    100% {
+        transform: translateX(-7px) rotate(-6deg) scaleY(1);
+    }
+    25% {
+        transform: translateX(0) rotate(0) scaleY(0.9);
+    }
+    50% {
+        transform: translateX(7px) rotate(6deg) scaleY(1);
+    }
+    75% {
+        transform: translateX(0) rotate(0) scaleY(0.9);
+    }
+}
+.um13g.um13g-act-dance .um13g-skirt {
+    animation-duration: 0.58s;
+}
+
+/* подглядывание: выглядывает из-за края — видна половина */
+.um13g.um13g-act-peek .um13g-hoverwrap {
+    animation: um13g-peek 2.8s ease-in-out infinite;
+}
+@keyframes um13g-peek {
+    0%,
+    15% {
+        transform: translateX(-46%);
+    }
+    30%,
+    45% {
+        transform: translateX(-8%);
+    }
+    60%,
+    100% {
+        transform: translateX(-46%);
+    }
+}
+
+/* дефрагментация: рассыпается и собирается обратно (scale+opacity —
+   без пиксельных фильтров: анимация фильтра ела FPS) */
+.um13g.um13g-act-defrag svg {
+    animation: um13g-defrag 2.6s ease-in-out infinite;
+}
+@keyframes um13g-defrag {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.92);
+        opacity: 0.55;
+    }
+}
+
+/* ═══ АКТ «ПАСТУХ НОД»: кубики дрейфуют рядом, призрак их
+   подталкивает в линию (WAAPI-хореография из JS); CSS — только
+   лёгкое покачивание тела «работающего» и спокойное лицо ═══ */
+.um13g.um13g-act-herd .um13g-hoverwrap {
+    animation: um13g-herd-bob 3.2s ease-in-out infinite;
+}
+@keyframes um13g-herd-bob {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-1.5deg);
+    }
+    50% {
+        transform: translateY(-3px) rotate(1.5deg);
+    }
+}
+.um13g .um13g-herdcube {
+    position: absolute;
+    border-radius: 2.5px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* ═══ АКТ «ПОЛИРУЕТ КЛЮЧ»: снимает ключ с цепочки, держит,
+   протирает. Реальная группа ключа прячется, летит дубль-ключ.
+   CSS — поза «сосредоточен»: наклон вниз, замедленный key-swing гаснет ═══ */
+.um13g.um13g-act-polish .um13g-key {
+    opacity: 0;
+}
+.um13g.um13g-act-polish .um13g-hoverwrap {
+    animation: um13g-polish 4.5s ease-in-out infinite;
+}
+@keyframes um13g-polish {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+    45% {
+        transform: translateY(2px) rotate(3deg);
+    }
+    55% {
+        transform: translateY(2px) rotate(-2deg);
+    }
+    70% {
+        transform: translateY(-2px) rotate(0);
+    }
+}
+.um13g .um13g-keyheld {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* ═══ АКТ «ГОЛОДАЕТ» (по ревью): урчание живота ВИДИМОЕ
+   (5% по вертикали, 0.7с — раньше 1.5% был subpixel), нода
+   ПУЛЬСИРУЕТ (аффорданс «кликни» — ревью пользователя: без
+   этого кормление — секретная фича), взгляд драматургичен:
+   смотрит на ноду → отворачивается → снова смотрит (WAAPI-цикл
+   в startHungryChoreo). КЛИК = кормление. ═══ */
+.um13g.um13g-act-hungry .um13g-hoverwrap {
+    animation: um13g-hungry-groan 0.7s ease-in-out infinite;
+}
+@keyframes um13g-hungry-groan {
+    0%,
+    100% {
+        transform: translateY(0) scale(1, 1);
+    }
+    50% {
+        transform: translateY(2px) scale(1.01, 0.95);
+    }
+}
+.um13g.um13g-act-hungry .um13g-eye {
+    animation: um13g-hungry-look 8s ease-in-out infinite;
+}
+@keyframes um13g-hungry-look {
+    0%,
+    30% {
+        transform: translateY(2.2px) translateX(-1.5px);
+    }
+    45%,
+    60% {
+        transform: translateY(0) translateX(0);
+    }
+    75%,
+    100% {
+        transform: translateY(2.2px) translateX(-1.5px);
+    }
+}
+.um13g .um13g-hungrynode {
+    position: absolute;
+    left: 18%;
+    top: 78%;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 2;
+    box-shadow: 0 0 10px var(--hc, #00f0ff);
+    animation:
+        um13g-hungry-lie 3s ease-in-out infinite,
+        um13g-hungry-need 1.6s ease-in-out infinite;
+}
+@keyframes um13g-hungry-lie {
+    0%,
+    100% {
+        transform: rotate(14deg) translateY(0);
+    }
+    50% {
+        transform: rotate(11deg) translateY(1px);
+    }
+}
+
+/* пульсация «съешь меня»: та же нода, которую он ест — визуальная
+   связка «еда лежит тут» вместо чтения подписи */
+@keyframes um13g-hungry-need {
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.6);
+    }
+}
+
+/* кормление: нода летит ко рту и исчезает */
+.um13g .um13g-hungrynode.fed {
+    animation: um13g-fed 0.6s cubic-bezier(0.4, 0, 0.8, 0.5) forwards;
+}
+@keyframes um13g-fed {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(26px, -26px) scale(0.1);
+        opacity: 0;
+    }
+}
+
+/* ═══ ЛОВЕЦ УДАЛЁННЫХ НОД: кубик удалённой ноды падает
+   в подол и «хранится» пару секунд — гаснущая память ═══ */
+.um13g .um13g-caught {
+    position: absolute;
+    left: 50%;
+    top: 88%;
+    width: 9px;
+    height: 9px;
+    border-radius: 2.5px;
+    pointer-events: none;
+    z-index: 2;
+    animation:
+        um13g-caught-fall 0.7s cubic-bezier(0.3, 0.7, 0.4, 1) forwards,
+        um13g-caught-keep 2.5s ease-in-out 0.7s forwards;
+}
+@keyframes um13g-caught-fall {
+    0% {
+        transform: translate(30px, -46px) rotate(0);
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 0) rotate(18deg);
+        opacity: 1;
+    }
+}
+@keyframes um13g-caught-keep {
+    0%,
+    70% {
+        opacity: 0.9;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(0, 1px) rotate(18deg);
+    }
+}
+
+/* ═══ АКТ «ПРОВОЖАЕТ НЕВИДИМОЕ»: зрачки-группы едут за
+   летящим «ничем» (позицию задаёт JS через --um13-watch),
+   тело слегка поворачивается. Иногда машет подолом. ═══ */
+.um13g.um13g-act-watch .um13g-hoverwrap {
+    animation: um13g-watch-lean 5s ease-in-out infinite;
+}
+@keyframes um13g-watch-lean {
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+    50% {
+        transform: rotate(4deg);
+    }
+}
+
+/* ═══ АКТ «ПРИТВОРЯЕТСЯ НОДОЙ» (v1.1): трагедия одного жеста —
+   «меня не выбрали в экспорт». Капсула застывает формой ноды:
+   радиусы гаснут (clip-path «коробка»), подол поджимается,
+   снизу рисуется точка-порт (как у настоящей ноды холста),
+   моргание продолжается (нода «живая», это и есть шутка).
+   Через 2.5с — оседает обратно с микровздохом. Границы клипа
+   чуть шире тела (10..54), чтобы stroke кромки не резался. */
+.um13g.um13g-act-mime .um13g-hoverwrap {
+    animation: um13g-mime-settle 1.2s ease-out 1 forwards;
+}
+@keyframes um13g-mime-settle {
+    0% {
+        transform: translateY(2px);
+    }
+    100% {
+        transform: translateY(3px);
+    }
+}
+.um13g.um13g-act-mime svg {
+    animation: none;
+}
+.um13g.um13g-act-mime .um13g-svgclip {
+    clip-path: inset(14% 18% 26% 18%);
+}
+.um13g.um13g-act-mime .um13g-skirt {
+    animation: none;
+    transform: scaleY(0.82);
+}
+.um13g.um13g-act-mime .um13g-key {
+    opacity: 0.25;
+}
+.um13g .um13g-mimeport {
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(7, 11, 18, 0.9);
+    border: 2px solid rgba(0, 240, 255, 0.8);
+}
+.um13g.um13g-act-mime .um13g-mimeport {
+    opacity: 1;
+}
+
+/* ═══ ХОЛОДНОЕ ПЯТНО: спящий долго греет одно место —
+   уплывая, оставляет морозный развод, который тает ~30с.
+   Фольклорный штрих: призраки охлаждают, а этот — из
+   хранилища, где действительно холодно. pointer-events:none. */
+.um13g-frost {
+    position: fixed;
+    width: 180px;
+    height: 120px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse,
+        rgba(0, 240, 255, 0.1) 0%,
+        rgba(120, 200, 255, 0.05) 45%,
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 1.2s ease;
+}
+.um13g-frost.on {
+    opacity: 1;
+}
+.um13g-frost.bye {
+    opacity: 0;
+    transition: opacity 28s ease-out;
+}
+
+/* ═══ ПРОВОД: редакторский перелёт садится НА РЕБРО флоу —
+   призрак сидит на кривой связи как птица на проводе,
+   наклоняясь по касательной. Точка приходит с событием
+   um13:perch ({x,y,angle} — экранные координаты середины
+   ребра и угол касательной). */
+.um13g.um13g-perched {
+    cursor: default;
+}
+@keyframes um13g-perch-wobble {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+    50% {
+        transform: translateY(-2px) rotate(1.2deg);
+    }
+}
+.um13g.um13g-perched .um13g-hoverwrap {
+    animation:
+        um13g-bob 3.1s ease-in-out infinite,
+        um13g-perch-wobble 2.3s ease-in-out infinite;
+}
+
+/* ═══ ВЗГЛЯД СЛЕДИТ ЗА КУРСОРОМ: зрачки-группы едут за
+   мышью через CSS-var на капсуле. Пока курсор активен — честное
+   слежение; 10с покоя — призрак «теряет интерес» (уходит в
+   прежний дрейф-цикл um13g-gaze). ═══ */
+.um13g .um13g-eye {
+    transition: transform 0.35s cubic-bezier(0.3, 0.8, 0.4, 1);
+}
+.um13g[data-gaze='mouse'] .um13g-eye {
+    animation: none;
+    transform: translate(calc(var(--um13-gaze-x, 0) * 2.6px), calc(var(--um13-gaze-y, 0) * 2.6px));
+}
+
+/* ═══ ДАВЛЕНИЕ КВОТЫ В ТЕЛЕ: localStorage забит — призрак
+   чувствует. Уровень 1 (≥85%): юбка чаще, тик-дрожь. Уровень 2
+   (≥95%): мерцание всего тела, спящий тоже нервно дрейфует. ═══ */
+#um13-ghost-root[data-pressure='1'] .um13g-skirt {
+    animation-duration: 1.8s;
+}
+#um13-ghost-root[data-pressure='1'] .um13g svg {
+    animation:
+        um13g-breathe 3.6s ease-in-out infinite,
+        um13g-tic 7s steps(1) infinite;
+}
+#um13-ghost-root[data-pressure='2'] .um13g-skirt {
+    animation-duration: 1.35s;
+}
+#um13-ghost-root[data-pressure='2'] .um13g svg {
+    animation:
+        um13g-breathe 3.6s ease-in-out infinite,
+        um13g-tic 3.5s steps(1) infinite,
+        um13g-flicker 2.8s steps(2) infinite;
+}
+@keyframes um13g-tic {
+    0%,
+    93%,
+    100% {
+        transform: translateX(0);
+    }
+    94% {
+        transform: translateX(-1.6px) rotate(-1.5deg);
+    }
+    97% {
+        transform: translateX(1.2px) rotate(1deg);
+    }
+}
+@keyframes um13g-flicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.82;
+    }
+}
+
+/* ═══ СВЕТЛАЯ ТЕМА = ОСЛЕП: циановое тело тонет в белом —
+   призрак «надевает» янтарные очки и приглушает контраст, чтобы
+   остаться читаемым. Уведомление в html[data-theme=light]. ═══ */
+[data-theme='light'] .um13g-shades {
+    display: block;
+}
+.um13g-shades {
+    display: none;
+}
+[data-theme='light'] .um13g-glow {
+    background: radial-gradient(
+        circle,
+        rgba(8, 145, 178, 0.18) 0%,
+        rgba(8, 145, 178, 0.06) 45%,
+        transparent 70%
+    );
+}
+
+/* ═══ КУБИК-ПОТЕРЯШКА: после психа один кубик прилипает
+   у края экрана до конца сессии. Дрожит изредка. Кликабельен. ═══ */
+.um13g-cube-stuck {
+    position: fixed;
+    border-radius: 2.5px;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 2147483000;
+    box-shadow: 0 0 10px var(--stuck, #00f0ff);
+    animation: um13g-stuck-shiver 6s steps(1) infinite;
+}
+@keyframes um13g-stuck-shiver {
+    0%,
+    96.5%,
+    100% {
+        transform: rotate(var(--rot, 45deg));
+    }
+    97% {
+        transform: rotate(calc(var(--rot, 45deg) + 14deg));
+    }
+    98.5% {
+        transform: rotate(calc(var(--rot, 45deg) - 8deg));
+    }
+}
+
+/* ═══ КЛЮЧ ФИНАЛА: key-turned — окно №13 открыто (ключ в замке,
+   навсегда): цепочка пуста. key-given — ключ отдан человеку:
+   призрак иногда трогает пустое место (idle-микроакт). Оба —
+   только телом, без слов: вселенная меняется навсегда. ═══ */
+#um13-ghost-root.key-turned .um13g-key {
+    display: none;
+}
+#um13-ghost-root.key-given .um13g-key {
+    display: none;
+}
+#um13-ghost-root.key-given .um13g:hover .um13g-keyring {
+    opacity: 0.5;
+}
+.um13g-keyring {
+    display: none;
+}
+#um13-ghost-root.key-given .um13g-keyring {
+    display: block;
+    opacity: 0.25;
+}
+
+/* ═══ АУДИТ A10: зрачки живы и на «спокойных» лицах — лёгкий
+   дрейф ±1.5px у skeptic/smart (на smart он скользит за линзой
+   очков, на skeptic — из-под прищура). Дёшево, а половина
+   лиц перестаёт быть статичной. ═══ */
+.um13g[data-face='skeptic'] .um13g-eye {
+    animation: um13g-gaze 7.2s ease-in-out infinite;
+}
+.um13g[data-face='smart'] .um13g-eye {
+    animation: um13g-gaze 9.4s ease-in-out infinite;
+}
+
+/* ═══ КУБИК-ПИТОМЕЦ: потеряшка, которую не забрали в прошлой
+   сессии, висит на цепочке слева от ключа до конца финала —
+   после key-given/turned кубик остаётся: единственный друг,
+   который ни от чего не зависит. ═══ */
+.um13g-petcube {
+    display: none;
+}
+#um13-ghost-root.pet-cube .um13g-petcube {
+    display: block;
+    animation: um13g-petswing 3.1s ease-in-out infinite;
+    transform-origin: 10px 46px;
+}
+@keyframes um13g-petswing {
+    0%,
+    100% {
+        transform: rotate(-6deg);
+    }
+    50% {
+        transform: rotate(6deg);
+    }
+}
+
+/* ═══ СОМНАМБУЛА (В1): спящий призрак однажды за долгий сон
+   «рисует» грезу из кубиков поверх страницы. Оверлей в корне,
+   документ под ним не затрагивается; пробуждение рассыпает
+   рисунок за 2с. ═══ */
+.um13g-dreampic {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 2.5px;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 2.4s ease;
+}
+.um13g-dreampic.on {
+    opacity: 0.8;
+}
+.um13g-dreampic.bye {
+    transition:
+        opacity 0.9s ease,
+        transform 0.9s ease-in;
+    transform: translateY(26px) rotate(120deg);
+    opacity: 0;
+}
+
+/* ═══ АУДИТ A8: на узких экранах пузырь min-width 120px против
+   капсулы 84px — «пузырь хоронит персонажа» (то, с чем боролись
+   в реворке). Сжимаем минимум, сохраняя читаемость 11px. ═══ */
+@media (max-width: 640px) {
+    .um13g {
+        width: 84px;
+    }
+    .um13g svg {
+        width: 54px;
+        height: 54px;
+    }
+    .um13g .um13g-say {
+        font-size: 11px;
+        min-width: 100px;
+    }
+}
