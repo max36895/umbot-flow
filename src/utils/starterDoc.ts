@@ -41,10 +41,9 @@ export function buildStarterDocument(locale: Locale = getLocale()): FlowDocument
                 type: 'step',
                 id: 'ask_name',
                 name: 'ask_name',
-                prompt: {
-                    text: t('Напишите ваше имя:', 'Please enter your name:'),
-                    buttons: [],
-                },
+                // Вопрос «Как тебя зовут?» задаёт welcome перед шагом. Текст шага
+                // отправляется ПОСЛЕ ответа пользователя — здесь он не нужен.
+                prompt: { text: '', buttons: [] },
                 saveTo: 'userName',
                 saveAs: 'original',
             },

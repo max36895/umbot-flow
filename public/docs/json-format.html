@@ -132,7 +132,7 @@
         </tr>
         <tr>
             <td>step</td>
-            <td>Шаг — запрашивает ввод и сохраняет его в переменную</td>
+            <td>Шаг — ждёт ответ пользователя и сохраняет его в переменную</td>
         </tr>
         <tr>
             <td>condition</td>
@@ -190,10 +190,14 @@
     "type": "step",
     "id": "node_456",
     "name": "ask_name",
-    "prompt": { "text": "Как вас зовут?" },
+    "prompt": { "text": "Приятно познакомиться, {{userName}}!" },
     "saveTo": "userName",
     "saveAs": "original"
 }</code></pre>
+    <p class="muted">
+        Шаг срабатывает на ответ пользователя: вопрос задаёт блок перед шагом, а
+        <code>prompt.text</code> (необязательный) отправляется уже после ответа.
+    </p>
     <p class="muted">
         <code>saveAs: "original"</code> сохраняет ввод как есть, <code>"lowercase"</code> —
         в нижнем регистре. Куда идти дальше, определяется связью <code>next</code>.

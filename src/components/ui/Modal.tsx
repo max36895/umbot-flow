@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { t } from '../../i18n';
 import { NodeIcon } from './NodeIcons';
 
@@ -37,6 +38,10 @@ const Z_CLASS = {
  * Заменяет дублирующиеся реализации в HelpModal, BotSettingsModal, ExportDialog, AlertDialog, HelpButton.
  *
  * Footer и action-кнопки передаются внутри children.
+ *
+ * Рендерится через портал в body: предки с backdrop-filter/transform (например,
+ * тулбар с backdrop-blur) становятся containing block для position: fixed,
+ * и оверлей без портала «застревал» внутри них и обрезался.
  */
 export function Modal({
     title,
@@ -58,7 +63,7 @@ export function Modal({
         setTimeout(onClose, 150);
     };
 
-    return (
+    return createPortal(
         <div
             className={`fixed inset-0 ${Z_CLASS[zIndex]} flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-150 ${animate ? 'opacity-100' : 'opacity-0'}`}
             onClick={handleClose}
@@ -82,6 +87,7 @@ export function Modal({
                 </div>
                 {children}
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }

@@ -239,7 +239,7 @@ async function buildResult() {
                         (P.name || 'кого-то очень тихого') +
                         '. Говорят, мир цепляет во мне «' +
                         P.ice +
-                        '». Проверим?',
+                        '». Проверим? Что движет тобой сегодня?',
                     buttons: [],
                     sounds: [],
                 },
@@ -248,7 +248,9 @@ async function buildResult() {
                 type: 'step',
                 id: 'inner_ask',
                 name: 'inner_ask',
-                prompt: { text: 'Что движет тобой сегодня?', buttons: [] },
+                // Вопрос задаёт welcome перед шагом: текст шага в umbot
+                // отправляется уже ПОСЛЕ ответа пользователя
+                prompt: { text: '', buttons: [] },
                 saveTo: 'today',
                 saveAs: 'original',
             },

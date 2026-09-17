@@ -96,8 +96,8 @@ function issueCertificate() {
                         'обновлял очередь, в которой никто не двигается, ' +
                         tries +
                         ' раз(а). ' +
-                        'Хранилище запомнило.',
-                    buttons: [],
+                        'Хранилище запомнило. Нажмите, чтобы читать справку дальше (перо скрипит).',
+                    buttons: [{ title: 'Читать дальше', type: 'action' }],
                     sounds: [],
                 },
             },
@@ -105,10 +105,9 @@ function issueCertificate() {
                 type: 'step',
                 id: 'read_further',
                 name: 'read_further',
-                prompt: {
-                    text: 'Нажмите, чтобы читать справку дальше (перо скрипит):',
-                    buttons: [],
-                },
+                // Приглашение читать дальше — в welcome перед шагом: текст шага
+                // в umbot отправляется уже ПОСЛЕ ответа пользователя
+                prompt: { text: '', buttons: [] },
                 saveTo: 'signature',
                 saveAs: 'original',
             },
@@ -137,12 +136,15 @@ function issueCertificate() {
                     sounds: [],
                 },
             },
+            // Секретная команда — самостоятельная, срабатывает по фразе «сон колокольчика»
+            // (без слотов команду в боте не вызвать ничем, а ребро next на команду
+            // ничего не запускает — так она и печать справки были недостижимы)
             afterKeyFinale
                 ? {
                       type: 'command',
                       id: 'chime_dream',
                       name: 'сон_колокольчика',
-                      slots: [],
+                      slots: ['сон колокольчика', 'сон_колокольчика'],
                       isPattern: false,
                       response: {
                           text:
@@ -174,12 +176,7 @@ function issueCertificate() {
         edges: [
             { from: 'welcome', to: 'read_further', type: 'next' },
             { from: 'read_further', to: 'cert_facts', type: 'next' },
-            {
-                from: 'cert_facts',
-                to: afterKeyFinale ? 'chime_dream' : 'cert_stamp',
-                type: 'next',
-            },
-            ...(afterKeyFinale ? [{ from: 'chime_dream', to: 'cert_stamp', type: 'next' }] : []),
+            { from: 'cert_facts', to: 'cert_stamp', type: 'next' },
             { from: 'cert_stamp', to: 'end_cert', type: 'next' },
         ],
     };

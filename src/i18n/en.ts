@@ -14,7 +14,7 @@ export default {
     'help.helpNodeDesc':
         'The "Help" block defines the response to the help command. Text is taken from bot settings.',
     'sidebar.step.label': 'Step',
-    'sidebar.step.desc': 'Ask input \u2192 save to field',
+    'sidebar.step.desc': 'Waits for reply \u2192 saves to field',
     'sidebar.condition.label': 'Condition',
     'sidebar.condition.desc': 'Branch by variable',
     'sidebar.end.label': 'End',
@@ -68,8 +68,9 @@ export default {
     'props.buttonAction': 'Action',
     'props.buttonLink': 'Link',
     'props.url': 'URL',
-    'props.promptText': 'Question text',
-    'props.promptHelp': 'What to ask the user',
+    'props.promptText': 'Reaction to the reply',
+    'props.promptHelp':
+        'Optional. Sent AFTER the user replies, {{variables}} allowed. Ask the question itself in the block before the step.',
     'props.varComment': 'Variable comment',
     'props.varCommentHelp': 'Description of the variable purpose (visible in data panel)',
     'props.nextStep': 'Next block',
@@ -137,7 +138,8 @@ export default {
     'export.demoHint':
         'This is a learning example: the orphan-block errors are intentional, to demo validation. Connect them to the flow or delete them — and the bot is ready to export.',
     'export.unconnected':
-        'Not connected to the flow: {blocks}. These blocks will not be generated in the project — the CLI only builds handlers for blocks linked by edges or buttons. Connect them to a command/step with edges if your bot needs them.',
+        'Not connected to the flow: {blocks}. These blocks will not be generated in the project — the CLI only builds handlers for blocks reached by an edge or a button with a target. Connect them if your bot needs them.',
+    'export.warningsTitle': 'How the bot will behave',
     'export.copyJson': 'Copy JSON',
     'export.download': 'Download flow.json',
     'export.copied': 'Copied to clipboard',
@@ -152,13 +154,13 @@ export default {
     'export.platforms': 'platforms',
     'export.nextSteps': 'What to do next?',
     'export.readyTitle': 'JSON is ready! How to run the bot:',
-    'export.step1': 'Install Node.js (version 18 or later)',
+    'export.step1': 'Install Node.js (version 22 or later)',
     'export.step2': 'Download flow.json and open a terminal in the folder with the file',
     'export.step3': 'Run this command:',
     'export.copyCommand': 'Copy command',
     'export.commandCopied': 'Command copied!',
     'export.afterCommand':
-        'To verify, open the my-bot folder and follow the instructions in README.',
+        'Next, open the my-bot folder: put the platform tokens into the .env file and follow README.md (install, run, connect platforms).',
     'export.tip':
         'Not sure what to do with the code? Send the my-bot folder to a developer — they will run the bot for you.',
     'export.jsonFormatHint':
@@ -206,7 +208,7 @@ export default {
     'help.cmdDesc':
         'Triggers on specific words. User types a word \u2192 bot replies with the configured text and buttons.',
     'help.stepDesc':
-        'Asks the user for input and saves it to a field. Example: ask for name, save to "Name" field.',
+        'Waits for the user\'s reply, saves it to a field and continues the dialog. The question is asked by the block BEFORE the step (a command or response); the step text is the reaction to the reply. Example: Response "What is your name?" → Step (save to userName) → Response "Hi, {{userName}}!".',
     'help.condDesc':
         'Checks a variable value and branches the dialog. Example: if age >= 18, go one way, otherwise another.',
     'help.endDesc':
@@ -229,7 +231,7 @@ export default {
         'Use "Action" blocks for HTTP requests and custom logic. Actions run in a safe mode — you can access user data and use built-in utilities, but cannot access the filesystem or network directly.',
     'help.sysVarsTitle': 'System variables',
     'help.sysVarsDesc':
-        'These variables are filled in automatically by the bot — no need to create them:\n\n• {{__currentTime}} — current time\n• {{__currentDate}} — current date\n• {{__currentTimestamp}} — Unix time\n• {{__randomNumber}} — random number from 0 to 100\n• {{__userName}} — user name (if provided by the platform)',
+        'These variables are filled in automatically by the bot — no need to create them:\n\n• {{__currentTime}} — current time\n• {{__currentDate}} — current date\n• {{__currentTimestamp}} — Unix time in milliseconds\n• {{__randomNumber}} — random number from 0 to 100\n• {{__userName}} — user name (if provided by the platform)',
     'help.shortcutsTitle': 'Keyboard shortcuts',
     'help.shortcutSearch': 'Search blocks',
     'help.shortcutNew': 'New project',
@@ -256,7 +258,7 @@ export default {
     'node.badge.response': 'RESPONSE',
     'node.preview.noResponse': '(no response)',
     'node.preview.noSlots': '(no slots)',
-    'node.preview.noPrompt': '(no prompt)',
+    'node.preview.noPrompt': '(waits for reply)',
     'node.preview.patternMode': 'Pattern mode',
 
     // Action node
@@ -324,7 +326,7 @@ export default {
     'db.tokensEmpty': 'Select platforms in the header first',
     'db.tokenPlaceholder': 'Paste token...',
     'db.tokensHint':
-        'Tokens are used when generating the settings file. Do not publish JSON with tokens!',
+        'Tokens go into the .env file of the generated project. You can leave the fields empty and put the tokens into .env after generation — then they never end up in the JSON. Do not publish JSON with tokens!',
 
     // Validation messages
     'validation.emptyName': 'Block name cannot be empty',
@@ -439,6 +441,10 @@ export default {
     'preview.waitingPlaceholder': 'Your reply (saved to "{var}")…',
     'preview.httpMock': '[simulated HTTP {method} → {url}]',
     'preview.httpMockData': 'test HTTP response',
+    'preview.emptyReply': '(the bot sent nothing)',
+    'preview.defaultFallback': "Sorry, I didn't understand.",
+    'preview.blockLimit':
+        '[preview stopped: too many blocks ran in one turn — make sure user choices go through a Step]',
     'preview.varsTitle': 'Variables',
     'preview.warning':
         'Preview is a simulation: HTTP requests and voice playback are not executed.',
@@ -512,6 +518,14 @@ export default {
         'Condition "{name}": no comparison value. Enter a value or delete the condition.',
     'validation.v.orphan':
         'Block "{name}" is not connected to any other block. Connect it or delete it.',
+    'validation.v.blockCycle':
+        'Cycle without a step: {path}. Responses, actions and conditions run immediately without waiting for the user, so this cycle never stops (the CLI will refuse to generate the bot). Break the cycle with a Step.',
+    'validation.w.multipleNext':
+        '"{name}" has {count} outgoing links. The bot runs all of them at once, in a single message. To let the user choose, put a Step after the block and branch with Conditions.',
+    'validation.w.buttonsWithoutText':
+        '"{name}" has buttons but no reply text: Telegram will not send such a message (the buttons are lost), Alice gets an empty reply. Add some text.',
+    'validation.w.commandTextHidden':
+        'The text of command "{name}" will not be sent: the linked block "{block}" sets its own text (this is how the CLI generates it). Move the text into "{block}".',
 
     // Variables modal
     'vars.comment': 'Comment',
@@ -525,7 +539,7 @@ export default {
     'settings.dbTypeHelp':
         'Where the bot stores user data between sessions.\n\n• File — simplest option, saved next to the bot. Good to start.\n• MongoDB — external database. Needed for many users. Requires MongoDB installed.\n• None — data is not saved between restarts.',
     'settings.modeHelp':
-        'dev — development mode with verbose logs.\nprod — production mode.\nstrict_prod — like prod, but any error stops the bot (for critical production scenarios).',
+        'dev — development mode with verbose logs.\nprod — production mode.\nstrict_prod — like prod, but unsafe regular expressions (ReDoS risk) in slots are rejected instead of only logged. Recommended for production.\nThe mode goes into the generated project (bot.setAppMode).',
     'settings.localStorageHelp':
         'Save user answers to local storage. When off — variables are lost between runs.',
     'settings.goToNode': 'Go to {name}',

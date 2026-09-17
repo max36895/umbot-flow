@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validate, validateSchemaLevel, validateGraph } from '../utils/validator';
+import { validate, validateSchemaLevel, validateGraph, getFlowWarnings } from '../utils/validator';
 import type { FlowDocument } from '../types/flow';
 
 const validDoc: FlowDocument = {
@@ -173,8 +173,66 @@ describe('validateGraph', () => {
             ],
         };
         const errors = validateGraph(doc);
-        // Циклы допустимы в flow-диаграммах — CIRCULAR_REFERENCE не генерируется
+        // Циклы через команды/шаги допустимы — переход идёт через thisIntentName
         expect(errors.some((e) => e.code === 'CIRCULAR_REFERENCE')).toBe(false);
+        expect(errors.some((e) => e.code === 'BLOCK_CYCLE')).toBe(false);
+    });
+
+    it('detects BLOCK_CYCLE: цикл только из ответов/условий (CLI отклоняет такой flow)', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'start',
+                    name: 'start',
+                    slots: ['go'],
+                    isPattern: false,
+                    response: { text: '', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'response',
+                    id: 'r1',
+                    name: 'room',
+                    response: { text: 'Комната', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'response',
+                    id: 'r2',
+                    name: 'hall',
+                    response: { text: 'Коридор', buttons: [], sounds: [] },
+                },
+            ],
+            edges: [
+                { from: 'start', to: 'r1', type: 'next' },
+                { from: 'r1', to: 'r2', type: 'next' },
+                { from: 'r2', to: 'r1', type: 'next' },
+            ],
+        };
+        const cycle = validateGraph(doc).filter((e) => e.code === 'BLOCK_CYCLE');
+        expect(cycle).toHaveLength(1);
+        expect(cycle[0]?.message).toContain('room → hall → room');
+    });
+
+    it('BLOCK_CYCLE не срабатывает, если цикл проходит через шаг', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                ...validDoc.nodes.slice(0, 2),
+                {
+                    type: 'response',
+                    id: 'again',
+                    name: 'again',
+                    response: { text: 'Ещё раз', buttons: [], sounds: [] },
+                },
+            ],
+            edges: [
+                { from: 'greeting', to: 'ask_name', type: 'next' },
+                { from: 'ask_name', to: 'again', type: 'next' },
+                { from: 'again', to: 'ask_name', type: 'next' },
+            ],
+        };
+        expect(validateGraph(doc).some((e) => e.code === 'BLOCK_CYCLE')).toBe(false);
     });
 
     it('detects ORPHAN_NODE', () => {
@@ -193,15 +251,50 @@ describe('validateGraph', () => {
                     type: 'command',
                     id: 'orphan',
                     name: 'orphan',
-                    slots: ['orphan'],
+                    slots: [],
                     isPattern: false,
                     response: { text: '', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'response',
+                    id: 'lost',
+                    name: 'lost',
+                    response: { text: 'x', buttons: [], sounds: [] },
                 },
             ],
             edges: [],
         };
         const errors = validateGraph(doc);
+        // Команда без слотов и без связей недостижима — сирота
         expect(errors.some((e) => e.code === 'ORPHAN_NODE' && e.nodeId === 'orphan')).toBe(true);
+        expect(errors.some((e) => e.code === 'ORPHAN_NODE' && e.nodeId === 'lost')).toBe(true);
+    });
+
+    it('команда со слотами без связей — не сирота: бот запускает её по слову-триггеру', () => {
+        // Регрессия: FAQ-бот из отдельных команд и секрет «конец связи» в UM-13 блокировали экспорт
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                {
+                    type: 'command',
+                    id: 'prices',
+                    name: 'prices',
+                    slots: ['цены'],
+                    isPattern: false,
+                    response: { text: 'Пицца — 500 ₽', buttons: [], sounds: [] },
+                },
+                {
+                    type: 'command',
+                    id: 'address',
+                    name: 'address',
+                    slots: ['адрес'],
+                    isPattern: false,
+                    response: { text: 'ул. Флоу, 13', buttons: [], sounds: [] },
+                },
+            ],
+            edges: [],
+        };
+        expect(validateGraph(doc).some((e) => e.code === 'ORPHAN_NODE')).toBe(false);
     });
 
     it('detects CONDITION_MISSING_BRANCHES', () => {
@@ -225,6 +318,30 @@ describe('validateGraph', () => {
         };
         const errors = validateGraph(doc);
         expect(errors.some((e) => e.code === 'CONDITION_MISSING_BRANCHES')).toBe(true);
+    });
+
+    it('условие «согласие/отказ/ссылка» без переменной проверяет ввод — не ошибка', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [
+                ...validDoc.nodes,
+                {
+                    type: 'condition',
+                    id: 'yes',
+                    name: 'yes',
+                    variable: '',
+                    operator: 'isSayTrue',
+                    value: '',
+                },
+            ],
+            edges: [
+                ...validDoc.edges,
+                { from: 'ask_name', to: 'yes', type: 'next' },
+                { from: 'yes', to: 'end1', type: 'branch_true' },
+                { from: 'yes', to: 'end1', type: 'branch_false' },
+            ],
+        };
+        expect(validateGraph(doc).some((e) => e.code === 'CONDITION_MISSING_VARIABLE')).toBe(false);
     });
 
     it('detects CONDITION_MISSING_VARIABLE', () => {
@@ -631,5 +748,80 @@ describe('DUPLICATE_SANITIZED_NAMES (collisions after sanitizeIdentifier)', () =
         };
         const errors = validateGraph(doc).filter((e) => e.code === 'DUPLICATE_SANITIZED_NAMES');
         expect(errors).toHaveLength(0);
+    });
+});
+
+describe('getFlowWarnings (как поведёт себя сгенерированный бот)', () => {
+    const response = (id: string, text: string, targetNodeId?: string) => ({
+        type: 'response' as const,
+        id,
+        name: id,
+        response: {
+            text,
+            buttons: targetNodeId
+                ? [{ title: 'Дальше', type: 'action' as const, targetNodeId }]
+                : [],
+            sounds: [],
+        },
+    });
+    const command = (text: string) => ({
+        type: 'command' as const,
+        id: 'cmd',
+        name: 'cmd',
+        slots: ['go'],
+        isPattern: false,
+        response: { text, buttons: [], sounds: [] },
+    });
+
+    it('MULTIPLE_NEXT: несколько next из одного блока', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [command(''), response('a', 'A'), response('b', 'B'), response('c', 'C')],
+            edges: [
+                { from: 'cmd', to: 'a', type: 'next' },
+                { from: 'a', to: 'b', type: 'next' },
+                { from: 'a', to: 'c', type: 'next' },
+            ],
+        };
+        const warnings = getFlowWarnings(doc);
+        expect(warnings.map((w) => [w.code, w.nodeId])).toEqual([['MULTIPLE_NEXT', 'a']]);
+    });
+
+    it('COMMAND_TEXT_HIDDEN: текст команды перекрыт связанным ответом', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [command('Привет'), response('a', 'Ответ')],
+            edges: [{ from: 'cmd', to: 'a', type: 'next' }],
+        };
+        expect(getFlowWarnings(doc).map((w) => w.code)).toEqual(['COMMAND_TEXT_HIDDEN']);
+    });
+
+    it('COMMAND_TEXT_HIDDEN не срабатывает, если у команды нет текста', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [command(''), response('a', 'Ответ')],
+            edges: [{ from: 'cmd', to: 'a', type: 'next' }],
+        };
+        expect(getFlowWarnings(doc)).toEqual([]);
+    });
+
+    it('кнопка с переходом: блок-цель не сирота и без предупреждений', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [command(''), response('a', 'Ответ', 'b'), response('b', 'B')],
+            edges: [{ from: 'cmd', to: 'a', type: 'next' }],
+        };
+        expect(getFlowWarnings(doc)).toEqual([]);
+        expect(validateGraph(doc).some((e) => e.code === 'ORPHAN_NODE')).toBe(false);
+    });
+
+    it('INVALID_TARGET: кнопка ответа ведёт на несуществующий блок', () => {
+        const doc: FlowDocument = {
+            ...validDoc,
+            nodes: [command(''), response('a', 'Ответ', 'missing')],
+            edges: [{ from: 'cmd', to: 'a', type: 'next' }],
+        };
+        const errors = validateGraph(doc).filter((e) => e.code === 'INVALID_TARGET');
+        expect(errors.map((e) => e.nodeId)).toEqual(['a']);
     });
 });

@@ -77,9 +77,7 @@ export default function ProjectsMenu() {
                 onClick={() => setOpen(!open)}
                 title={t('toolbar.recentProjects')}
                 className={`rounded-lg p-2 transition-all duration-200 hover:-translate-y-0.5 ${
-                    open
-                        ? 'bg-info/15 text-info'
-                        : 'text-fg/60 hover:bg-fg/10 hover:text-fg/90'
+                    open ? 'bg-info/15 text-info' : 'text-fg/60 hover:bg-fg/10 hover:text-fg/90'
                 }`}
             >
                 <svg
@@ -105,82 +103,84 @@ export default function ProjectsMenu() {
                         style={{ top: pos.top, left: pos.left }}
                         className="fixed z-menu w-64 overflow-hidden rounded-xl border border-glass-border bg-surface-modal shadow-[0_0_30px_rgba(0,0,0,0.6)] backdrop-blur-xl"
                     >
-                    <div className="flex items-center justify-between border-b border-outline-variant px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-fg/50">
-                        <span>{t('toolbar.recentProjects')}</span>
-                        <span className="text-fg/40">
-                            {projects.length}/{MAX_PROJECTS}
-                        </span>
-                    </div>
-                    {projects.length === 0 ? (
-                        <div className="px-3 py-4 text-center text-xs text-fg/50">
-                            {t('toolbar.noProjects')}
+                        <div className="flex items-center justify-between border-b border-outline-variant px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-fg/50">
+                            <span>{t('toolbar.recentProjects')}</span>
+                            <span className="text-fg/40">
+                                {projects.length}/{MAX_PROJECTS}
+                            </span>
                         </div>
-                    ) : (
-                        <div className="max-h-64 overflow-y-auto">
-                            {projects.map((p) => {
-                                const isCurrent = p.name === metadata.name;
-                                const date = new Date(p.updatedAt);
-                                const dateStr = date.toLocaleString();
-                                return (
-                                    <div
-                                        key={p.id}
-                                        className={`group flex items-center gap-2 px-3 py-2 transition-colors ${
-                                            isCurrent
-                                                ? 'bg-info/[0.08]'
-                                                : 'hover:bg-fg/5'
-                                        }`}
-                                    >
-                                        <button
-                                            onClick={() => {
-                                                if (!isCurrent) {
-                                                    setPendingProject(p);
-                                                    return;
-                                                }
-                                                fromJSON(p.doc);
-                                                setOpen(false);
-                                            }}
-                                            className="flex-1 text-left"
-                                            title={dateStr}
+                        {projects.length === 0 ? (
+                            <div className="px-3 py-4 text-center text-xs text-fg/50">
+                                {t('toolbar.noProjects')}
+                            </div>
+                        ) : (
+                            <div className="max-h-64 overflow-y-auto">
+                                {projects.map((p) => {
+                                    const isCurrent = p.name === metadata.name;
+                                    const date = new Date(p.updatedAt);
+                                    const dateStr = date.toLocaleString();
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            className={`group flex items-center gap-2 px-3 py-2 transition-colors ${
+                                                isCurrent ? 'bg-info/[0.08]' : 'hover:bg-fg/5'
+                                            }`}
                                         >
-                                            <div className="truncate text-sm text-fg/90">
-                                                {isCurrent && (
-                                                    <span className="mr-1 text-info">●</span>
-                                                )}
-                                                {p.name}
-                                            </div>
-                                            <div className="text-[10px] text-fg/50">
-                                                {p.doc.nodes.length} {t('export.nodes')} · {dateStr}
-                                            </div>
-                                        </button>
-                                        {!isCurrent && (
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeRecentProject(p.id);
+                                                onClick={() => {
+                                                    if (!isCurrent) {
+                                                        // Меню закрываем сразу: диалог в портале,
+                                                        // и клик по нему всё равно считался бы кликом «вне»
+                                                        setPendingProject(p);
+                                                        setOpen(false);
+                                                        return;
+                                                    }
+                                                    fromJSON(p.doc);
                                                     setOpen(false);
-                                                    setTimeout(() => setOpen(true), 0);
                                                 }}
-                                                className="invisible rounded p-1 text-fg/50 hover:bg-error/15 hover:text-error group-hover:visible"
-                                                title={t('toolbar.removeProject')}
+                                                className="flex-1 text-left"
+                                                title={dateStr}
                                             >
-                                                <svg
-                                                    width="12"
-                                                    height="12"
-                                                    viewBox="0 0 12 12"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="1.5"
-                                                    strokeLinecap="round"
-                                                >
-                                                    <path d="M2 2l8 8M10 2l-8 8" />
-                                                </svg>
+                                                <div className="truncate text-sm text-fg/90">
+                                                    {isCurrent && (
+                                                        <span className="mr-1 text-info">●</span>
+                                                    )}
+                                                    {p.name}
+                                                </div>
+                                                <div className="text-[10px] text-fg/50">
+                                                    {p.doc.nodes.length} {t('export.nodes')} ·{' '}
+                                                    {dateStr}
+                                                </div>
                                             </button>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                                            {!isCurrent && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeRecentProject(p.id);
+                                                        setOpen(false);
+                                                        setTimeout(() => setOpen(true), 0);
+                                                    }}
+                                                    className="invisible rounded p-1 text-fg/50 hover:bg-error/15 hover:text-error group-hover:visible"
+                                                    title={t('toolbar.removeProject')}
+                                                >
+                                                    <svg
+                                                        width="12"
+                                                        height="12"
+                                                        viewBox="0 0 12 12"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                    >
+                                                        <path d="M2 2l8 8M10 2l-8 8" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>,
                     document.body,
                 )}

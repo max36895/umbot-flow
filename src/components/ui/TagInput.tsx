@@ -4,21 +4,31 @@ interface TagInputProps {
     value: string[];
     onChange: (tags: string[]) => void;
     placeholder?: string;
+    /**
+     * Значения — регулярные выражения: регистр сохраняется (`\D` и `\d` — разные классы),
+     * запятая не разделяет теги (квантификатор `{1,3}`). Иначе значения приводятся к нижнему регистру.
+     */
+    isPattern?: boolean;
 }
 
 /** Tag-style input for entering multiple values (e.g. slot triggers). */
-export default function TagInput({ value, onChange, placeholder }: TagInputProps) {
+export default function TagInput({
+    value,
+    onChange,
+    placeholder,
+    isPattern = false,
+}: TagInputProps) {
     const [input, setInput] = useState('');
 
     const addTag = useCallback(
         (text: string) => {
-            const trimmed = text.trim().toLowerCase();
+            const trimmed = isPattern ? text.trim() : text.trim().toLowerCase();
             if (trimmed && !value.includes(trimmed)) {
                 onChange([...value, trimmed]);
             }
             setInput('');
         },
-        [value, onChange],
+        [value, onChange, isPattern],
     );
 
     const removeTag = useCallback(
@@ -30,14 +40,14 @@ export default function TagInput({ value, onChange, placeholder }: TagInputProps
 
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
-            if (e.key === 'Enter' || e.key === ',') {
+            if (e.key === 'Enter' || (e.key === ',' && !isPattern)) {
                 e.preventDefault();
                 addTag(input);
             } else if (e.key === 'Backspace' && input === '' && value.length > 0) {
                 removeTag(value.length - 1);
             }
         },
-        [input, addTag, removeTag, value],
+        [input, addTag, removeTag, value, isPattern],
     );
 
     const handleBlur = useCallback(() => {

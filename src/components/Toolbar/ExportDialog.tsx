@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
-import { validate, getUnconnectedBlocks } from '../../utils/validator';
+import { validate, getUnconnectedBlocks, getFlowWarnings } from '../../utils/validator';
 import type { ValidationError } from '../../utils/validator';
 import { t, tf } from '../../i18n';
 import { NodeIcon } from '../ui/NodeIcons';
@@ -23,6 +23,8 @@ export default function ExportDialog() {
     // Блоки, которые CLI молча отбросит при генерации (нет входящего ребра/кнопки):
     // валидация их пропускает, а в сгенерированном боте они не появятся — честно предупреждаем.
     const unconnectedBlocks = getUnconnectedBlocks(doc);
+    // Поведение сгенерированного бота, которое легко не ожидать по схеме (не блокирует экспорт)
+    const flowWarnings = getFlowWarnings(doc);
     // Безопасное имя файла: пробелы/спецсимволы ломают shell-команду — подменяем на _
     const safeFileName = (doc.name || 'flow').replace(/[^a-zA-Z0-9_-]+/g, '_');
     const command = `npx umbot create from-flow ${safeFileName}.json --output ./my-bot`;
@@ -113,6 +115,29 @@ export default function ExportDialog() {
                         </div>
                     )}
                 </div>
+
+                {flowWarnings.length > 0 && (
+                    <div
+                        className="mt-3 max-h-40 overflow-y-auto rounded-lg border border-warning/30 bg-warning/10 p-3"
+                        role="status"
+                    >
+                        <p className="mb-1.5 text-xs font-medium text-warning">
+                            {t('export.warningsTitle')}
+                        </p>
+                        <ul className="space-y-1.5">
+                            {flowWarnings.map((w, i) => (
+                                <li
+                                    key={i}
+                                    className={`flex items-start gap-2 text-xs text-fg/70 ${w.nodeId ? 'cursor-pointer transition-colors hover:text-fg' : ''}`}
+                                    onClick={() => w.nodeId && handleErrorClick(w.nodeId)}
+                                >
+                                    <span className="mt-0.5 text-warning">•</span>
+                                    <span>{w.message}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
 
                 {unconnectedBlocks.length > 0 && (
                     <div

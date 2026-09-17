@@ -95,6 +95,7 @@ export function CommandProps({ nodeId }: Props) {
                         value={data.slots}
                         onChange={(slots) => update({ slots })}
                         placeholder={t('props.slots.placeholder')}
+                        isPattern={data.isPattern}
                     />
                 </Field>
             )}

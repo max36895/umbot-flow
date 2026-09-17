@@ -2,6 +2,7 @@
 .gigacode/*
 .mimocode/*
 .vscode/*
+.claude/*
 /logs/*
 /json/*
 /dist/*

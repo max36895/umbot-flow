@@ -134,7 +134,7 @@
         </tr>
         <tr>
             <td>step</td>
-            <td>Step — asks for input and saves it to a variable</td>
+            <td>Step — waits for the user's reply and saves it to a variable</td>
         </tr>
         <tr>
             <td>condition</td>
@@ -192,10 +192,14 @@
     "type": "step",
     "id": "node_456",
     "name": "ask_name",
-    "prompt": { "text": "What's your name?" },
+    "prompt": { "text": "Nice to meet you, {{userName}}!" },
     "saveTo": "userName",
     "saveAs": "original"
 }</code></pre>
+    <p class="muted">
+        A step runs on the user's reply: the question is asked by the block before the step,
+        and the optional <code>prompt.text</code> is sent after the reply.
+    </p>
     <p class="muted">
         <code>saveAs: "original"</code> keeps the input as typed, <code>"lowercase"</code>
         lowercases it. Where to go next is defined by the <code>next</code> edge.

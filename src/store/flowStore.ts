@@ -8,7 +8,7 @@ import type {
     EdgeType,
 } from '../types/flow';
 import { DEFAULT_METADATA } from '../types/flow';
-import { toReactFlowEdge, fromReactFlowEdge } from '../types/nodes';
+import { toReactFlowEdge, fromReactFlowEdge, branchSourceHandle } from '../types/nodes';
 import { t } from '../i18n';
 import { evictProjectsForSpace } from '../utils/projectsStore';
 
@@ -161,10 +161,15 @@ function syncNextMirrors(nodes: Node[], edges: Edge[]): Node[] {
  * (autoLoad) и внешнего документа (fromJSON):
  * 1. data.next без ребра (старые сохранения/ручные JSON) → создаём ребро,
  *    иначе переход молча не работал в превью и генераторе;
- * 2. затем data.next приводится к зеркалу рёбер (висячие цели очищаются).
+ * 2. затем data.next приводится к зеркалу рёбер (висячие цели очищаются);
+ * 3. ветки условия без sourceHandle (сохранены до фикса) привязываются к своему выходу.
  */
 function normalizeNextState(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
-    const newEdges = [...edges];
+    const newEdges = edges.map((e) => {
+        const edgeType = (e.data as { edgeType?: EdgeType } | undefined)?.edgeType;
+        const handle = branchSourceHandle(edgeType);
+        return handle && e.sourceHandle !== handle ? { ...e, sourceHandle: handle } : e;
+    });
     let counter = newEdges.length;
     for (const n of nodes) {
         const data = n.data as { type?: string; next?: string };

@@ -50,6 +50,9 @@ export default function Toolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
     const [confirmNewOpen, setConfirmNewOpen] = useState(false);
+    // Подтверждение открытия проекта из бургера живёт здесь, а не в BurgerMenu:
+    // диалог рендерится порталом, клик по нему закрывает бургер и размонтировал бы его
+    const [pendingProject, setPendingProject] = useState<ProjectSnapshot | null>(null);
 
     // Пасхалка: 10 кликов по лого-марке → служебный терминал UM-13 (/secret.html)
     const logoClicksRef = useRef(0);
@@ -441,6 +444,7 @@ export default function Toolbar() {
                         {burgerOpen && (
                             <BurgerMenu
                                 onClose={() => setBurgerOpen(false)}
+                                onOpenProject={setPendingProject}
                                 onUndo={undo}
                                 onRedo={redo}
                                 onNew={handleNewProject}
@@ -477,6 +481,18 @@ export default function Toolbar() {
                     message={t('toolbar.newProjectConfirm')}
                     onConfirm={confirmNewProject}
                     onCancel={() => setConfirmNewOpen(false)}
+                />
+            )}
+
+            {pendingProject && (
+                <ConfirmDialog
+                    title={t('projects.openTitle')}
+                    message={tf('projects.openConfirm', { name: pendingProject.name })}
+                    onConfirm={() => {
+                        fromJSON(pendingProject.doc);
+                        setPendingProject(null);
+                    }}
+                    onCancel={() => setPendingProject(null)}
                 />
             )}
         </>
@@ -520,6 +536,7 @@ function ToolBtn({
 /** Выпадающее меню бургера — все команды тулбара списком (для узких экранов). */
 function BurgerMenu({
     onClose,
+    onOpenProject,
     onUndo,
     onRedo,
     onNew,
@@ -538,6 +555,7 @@ function BurgerMenu({
     theme,
 }: {
     onClose: () => void;
+    onOpenProject: (project: ProjectSnapshot) => void;
     onUndo: () => void;
     onRedo: () => void;
     onNew: () => void;
@@ -558,7 +576,6 @@ function BurgerMenu({
     const fromJSON = useFlowStore((s) => s.fromJSON);
     const metadata = useFlowStore((s) => s.metadata);
     const [projects, setProjects] = useState<ReturnType<typeof listRecentProjects>>([]);
-    const [pendingProject, setPendingProject] = useState<ProjectSnapshot | null>(null);
 
     useEffect(() => {
         setProjects(listRecentProjects());
@@ -585,103 +602,88 @@ function BurgerMenu({
     );
 
     return (
-        <>
-            <div className="absolute right-0 top-full z-menu mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-glass-border bg-surface-panel py-1.5 shadow-panel-lg backdrop-blur-xl">
-                {item(<IconUndo />, t('toolbar.undo'), onUndo)}
-                {item(<IconRedo />, t('toolbar.redo'), onRedo)}
-                <div className="my-1 border-t border-outline-variant" />
-                {item(<IconNew />, t('toolbar.newProject'), onNew)}
-                {item(<IconImport />, t('toolbar.importJson'), onImport)}
-                {item(<IconExport />, t('toolbar.exportJson'), onExportJson)}
-                {item(<IconImage />, t('toolbar.exportPng'), onExportPng)}
-                <div className="my-1 border-t border-outline-variant" />
-                {item(<IconChat stroke="currentColor" />, t('toolbar.preview'), onPreview)}
-                {item(<IconCheck stroke="currentColor" />, t('toolbar.validate'), onValidate)}
-                <div className="my-1 border-t border-outline-variant" />
-                {item(<IconSettings />, t('toolbar.botSettings'), onSettings)}
-                {item(
-                    <IconMinimap />,
-                    minimapVisible ? t('toolbar.hideMinimap') : t('toolbar.showMinimap'),
-                    onMinimap,
-                    { active: minimapVisible },
-                )}
-                {item(<IconHelp />, t('toolbar.help'), onHelp)}
-                {item(
-                    <span className="w-4 text-center text-xs font-bold">
-                        {locale === 'ru' ? 'RU' : 'EN'}
-                    </span>,
-                    locale === 'ru' ? t('toolbar.localeEn') : t('toolbar.localeRu'),
-                    onLocale,
-                )}
-                {item(
-                    theme === 'dark' ? <IconSun /> : <IconMoon />,
-                    theme === 'dark' ? t('toolbar.themeLight') : t('toolbar.themeDark'),
-                    onTheme,
-                )}
-
-                {/* Недавние проекты */}
-                {projects.length > 0 && (
-                    <>
-                        <div className="my-1 border-t border-outline-variant" />
-                        <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-fg/50">
-                            {t('toolbar.recentProjects')}
-                        </div>
-                        {projects.map((p) => (
-                            <div key={p.id} className="group flex items-center gap-1 pr-2">
-                                <button
-                                    onClick={() => {
-                                        if (p.name !== metadata.name) {
-                                            setPendingProject(p);
-                                            return;
-                                        }
-                                        fromJSON(p.doc);
-                                        onClose();
-                                    }}
-                                    className="flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-left text-sm text-fg/80 transition-colors hover:bg-fg/10"
-                                >
-                                    {p.name === metadata.name && (
-                                        <span className="flex-shrink-0 text-info">●</span>
-                                    )}
-                                    <span className="truncate">{p.name}</span>
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        removeRecentProject(p.id);
-                                        setProjects(listRecentProjects());
-                                    }}
-                                    className="invisible rounded p-1 text-fg/50 hover:bg-error/15 hover:text-error group-hover:visible"
-                                    title={t('toolbar.removeProject')}
-                                >
-                                    <svg
-                                        width="10"
-                                        height="10"
-                                        viewBox="0 0 12 12"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                    >
-                                        <path d="M2 2l8 8M10 2l-8 8" />
-                                    </svg>
-                                </button>
-                            </div>
-                        ))}
-                    </>
-                )}
-            </div>
-
-            {pendingProject && (
-                <ConfirmDialog
-                    title={t('projects.openTitle')}
-                    message={tf('projects.openConfirm', { name: pendingProject.name })}
-                    onConfirm={() => {
-                        fromJSON(pendingProject.doc);
-                        setPendingProject(null);
-                        onClose();
-                    }}
-                    onCancel={() => setPendingProject(null)}
-                />
+        <div className="absolute right-0 top-full z-menu mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-glass-border bg-surface-panel py-1.5 shadow-panel-lg backdrop-blur-xl">
+            {item(<IconUndo />, t('toolbar.undo'), onUndo)}
+            {item(<IconRedo />, t('toolbar.redo'), onRedo)}
+            <div className="my-1 border-t border-outline-variant" />
+            {item(<IconNew />, t('toolbar.newProject'), onNew)}
+            {item(<IconImport />, t('toolbar.importJson'), onImport)}
+            {item(<IconExport />, t('toolbar.exportJson'), onExportJson)}
+            {item(<IconImage />, t('toolbar.exportPng'), onExportPng)}
+            <div className="my-1 border-t border-outline-variant" />
+            {item(<IconChat stroke="currentColor" />, t('toolbar.preview'), onPreview)}
+            {item(<IconCheck stroke="currentColor" />, t('toolbar.validate'), onValidate)}
+            <div className="my-1 border-t border-outline-variant" />
+            {item(<IconSettings />, t('toolbar.botSettings'), onSettings)}
+            {item(
+                <IconMinimap />,
+                minimapVisible ? t('toolbar.hideMinimap') : t('toolbar.showMinimap'),
+                onMinimap,
+                { active: minimapVisible },
             )}
-        </>
+            {item(<IconHelp />, t('toolbar.help'), onHelp)}
+            {item(
+                <span className="w-4 text-center text-xs font-bold">
+                    {locale === 'ru' ? 'RU' : 'EN'}
+                </span>,
+                locale === 'ru' ? t('toolbar.localeEn') : t('toolbar.localeRu'),
+                onLocale,
+            )}
+            {item(
+                theme === 'dark' ? <IconSun /> : <IconMoon />,
+                theme === 'dark' ? t('toolbar.themeLight') : t('toolbar.themeDark'),
+                onTheme,
+            )}
+
+            {/* Недавние проекты */}
+            {projects.length > 0 && (
+                <>
+                    <div className="my-1 border-t border-outline-variant" />
+                    <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-fg/50">
+                        {t('toolbar.recentProjects')}
+                    </div>
+                    {projects.map((p) => (
+                        <div key={p.id} className="group flex items-center gap-1 pr-2">
+                            <button
+                                onClick={() => {
+                                    if (p.name !== metadata.name) {
+                                        onOpenProject(p);
+                                    } else {
+                                        fromJSON(p.doc);
+                                    }
+                                    onClose();
+                                }}
+                                className="flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-left text-sm text-fg/80 transition-colors hover:bg-fg/10"
+                            >
+                                {p.name === metadata.name && (
+                                    <span className="flex-shrink-0 text-info">●</span>
+                                )}
+                                <span className="truncate">{p.name}</span>
+                            </button>
+                            <button
+                                onClick={() => {
+                                    removeRecentProject(p.id);
+                                    setProjects(listRecentProjects());
+                                }}
+                                className="invisible rounded p-1 text-fg/50 hover:bg-error/15 hover:text-error group-hover:visible"
+                                title={t('toolbar.removeProject')}
+                            >
+                                <svg
+                                    width="10"
+                                    height="10"
+                                    viewBox="0 0 12 12"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                >
+                                    <path d="M2 2l8 8M10 2l-8 8" />
+                                </svg>
+                            </button>
+                        </div>
+                    ))}
+                </>
+            )}
+        </div>
     );
 }

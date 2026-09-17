@@ -100,9 +100,10 @@
         <div class="step-content">
             <h3>Save the user's answer to a variable</h3>
             <p>
-                Add a "Step" block and connect the first block to it. In the step, write
-                the question "What's your name?" and set "Save to: userName" — the user's
-                answer will be stored in the variable. Reference it in any later text as
+                Add a "Step" block and connect the first block to it. The question "What's
+                your name?" is already asked in the first block's response, so in the step just
+                set "Save to: userName" — the user's answer will be stored in the variable. The
+                step's own text is optional and is sent after the reply. Reference the variable in any later text as
                 <code>{{userName}}</code>, and a "Condition" block can check its value and
                 branch the dialog either way.
             </p>
@@ -146,7 +147,7 @@
         <div class="step-content">
             <h3>Install Node.js</h3>
             <p>
-                To run the bot you need Node.js 18 or newer — download it from
+                To run the bot you need Node.js 22 or newer — download it from
                 <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a>.
                 If Node.js is already installed, check the version with <code>node -v</code>.
             </p>

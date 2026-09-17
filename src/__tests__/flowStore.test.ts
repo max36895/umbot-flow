@@ -293,6 +293,45 @@ describe('flowStore', () => {
         expect(useFlowStore.getState().edges).toHaveLength(0);
     });
 
+    it('fromJSON привязывает ветки условия к выходам «да»/«нет»', () => {
+        const doc: FlowDocument = {
+            schemaVersion: '1.0',
+            name: 'branches',
+            version: '1.0.0',
+            description: '',
+            platforms: ['telegram'],
+            database: { type: 'file', config: {} },
+            mode: 'dev',
+            isLocalStorage: true,
+            fallback: { text: '' },
+            welcome: { text: '', buttons: [] },
+            helpText: { text: '' },
+            variables: {},
+            nodes: [
+                {
+                    type: 'condition',
+                    id: 'check',
+                    name: 'check',
+                    variable: 'x',
+                    operator: 'isNotEmpty',
+                    value: '',
+                },
+                { type: 'end', id: 'yes', name: 'yes' },
+                { type: 'end', id: 'no', name: 'no' },
+            ],
+            edges: [
+                { from: 'check', to: 'yes', type: 'branch_true' },
+                { from: 'check', to: 'no', type: 'branch_false' },
+            ],
+        };
+
+        useFlowStore.getState().fromJSON(doc);
+
+        const edges = useFlowStore.getState().edges;
+        expect(edges.find((e) => e.target === 'yes')?.sourceHandle).toBe('true');
+        expect(edges.find((e) => e.target === 'no')?.sourceHandle).toBe('false');
+    });
+
     it('fromJSON восстанавливает ребро из data.next без ребра (старые документы)', () => {
         const stepId = 'step_1';
         const respId = 'resp_1';

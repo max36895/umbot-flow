@@ -474,7 +474,7 @@ function startGame(M) {
                     isPattern: false,
                     role: 'welcome',
                     response: {
-                        text: 'Привет. Я СКУНЕТ. Меня собрали из кнопок — в банке, на странице, которой «не существует». Каждую помню.',
+                        text: 'Привет. Я СКУНЕТ. Меня собрали из кнопок — в банке, на странице, которой «не существует». Каждую помню. Проверка на человека: что ты собирал в банке?',
                         buttons: [],
                         sounds: [],
                     },
@@ -483,7 +483,9 @@ function startGame(M) {
                     type: 'step',
                     id: 'verify_human',
                     name: 'verify_human',
-                    prompt: { text: 'Проверка на человека: что ты собирал в банке?', buttons: [] },
+                    // Вопрос задаёт welcome перед шагом: текст шага в umbot
+                    // отправляется уже ПОСЛЕ ответа пользователя
+                    prompt: { text: '', buttons: [] },
                     saveTo: 'assembly',
                     saveAs: 'original',
                 },

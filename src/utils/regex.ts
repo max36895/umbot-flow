@@ -10,14 +10,35 @@ export const TEMPLATE_VAR_REGEX = /\{\{(\w+)\}\}/g;
 
 // === ChatPreview patterns ===
 
-/** Matches agreement phrases (Russian) */
-export const IS_SAY_TRUE_REGEX = /(да|конечно|согласен|согласна|хорошо|точно|верно|ага|угу|ок)/i;
+// Согласие/отказ — ровно те же паттерны, что Text.isSayTrue/isSayFalse в umbot:
+// превью обязано отвечать как сгенерированный бот. Ключевое слово — отдельное слово
+// («да», но не «когда»/«абракадабра»); «ок», «ага», «хорошо» согласием в umbot не считаются.
+const WORD_START = '(?<![a-zа-яё0-9_])';
+const WORD_END = '(?![a-zа-яё0-9_])';
 
-/** Matches disagreement phrases (Russian) */
-export const IS_SAY_FALSE_REGEX = /(нет|неа|не|ни|никак|отказ|невозможно)/i;
+/** Согласие пользователя (Text.isSayTrue umbot) */
+export const IS_SAY_TRUE_REGEX = new RegExp(
+    `${WORD_START}(?:да|конечно)${WORD_END}|${WORD_START}(?:соглас|подтвер)`,
+    'iu',
+);
 
-/** Matches HTTP/HTTPS URLs */
-export const URL_REGEX = /^https?:\/\/.+/i;
+/** Отказ пользователя (Text.isSayFalse umbot) */
+export const IS_SAY_FALSE_REGEX = new RegExp(`${WORD_START}(?:нет|неа|не)${WORD_END}`, 'iu');
+
+/**
+ * Ссылка — как Text.isUrl umbot: строка начинается с http(s):// и разбирается как URL.
+ * Регистр важен (как в umbot): ввод пользователя umbot проверяет уже в нижнем регистре,
+ * поэтому вызывающий код приводит ввод к нижнему регистру сам, а значение переменной — нет.
+ */
+export function isUrl(text: string): boolean {
+    if (!text.startsWith('https://') && !text.startsWith('http://')) return false;
+    try {
+        new URL(text);
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 // === Validator patterns ===
 

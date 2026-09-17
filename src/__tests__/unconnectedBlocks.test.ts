@@ -83,7 +83,7 @@ describe('getUnconnectedBlocks (предупреждение ExportDialog)', () 
         expect(getUnconnectedBlocks(doc)).toEqual([]);
     });
 
-    it('кнопка с targetNodeId считается входом (как в CLI-генераторе)', () => {
+    it('кнопка с targetNodeId считается входом (CLI генерирует блок для действия кнопки)', () => {
         const doc = baseDoc(
             [
                 {
@@ -126,10 +126,8 @@ describe('getUnconnectedBlocks (предупреждение ExportDialog)', () 
             [],
         );
         expect(getUnconnectedBlocks(doc)).toEqual([]);
-        // При этом валидация по-прежнему ловит такие узлы как ORPHAN_NODE:
+        // Команда со слотами самодостаточна (срабатывает по слову-триггеру) — не сирота
         const errors = validate(doc);
-        expect(errors.some((e) => e.code === 'ORPHAN_NODE' && e.nodeId === 'cmd1')).toBe(
-            true,
-        );
+        expect(errors.some((e) => e.code === 'ORPHAN_NODE' && e.nodeId === 'cmd1')).toBe(false);
     });
 });

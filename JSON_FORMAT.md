@@ -60,14 +60,14 @@ bot.addCommand('greeting', ['привет'], (cmd, ctrl) => {
     setText(ctrl, 'Привет!');
 });
 
-// Паттерн 2: Шаг с сохранением (двухшаговый)
-bot.addStep('ask_name', (ctrl) => {
+// Паттерн 2: Шаг с сохранением — вопрос задаёт команда, шаг обрабатывает ответ
+bot.addCommand('start', ['начать'], (cmd, ctrl) => {
     setText(ctrl, 'Как вас зовут?');
-    ctrl.thisIntentName = 'enterName';
+    ctrl.thisIntentName = 'enterName'; // следующее сообщение пользователя уйдёт в шаг
 });
 bot.addStep('enterName', (ctrl) => {
+    ctrl.userData.name = ctrl.originalUserCommand ?? '';
     setText(ctrl, `Приятно познакомиться, ${ctrl.userData.name}!`);
-    ctrl.userData.name = ctrl.userCommand ?? '';
 });
 
 // Паттерн 3: Условие (switch-case)
@@ -168,7 +168,11 @@ bot.addStep('show_help', (ctrl) => {
 
 ### Step Node
 
-Шаг — запрашивает ввод и сохраняет его.
+Шаг — ждёт ответ пользователя и сохраняет его. Вопрос задаёт блок **перед** шагом
+(команда или ответ): шаг срабатывает на следующее сообщение пользователя, поэтому
+`prompt.text` — необязательная реакция, которая отправляется уже после ответа.
+Только шаг останавливает бота в ожидании ввода — ответы, действия и условия выполняются
+сразу, а их тексты склеиваются в одно сообщение.
 
 ```json
 {
@@ -176,7 +180,7 @@ bot.addStep('show_help', (ctrl) => {
     "id": "node_456",
     "name": "ask_name",
     "prompt": {
-        "text": "Как вас зовут?",
+        "text": "Приятно познакомиться, {{userName}}!",
         "tts": "",
         "emotion": "",
         "buttons": [],
@@ -194,7 +198,7 @@ bot.addStep('show_help', (ctrl) => {
 | `type`       | `"step"`                      | да          | Тип узла                             |
 | `id`         | string                        | да          | Уникальный ID                        |
 | `name`       | string                        | да          | Имя шага (для thisIntentName)        |
-| `prompt`     | FlowPrompt                    | да          | Текст вопроса, TTS, кнопки, карточка |
+| `prompt`     | FlowPrompt                    | да          | Реакция на ответ: текст, TTS, кнопки |
 | `saveTo`     | string                        | да          | Поле в userData для сохранения       |
 | `saveAs`     | `"original"` \| `"lowercase"` | нет         | Регистр сохраняемого ввода           |
 | `varComment` | string                        | нет         | Комментарий к переменной             |
@@ -354,7 +358,7 @@ bot.addStep('show_help', (ctrl) => {
 
 | Поле             | Описание                                           |
 | ---------------- | -------------------------------------------------- |
-| `type: "action"` | Кнопка-действие. `targetNodeId` — ID шага/команды. |
+| `type: "action"` | Кнопка-действие. Без `targetNodeId` нажатие отправляет боту текст кнопки как обычное сообщение. С `targetNodeId` нажатие сразу выполняет блок-цель (в сгенерированном боте — `bot.addAction('[go:N]')`), даже если бот ждёт ответа на другом шаге; шаг и команда получают текст кнопки как ввод. Цель — команда, шаг, ответ, действие или условие. В Telegram все кнопки показываются inline. |
 | `type: "link"`   | Кнопка-ссылка. `url` — URL.                        |
 
 ### FlowCard

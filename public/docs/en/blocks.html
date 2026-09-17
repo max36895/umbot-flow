@@ -54,13 +54,17 @@
     <div class="block step">
         <h3>Step</h3>
         <p>
-            Asks the user for input and saves it into a field. Use it to collect data: name,
-            email, age, etc.
+            Waits for the user's reply, saves it into a field and continues the dialog. Only a
+            step makes the bot wait for input: responses, actions and conditions run immediately
+            and their texts arrive as a single message. The question is asked by the block
+            <em>before</em> the step (a command or response); the step's own text is an optional
+            reaction sent after the user replies.
         </p>
         <div class="example">
-            <strong>Example:</strong> A "Step" block with the text "What is your name?" and
-            "Save to" = "userName" — the user's answer is stored in the
-            <code>userName</code> field.
+            <strong>Example:</strong> Response "What is your name?" → Step with "Save to" =
+            "userName" → Response "Nice to meet you, {{userName}}!". To offer a choice with
+            buttons, branch with Conditions after the step: a pressed button reaches the bot as
+            a regular message with its title.
         </div>
     </div>
 

@@ -152,12 +152,19 @@ Both MUST use the same VariableConfig component for consistency.
 - **`normalizeMetadata()`** — «чужой» документ без fallback/welcome/database не должен ронять UI: структурные дефолты из DEFAULT_METADATA, пользовательские тексты — пустые.
 - **schemaVersion** — при несовпадении с `CURRENT_SCHEMA_VERSION` localStorage сбрасывается (миграций пока нет — см. ROADMAP #4).
 
-### Превью (ChatPreview)
+### Превью (ChatPreview + utils/previewEngine.ts)
 
-- **`buildInitialTurn(doc)`** (экспортируется, тестируется) — начальный ход: проигрывает цепочку от Welcome-ноды по next-рёбрам до первого Step, возвращает `{msgs, waitStep, vars}`. Используется при открытии превью и в handleReset. **Инвариант**: если Welcome связан со Step, превью обязано встать в ожидание ввода — иначе первый ответ пользователя уйдёт в fallback (это был баг, покрыт тестами в `previewScenario.test.ts`).
-- Внутри начальной цепочки Condition всегда идёт по `branch_false` (переменные ещё пусты).
-- Предохранитель от циклов: `safety < 50` и в `buildInitialTurn`, и в `processChain`.
-- HTTP в превью — честная заглушка: сообщение «(имитация)» + мок-значение в saveResponseTo.
+Превью — симуляция бота, сгенерированного `umbot create from-flow`: что показывает превью, то ответит бот. Логика — в чистом модуле `previewEngine.ts` (`startDialog(doc)`, `sendInput(doc, state, text)`), ChatPreview только рисует. Порядок операций в обработчиках повторяет `flowGenerator.js` CLI; поведение сверено прогоном настоящего сгенерированного бота через `BotTest`.
+
+- **Один ввод → одно сообщение бота.** Response/Action/Condition выполняются сразу (в CLI — прямые вызовы функций), тексты склеиваются через `\n`, кнопки накапливаются.
+- **Ждёт только Step.** Переход на шаг лишь запоминает его (`thisIntentName`); обработчик шага срабатывает на СЛЕДУЮЩИЙ ввод: сохраняет ответ → текст шага (реакция) → actions → связанные блоки. Вопрос задаёт блок ПЕРЕД шагом.
+- Переход на Command ожиданием не является: `thisIntentName` в umbot ищет только шаги, дальше — подбор команды по слотам. Подбор как в umbot: ввод в нижнем регистре; сначала **точное совпадение** со слотом (первая зарегистрированная команда), затем по порядку `includes`/регулярка. У welcome слоты `/start` + «привет»/«здравст» (или собственные), у help — «помощь»/«что ты умеешь». Приоритет: активный шаг → команда → fallback.
+- **Старт диалога** = `/start` в Telegram / новая сессия Алисы: нода welcome, без неё — приветствие (текст+кнопки) из настроек, без него — fallback. `/start` пропускает ожидающий шаг. Без ноды help на «помощь» отвечает текст справки из настроек.
+- **Согласие/отказ/ссылка** (`isSayTrue`/`isSayFalse`/`isUrl`) — те же проверки, что `Text` в umbot (`utils/regex.ts`): «да»/«конечно»/«соглас…»/«подтвер…» и «нет»/«неа»/«не» — отдельными словами; «ок», «ага», «хорошо» согласием не считаются.
+- **Кнопки.** Без `targetNodeId` — ввод текста кнопки. С `targetNodeId` — действие `[go:N]` в CLI: блок-цель выполняется сразу, минуя ожидающий шаг; шаг и команда получают текст кнопки как ввод (`sendInput(doc, state, title, target)`). В Telegram CLI делает все кнопки inline (`options.inline`).
+- Все блоки из нескольких `next` выполняются сразу; текст команды не отправляется, если связанный блок задаёт свой текст (`hasTextFromBlocks` CLI).
+- Предохранитель: 200 вызовов блоков за ход, с видимой пометкой в ответе.
+- HTTP в превью — честная заглушка: строка «[имитация HTTP …]» + мок-значение в saveResponseTo.
 
 ## How umbot Works (for code generation)
 
@@ -168,14 +175,16 @@ Both MUST use the same VariableConfig component for consistency.
 
 Actions, conditions, responses are inline code inside these handlers.
 
-### Standalone Nodes as Steps
+### Standalone-блоки как функции (CLI)
 
-Response, Action, Condition узлы, подключённые через edges (next, branch_true, branch_false), генерируются как `addStep` обработчики. Ключевые правила:
+Response, Action, Condition узлы со входящим ребром CLI генерирует как функции `__name(ctrl)`, которые вызываются напрямую из обработчика команды/шага/другого блока — в том же ходе, без ожидания пользователя:
 
-- **Response блок** → `addStep(name, (ctrl) => { setText/setTTS/isEnd/buttons })`
-- **Action блок** → `addStep(name, [async] (ctrl) => { actions/text/buttons })`
-- **Condition блок** → `addStep(name, (ctrl) => { switch-case + if(result)/if(!result) navigation })`
+- **Response блок** → `function __name(ctrl) { setText/buttons; вызовы связанных блоков }`
+- **Action блок** → `[async] function __name(ctrl) { actions/text/buttons; вызовы связанных блоков }`
+- **Condition блок** → `function __name(ctrl) { if (...) __true(ctrl) / thisIntentName = 'step' }`
 - **End блоки** пропускаются (не генерируют обработчик)
+
+Следствия (валидатор): цикл только из этих блоков — рекурсия, CLI отклоняет flow (`BLOCK_CYCLE`); несколько `next` — выполнятся все сразу (`getFlowWarnings` → `MULTIPLE_NEXT`).
 
 ### Code Generation Quality Rules
 
@@ -193,9 +202,17 @@ Response, Action, Condition узлы, подключённые через edges 
 12. **Package name** — начинается с буквы, без спецсимволов, валидный npm identifier.
 13. **random_number min/max** — используют `??` (nullish coalescing), а не `||`, чтобы `min: 0` работал корректно.
 
-### Известное расхождение с CLI фреймворка
+### Известные расхождения с CLI фреймворка
 
-CLI (`umbot/cli/flowGenerator.js`) — **отдельная реализация** от нашего `templateGenerator.ts`. Известный баг CLI: для `saveAs: 'original'` генерирует `ctrl.userCommand` (нижний регистр от адаптеров) вместо `ctrl.originalUserCommand` — см. `BUGREPORT_cli_step_lowercase.md`. Редактор это обойти не может, фикс на стороне фреймворка.
+CLI (`umbot/cli/flowGenerator.js`) — **отдельная реализация** от нашего `templateGenerator.ts`. Превью повторяет CLI с исправлениями, которых нет в umbot 3.1.1 из npm (сделаны в репозитории фреймворка, ждут релиза):
+
+1. Шаг: сохранить ответ → действия шага → текст шага (в 3.1.1 текст выводился до сохранения: «Привет, undefined!»).
+2. `isEnd` у блока Response завершает диалог (в 3.1.1 генерировался только у команды).
+3. `eq`/`neq` через `isEqual` из utils: значения сравниваются строками (в 3.1.1 — строгое `===`, `"42" === 42` ложно).
+4. Кнопки с `targetNodeId` работают (действие `[go:N]`), в Telegram все кнопки inline; VK-кнопки с payload `{command}` срабатывают через `addAction`.
+5. Старт диалога: приветствие на `/start` и в новой сессии Алисы (в 3.1.1 — fallback); шаг прошлой сессии запуск не съедает; приветствие/справка из настроек работают без нод welcome/help; `mode` → `bot.setAppMode`; `.env` создаётся и читается всегда; генерируется README.md проекта.
+
+Остающееся отличие: `actions` у блока Response (поле схемы без UI) превью выполняет, CLI не генерирует.
 
 ## Testing
 
@@ -209,7 +226,8 @@ npm run lint     # ESLint
 - `templateGenerator.test.ts` — кодоген (включая регрессии: блоки-обёртки условий, role-ноды)
 - `validator.test.ts` — схема + граф (включая DUPLICATE_SANITIZED_NAMES)
 - `storage.test.ts` — saveState, эвикция при квоте, flushSave
-- `previewScenario.test.ts` — buildInitialTurn (welcome-цепочка) + локализация стартера
+- `previewScenario.test.ts` — previewEngine (модель umbot: склейка ответов, ожидание на шаге, кнопки, слоты) + стартер
+- `um13Content.test.ts` — игры UM-13: валидность, отсутствие предупреждений, прохождение квестов в превью
 - `flowStore.test.ts`, `safeMath.test.ts`, `performance.test.ts`, UI-смоуки
 
 Правила:
@@ -231,7 +249,7 @@ npm run lint     # ESLint
 
 1. **Позиции нод не входят в `toJSON()`** — FlowDocument без layout; `fromJSON` перестраивает авто-раскладкой. Изменение формата — только с миграцией (ROADMAP #5).
 2. **Демо-контент локализуется**: `buildStarterDocument(locale)` —RU/EN тексты задаются вместе, иначе EN-пользователь получает русское демо.
-3. **Превью должно проигрывать welcome-цепочку** (`buildInitialTurn`) — добавление новых типов нод требует поддержки и в `processChain`, и в `buildInitialTurn`, и в `templateGenerator` (три места дублируют логику обхода).
+3. **Превью = сгенерированный CLI бот** (`previewEngine.ts`) — новый тип ноды или поле требует поддержки и в движке превью (в том же порядке операций, что в `flowGenerator.js`), и в `templateGenerator`. Текст шага — реакция на ответ, вопрос задаёт предыдущий блок.
 4. **Экранирование U+2028/U+2029** в `escapeStr` обязательно — эти символы реально ломают JS-строки.
 5. **Кириллица — валидная часть имён блоков** (`\p{L}`): не «санитизировать в _», а честно обрабатывать (генерируется валидный TS).
 6. **Clipboard может быть недоступен** (http-контекст) — все `navigator.clipboard.writeText` идут с `?.` и `.catch()` + fallback через localStorage (см. App.tsx Ctrl+C/V/X).

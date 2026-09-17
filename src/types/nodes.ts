@@ -7,12 +7,24 @@ export type FlowNode = Node<FlowNodeData, 'command' | 'step' | 'condition' | 'en
 /** React Flow edge. */
 export type FlowEdgeType = Edge;
 
+/**
+ * Выход условия, из которого рисуется ветка: id handle в ConditionNode.
+ * Без sourceHandle React Flow цепляет ребро к первому выходу («да»),
+ * и ветка «нет» визуально выходила из «да».
+ */
+export function branchSourceHandle(type: FlowEdgeData['type'] | undefined): string | undefined {
+    if (type === 'branch_true') return 'true';
+    if (type === 'branch_false') return 'false';
+    return undefined;
+}
+
 /** Convert FlowEdgeData to React Flow Edge. */
 export function toReactFlowEdge(edge: FlowEdgeData, index: number): FlowEdgeType {
     return {
         id: `e-${edge.from}-${edge.to}-${index}`,
         source: edge.from,
         target: edge.to,
+        sourceHandle: branchSourceHandle(edge.type),
         type: 'flowEdge',
         data: { edgeType: edge.type, label: edge.label },
         animated: edge.type === 'branch_true' || edge.type === 'branch_false',

@@ -26,7 +26,7 @@ export function MessageBubble({ role, text, buttons, card, onButtonClick }: Mess
                 {/* Text */}
                 {text && (
                     <div
-                        className={`rounded-lg px-3 py-2 text-sm ${
+                        className={`whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm ${
                             isUser
                                 ? 'bg-gradient-to-r from-[#bc13fe] to-[#00f0ff] text-white'
                                 : 'bg-surface-panel text-fg/80 border border-outline-variant'

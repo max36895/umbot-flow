@@ -85,8 +85,22 @@ describe('ChatPreview', () => {
         });
     });
 
-    it('shows empty state hint when no welcome text', () => {
+    it('without any welcome the dialog starts with fallback — as the generated bot does on /start', () => {
         useFlowStore.setState({ nodes: [] });
+        useFlowStore.setState((s) => ({
+            metadata: {
+                ...s.metadata,
+                welcome: { text: '', buttons: [] },
+                fallback: { text: 'I did not understand' },
+            },
+        }));
+        render(<ChatPreview />);
+        expect(screen.getByText('I did not understand')).toBeInTheDocument();
+    });
+
+    it('shows empty state hint when the start produces no message', () => {
+        // Fallback-нода без текста: бот на старте ничего не отправит
+        useFlowStore.setState({ nodes: [makeCommandNode('f1', 'fallback', [], '', 'fallback')] });
         useFlowStore.setState((s) => ({
             metadata: { ...s.metadata, welcome: { text: '', buttons: [] } },
         }));
