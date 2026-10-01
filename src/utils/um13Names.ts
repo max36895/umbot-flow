@@ -20,27 +20,96 @@ import { getLocale } from '../i18n';
 /** Пул имён от UM-13 (RU/EN). Сортировка по типам нод. */
 const NAMES_BY_TYPE: Record<string, { ru: string[]; en: string[] }> = {
     command: {
-        ru: ['старт_разговора', 'ловец_слов', 'первый_контакт', 'мостик', 'гид', 'ловец_триггеров', 'главная_дверь'],
-        en: ['start_talk', 'word_catcher', 'first_contact', 'bridge', 'guide', 'trigger_catcher', 'main_door'],
+        ru: [
+            'старт_разговора',
+            'ловец_слов',
+            'первый_контакт',
+            'мостик',
+            'гид',
+            'ловец_триггеров',
+            'главная_дверь',
+        ],
+        en: [
+            'start_talk',
+            'word_catcher',
+            'first_contact',
+            'bridge',
+            'guide',
+            'trigger_catcher',
+            'main_door',
+        ],
     },
     step: {
-        ru: ['спроси_как_дела', 'выясни_имя', 'узнай_пожелания', 'допрос', 'мягкий_вопрос', 'уточнишка'],
-        en: ['ask_how_are_you', 'learn_the_name', 'collect_wishes', 'interrogation', 'soft_question', 'clarifier'],
+        ru: [
+            'спроси_как_дела',
+            'выясни_имя',
+            'узнай_пожелания',
+            'допрос',
+            'мягкий_вопрос',
+            'уточнишка',
+        ],
+        en: [
+            'ask_how_are_you',
+            'learn_the_name',
+            'collect_wishes',
+            'interrogation',
+            'soft_question',
+            'clarifier',
+        ],
     },
     condition: {
-        ru: ['развилка', 'кто_здесь', 'проверка_на_человечность', 'рубикон', 'толкатель_судеб', 'если_звёзды_сошлись'],
+        ru: [
+            'развилка',
+            'кто_здесь',
+            'проверка_на_человечность',
+            'рубикон',
+            'толкатель_судеб',
+            'если_звёзды_сошлись',
+        ],
         en: ['fork', 'who_is_here', 'humanity_check', 'rubicon', 'fate_pusher', 'if_stars_align'],
     },
     response: {
-        ru: ['тёплый_ответ', 'финальный_аккорд', 'прощание', 'победная_реплика', 'мудрое_резюме', 'выход_с_честью'],
-        en: ['warm_reply', 'final_chord', 'farewell', 'winning_line', 'wise_summary', 'exit_with_grace'],
+        ru: [
+            'тёплый_ответ',
+            'финальный_аккорд',
+            'прощание',
+            'победная_реплика',
+            'мудрое_резюме',
+            'выход_с_честью',
+        ],
+        en: [
+            'warm_reply',
+            'final_chord',
+            'farewell',
+            'winning_line',
+            'wise_summary',
+            'exit_with_grace',
+        ],
     },
     action: {
-        ru: ['мелкая_магия', 'тёмный_рынок_переменных', 'вызов_в_пустоту', 'костяная_рука_api', 'пятый_элемент'],
-        en: ['small_magic', 'variable_black_market', 'call_into_void', 'bone_hand_of_api', 'fifth_element'],
+        ru: [
+            'мелкая_магия',
+            'тёмный_рынок_переменных',
+            'вызов_в_пустоту',
+            'костяная_рука_api',
+            'пятый_элемент',
+        ],
+        en: [
+            'small_magic',
+            'variable_black_market',
+            'call_into_void',
+            'bone_hand_of_api',
+            'fifth_element',
+        ],
     },
     end: {
-        ru: ['конец_света', 'точка_невозврата', 'финал_без_титров', 'последний_сбой', 'дверь_наружу'],
+        ru: [
+            'конец_света',
+            'точка_невозврата',
+            'финал_без_титров',
+            'последний_сбой',
+            'дверь_наружу',
+        ],
         en: ['end_of_world', 'point_of_no_return', 'credits_less_finale', 'last_crash', 'door_out'],
     },
 };
@@ -50,10 +119,7 @@ const NAMES_BY_TYPE: Record<string, { ru: string[]; en: string[] }> = {
  * Уникальность: если имя уже занято другими нодами — берём следующее
  * свободное из пула (детерминированно, без повторов в одном флоу).
  */
-export function um13NameFor(
-    type: FlowNodeData['type'],
-    takenNames?: Set<string>,
-): string | null {
+export function um13NameFor(type: FlowNodeData['type'], takenNames?: Set<string>): string | null {
     const pool = NAMES_BY_TYPE[type];
     if (!pool) return null;
     const list = getLocale() === 'ru' ? pool.ru : pool.en;

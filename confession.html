@@ -3,18 +3,29 @@
     <head>
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="robots" content="index, follow" />
         <title>Исповедальня UM-13 — узнай своего внутреннего бота</title>
-        <meta name="description" content="Бот задаст вам 6 честных вопросов и соберёт вашего внутреннего бота — настоящий flow.json, который можно открыть в редакторе или скачать. Бесплатно, без логов." />
+        <meta
+            name="description"
+            content="Бот задаст вам 6 честных вопросов и соберёт вашего внутреннего бота — настоящий flow.json, который можно открыть в редакторе или скачать. Бесплатно, без логов."
+        />
         <meta property="og:title" content="Исповедальня UM-13 — узнай своего внутреннего бота" />
-        <meta property="og:description" content="6 вопросов — и у тебя есть собственный бот, собранный из твоих ответов." />
+        <meta
+            property="og:description"
+            content="6 вопросов — и у тебя есть собственный бот, собранный из твоих ответов."
+        />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://flow.maxim-m.ru/confession/" />
         <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Исповедальня UM-13 — бот задаст 6 вопросов и соберёт твоего внутреннего бота" />
+        <meta
+            property="og:image:alt"
+            content="Исповедальня UM-13 — бот задаст 6 вопросов и соберёт твоего внутреннего бота"
+        />
         <meta name="twitter:card" content="summary_large_image" />
         <link rel="canonical" href="https://flow.maxim-m.ru/confession/" />
         <link rel="stylesheet" href="/src/landing-fonts.css" />
@@ -23,7 +34,6 @@
         <link rel="stylesheet" href="/styles/um13-ghost.css" />
     </head>
     <body>
-
         <div class="crt-head">
             <span>um13 · режим «исповедь» · приватно: всё остаётся в этой вкладке</span>
             <span class="sig">связь: личная ▮▮▮▮▯</span>
@@ -35,7 +45,14 @@
 
         <div class="inputline" id="inputline">
             <span class="prompt">&gt;&nbsp;</span>
-            <input id="freeinput" type="text" autocomplete="off" spellcheck="false" maxlength="40" aria-label="Ответ UM-13" />
+            <input
+                id="freeinput"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                maxlength="40"
+                aria-label="Ответ UM-13"
+            />
         </div>
 
         <div class="result" id="result">
@@ -48,12 +65,16 @@
             <div class="share-block" id="share-block">
                 <p class="share-note">
                     у твоего внутреннего бота есть адрес. скинь ссылку — друг увидит
-                    <b>твоего</b> бота и приглашение собрать своего. послания не хранятся на сервере:
-                    они едут внутри самой ссылки.
+                    <b>твоего</b> бота и приглашение собрать своего. послания не хранятся на
+                    сервере: они едут внутри самой ссылки.
                 </p>
                 <div class="share-row">
-                    <button class="btn btn-share" id="share-link-btn">🔗 Скинуть ссылку другу</button>
-                    <button class="btn btn-ghost" id="share-card-btn">🃏 Карточка бота (PNG)</button>
+                    <button class="btn btn-share" id="share-link-btn">
+                        🔗 Скинуть ссылку другу
+                    </button>
+                    <button class="btn btn-ghost" id="share-card-btn">
+                        🃏 Карточка бота (PNG)
+                    </button>
                 </div>
                 <p class="share-link-line" id="share-link-line"></p>
             </div>

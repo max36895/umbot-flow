@@ -11,7 +11,11 @@ import { TTSField } from './shared/TTSField';
 import { VariableConfig } from './shared/VariableConfig';
 import { AdvancedSettings } from './shared/AdvancedSettings';
 import { ButtonEditor } from './shared/ButtonEditor';
-import { useNodeFieldErrors, getFieldErrorList, getActionErrorsMap } from '../../hooks/useNodeFieldErrors';
+import {
+    useNodeFieldErrors,
+    getFieldErrorList,
+    getActionErrorsMap,
+} from '../../hooks/useNodeFieldErrors';
 
 interface Props {
     nodeId: string;
@@ -100,7 +104,10 @@ export function StepProps({ nodeId }: Props) {
             <AdvancedSettings
                 nodeId={nodeId}
                 actions={
-                    <Field label={t('props.actions')} errors={getFieldErrorList(fieldErrors, 'actions')}>
+                    <Field
+                        label={t('props.actions')}
+                        errors={getFieldErrorList(fieldErrors, 'actions')}
+                    >
                         <ActionEditor
                             actions={data.actions ?? []}
                             onChange={(actions) => update({ actions })}
@@ -109,7 +116,10 @@ export function StepProps({ nodeId }: Props) {
                     </Field>
                 }
                 conditions={
-                    <Field label={t('props.conditions')} errors={getFieldErrorList(fieldErrors, 'conditions')}>
+                    <Field
+                        label={t('props.conditions')}
+                        errors={getFieldErrorList(fieldErrors, 'conditions')}
+                    >
                         <ConditionEditor
                             conditions={data.conditions ?? []}
                             onChange={(conditions) => update({ conditions })}

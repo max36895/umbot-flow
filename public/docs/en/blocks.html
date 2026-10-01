@@ -1,170 +1,172 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>Block Types — Umbot Flow</title>
-    <meta
-        name="description"
-        content="Detailed description of each block type in Umbot Flow: commands, steps, conditions, actions, responses, end, and service blocks (start, help, fallback)."
-    />
-    <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/blocks/" />
-    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
-    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
-    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
-    <meta property="og:title" content="Block Types — Umbot Flow" />
-    <meta
-        property="og:description"
-        content="Detailed description of each block type in Umbot Flow: commands, steps, conditions, actions, responses, end, and service blocks."
-    />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/blocks/" />
-    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-    <meta property="og:locale" content="en_US" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <title>Block Types of the Chatbot Builder — Umbot Flow</title>
+        <meta
+            name="description"
+            content="Detailed description of each block type in the Umbot Flow chatbot builder: commands, steps, conditions, actions, responses, end, and service blocks (start, help, fallback)."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
+        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
+        <meta property="og:title" content="Block Types of the Chatbot Builder — Umbot Flow" />
+        <meta
+            property="og:description"
+            content="Detailed description of each block type in the Umbot Flow chatbot builder: commands, steps, conditions, actions, responses, end, and service blocks."
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/blocks/" />
+        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    <link rel="stylesheet" href="/docs/docs.css?v=1" />
-</head>
-<body>
+        <link rel="stylesheet" href="/docs/docs.css?v=1" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="topbar">
+                <a class="back" href="/docs/en/">← Documentation</a>
+                <a class="lang" href="/docs/blocks/">RU</a>
+            </div>
+            <h1>Block Types</h1>
+            <p class="subtitle">Detailed description of each block type in the editor</p>
 
-<div class="container">
-    <div class="topbar">
-        <a class="back" href="/docs/en/">← Documentation</a>
-        <a class="lang" href="/docs/blocks/">RU</a>
-    </div>
-    <h1>Block Types</h1>
-    <p class="subtitle">Detailed description of each block type in the editor</p>
+            <div class="block cmd">
+                <h3>Command</h3>
+                <p>
+                    Reacts to specific words. The user types a word — the bot replies with the
+                    configured text and buttons.
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> A "Command" block with the words "hello", "hi" and the
+                    text "Hello! How are you?" — the bot replies when any of these words is typed.
+                </div>
+            </div>
 
-    <div class="block cmd">
-        <h3>Command</h3>
-        <p>
-            Reacts to specific words. The user types a word — the bot replies with the
-            configured text and buttons.
-        </p>
-        <div class="example">
-            <strong>Example:</strong> A "Command" block with the words "hello", "hi" and the
-            text "Hello! How are you?" — the bot replies when any of these words is typed.
+            <div class="block step">
+                <h3>Step</h3>
+                <p>
+                    Waits for the user's reply, saves it into a field and continues the dialog. Only
+                    a step makes the bot wait for input: responses, actions and conditions run
+                    immediately and their texts arrive as a single message. The question is asked by
+                    the block
+                    <em>before</em> the step (a command or response); the step's own text is an
+                    optional reaction sent after the user replies.
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> Response "What is your name?" → Step with "Save to" =
+                    "userName" → Response "Nice to meet you, {{userName}}!". To offer a choice with
+                    buttons, branch with Conditions after the step: a pressed button reaches the bot
+                    as a regular message with its title.
+                </div>
+            </div>
+
+            <div class="block cond">
+                <h3>Condition</h3>
+                <p>
+                    Checks a variable's value and routes the dialog along different branches. Lets
+                    you create branching: "if the condition is true — go there, otherwise — go
+                    here".
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> If <code>age >= 18</code> — show one message,
+                    otherwise — another.
+                </div>
+            </div>
+
+            <div class="block action">
+                <h3>Action</h3>
+                <p>
+                    Performs additional operations: setting variables, generating random numbers,
+                    HTTP requests. Shows text after execution.
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> Generating a random number from 1 to 100, sending an
+                    HTTP request to an API, setting a variable.
+                </div>
+            </div>
+
+            <div class="block response">
+                <h3>Response</h3>
+                <p>
+                    Shows text to the user without asking for input. Use it for informational
+                    messages or as an intermediate block.
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> A "Response" block with the text "This is the bot
+                    help" — it simply shows the message.
+                </div>
+            </div>
+
+            <div class="block end">
+                <h3>End</h3>
+                <p>
+                    Ends the dialog. The bot stops responding until the user starts a new
+                    conversation.
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> After the message "Goodbye!" the dialog ends.
+                </div>
+            </div>
+
+            <h2>Service blocks</h2>
+            <p class="muted spaced">
+                These blocks are not connected to others — each exists as a single instance and
+                triggers at a specific moment.
+            </p>
+
+            <div class="block welcome">
+                <h3>Start</h3>
+                <p>
+                    Greeting shown when the bot starts. Displayed to the user when they first open
+                    the dialog or start a new conversation.
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> The text "Hi! I can help you with your order. Type
+                    'help' if something is unclear."
+                </div>
+            </div>
+
+            <div class="block help">
+                <h3>Help</h3>
+                <p>
+                    Response to the help command. Triggers when the user asks for help (for example,
+                    types "help" or presses the platform's help button).
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> The text "I can respond to the 'order' and 'status'
+                    commands. Type one of these words."
+                </div>
+            </div>
+
+            <div class="block fallback">
+                <h3>Fallback</h3>
+                <p>
+                    Response when the bot does not recognize the user's command. Instead of silence
+                    or a system error, the user gets a clear message.
+                </p>
+                <div class="example">
+                    <strong>Example:</strong> The text "Sorry, I didn't understand. Type 'help' to
+                    see the list of commands."
+                </div>
+            </div>
+
+            <h2>How to connect blocks</h2>
+            <p class="muted">
+                Drag from the edge of one block to another to create a connection. The bot moves
+                through the blocks in the order of the connections. Use a condition for branching:
+                one output for "yes", another for "no".
+            </p>
         </div>
-    </div>
-
-    <div class="block step">
-        <h3>Step</h3>
-        <p>
-            Waits for the user's reply, saves it into a field and continues the dialog. Only a
-            step makes the bot wait for input: responses, actions and conditions run immediately
-            and their texts arrive as a single message. The question is asked by the block
-            <em>before</em> the step (a command or response); the step's own text is an optional
-            reaction sent after the user replies.
-        </p>
-        <div class="example">
-            <strong>Example:</strong> Response "What is your name?" → Step with "Save to" =
-            "userName" → Response "Nice to meet you, {{userName}}!". To offer a choice with
-            buttons, branch with Conditions after the step: a pressed button reaches the bot as
-            a regular message with its title.
-        </div>
-    </div>
-
-    <div class="block cond">
-        <h3>Condition</h3>
-        <p>
-            Checks a variable's value and routes the dialog along different branches. Lets
-            you create branching: "if the condition is true — go there, otherwise — go
-            here".
-        </p>
-        <div class="example">
-            <strong>Example:</strong> If <code>age >= 18</code> — show one message,
-            otherwise — another.
-        </div>
-    </div>
-
-    <div class="block action">
-        <h3>Action</h3>
-        <p>
-            Performs additional operations: setting variables, generating random numbers,
-            HTTP requests. Shows text after execution.
-        </p>
-        <div class="example">
-            <strong>Example:</strong> Generating a random number from 1 to 100, sending an
-            HTTP request to an API, setting a variable.
-        </div>
-    </div>
-
-    <div class="block response">
-        <h3>Response</h3>
-        <p>
-            Shows text to the user without asking for input. Use it for informational
-            messages or as an intermediate block.
-        </p>
-        <div class="example">
-            <strong>Example:</strong> A "Response" block with the text "This is the bot
-            help" — it simply shows the message.
-        </div>
-    </div>
-
-    <div class="block end">
-        <h3>End</h3>
-        <p>
-            Ends the dialog. The bot stops responding until the user starts a new
-            conversation.
-        </p>
-        <div class="example">
-            <strong>Example:</strong> After the message "Goodbye!" the dialog ends.
-        </div>
-    </div>
-
-    <h2>Service blocks</h2>
-    <p class="muted spaced">
-        These blocks are not connected to others — each exists as a single instance and
-        triggers at a specific moment.
-    </p>
-
-    <div class="block welcome">
-        <h3>Start</h3>
-        <p>
-            Greeting shown when the bot starts. Displayed to the user when they first open
-            the dialog or start a new conversation.
-        </p>
-        <div class="example">
-            <strong>Example:</strong> The text "Hi! I can help you with your order. Type
-            'help' if something is unclear."
-        </div>
-    </div>
-
-    <div class="block help">
-        <h3>Help</h3>
-        <p>
-            Response to the help command. Triggers when the user asks for help (for example,
-            types "help" or presses the platform's help button).
-        </p>
-        <div class="example">
-            <strong>Example:</strong> The text "I can respond to the 'order' and 'status'
-            commands. Type one of these words."
-        </div>
-    </div>
-
-    <div class="block fallback">
-        <h3>Fallback</h3>
-        <p>
-            Response when the bot does not recognize the user's command. Instead of silence
-            or a system error, the user gets a clear message.
-        </p>
-        <div class="example">
-            <strong>Example:</strong> The text "Sorry, I didn't understand. Type 'help' to
-            see the list of commands."
-        </div>
-    </div>
-
-    <h2>How to connect blocks</h2>
-    <p class="muted">
-        Drag from the edge of one block to another to create a connection. The bot moves
-        through the blocks in the order of the connections. Use a condition for branching:
-        one output for "yes", another for "no".
-    </p>
-</div>
-<script src="/metrika.js" async></script>
-</body>
+        <script src="/metrika.js" async></script>
+    </body>
 </html>

@@ -2,12 +2,15 @@
 
 ## Overview
 
-Visual Flow for building umbot chatbots. Users create bots by placing blocks on a canvas and connecting them. The editor generates JSON which can be converted to a complete umbot project via CLI (`npx umbot create from-flow flow.json`).
+Visual Flow for building umbot chatbots. Users create bots by placing blocks on a canvas and connecting them. The editor
+generates JSON which can be converted to a complete umbot project via CLI (`npx umbot create from-flow flow.json`).
 
 **Два входа** (не забыть при деплое и тестах):
-- `/` — статический лендинг (`index.html`, ~1400 строк, без React)
+
+- `/` — статический лендинг (`index.html`, без React)
 - `/app` — React-редактор (`app.html`, монтируется в `#root`)
-Локальная проверка редактора: `npm run dev` → http://localhost:3001/app (не `/`!).
+- `/compare/` — статическая посадочная «Umbot Flow против облачных конструкторов» (`compare.html`, стили — секция в конце `styles/landing.css`)
+  Локальная проверка редактора: `npm run dev` → http://localhost:3001/app (не `/`!).
 
 ## Architecture
 
@@ -29,6 +32,8 @@ Visual Flow for building umbot chatbots. Users create bots by placing blocks on 
 umbot-flow/
 ├── index.html                      # Лендинг (статика, без React)
 ├── app.html                        # Редактор: точка монтирования React (#root)
+├── compare.html                    # Сравнение с облачными конструкторами (/compare/, посадочная под НЧ-запросы)
+├── og-image.html                   # Исходник og-image.png (не в сборке: регенерация — скопировать в dist/, скриншот 1200×630)
 ├── styles/                         # CSS статических страниц: landing.css, easter/*.css (terminal.css — общий для secret/confession), um13-ghost.css — стили призрака
 ├── scripts/                        # JS статических страниц (ES-модули): landing.js, easter/*.js (um13.js — общая память UM-13)
 ├── public/docs/                    # Статическая документация (ru/en)
@@ -96,7 +101,8 @@ PropertiesPanel.tsx (docked/floating)
 - **TTSField.tsx** — TTS textarea
 - **VariableConfig.tsx** — Variable name input + comment + presets (used in Command, Step, AND Action)
 - **HttpConfig.tsx** — HTTP method/URL/saveResponseTo (used in ActionProps and ActionEditor)
-- **ActionBlockEditor.tsx** — Общий редактор блоков действий. Используется и ActionProps (standalone), и ActionEditor (inline). Гарантирует идентичный внешний вид.
+- **ActionBlockEditor.tsx** — Общий редактор блоков действий. Используется и ActionProps (standalone), и ActionEditor (
+  inline). Гарантирует идентичный внешний вид.
 - **AdvancedSettings.tsx** — Collapsible section with emotion, end dialog, shuffle buttons
 
 ### Important: ActionProps vs ActionEditor
@@ -108,7 +114,9 @@ Both MUST use the same VariableConfig component for consistency.
 
 ## Node Types and Colors
 
-Цвета нод заданы CSS-переменными `--node-*` в `src/index.css` (отдельные значения для тёмной и светлой темы). Единственный источник правды в коде — `src/components/Canvas/nodes/nodeColors.ts` (`NODE_COLORS[type].cssVar` + хелпер `nodeColorAlpha(type, percent)` через `color-mix`). **Не хардкодить hex в компонентах.**
+Цвета нод заданы CSS-переменными `--node-*` в `src/index.css` (отдельные значения для тёмной и светлой темы).
+Единственный источник правды в коде — `src/components/Canvas/nodes/nodeColors.ts` (`NODE_COLORS[type].cssVar` + хелпер
+`nodeColorAlpha(type, percent)` через `color-mix`). **Не хардкодить hex в компонентах.**
 
 | Node      | CSS Variable     | Dark (неон) | Light (читаемый) |
 | --------- | ---------------- | ----------- | ---------------- |
@@ -123,46 +131,77 @@ Both MUST use the same VariableConfig component for consistency.
 | Help      | --node-help      | #eab308     | #ca8a04          |
 | Fallback  | --node-fallback  | #ff9d00     | #d97706          |
 
-Тема переключается атрибутом `data-theme="light"` на `<html>` (см. `uiStore.applyTheme`) — CSS-переменные подхватываются автоматически.
+Тема переключается атрибутом `data-theme="light"` на `<html>` (см. `uiStore.applyTheme`) — CSS-переменные подхватываются
+автоматически.
 
 ## Design System (UI/UX conventions)
 
 - **Шрифт** — Inter, подключён локально через `@fontsource/inter` (400/500/600/700, кириллица) в `main.tsx`.
 - **Минимальный размер текста** — 11px (`text-[11px]`). Не использовать 9–10px.
 - **Контраст вторичного текста** — не ниже `text-fg/50`. Для tertiary допустимо `/40`, но не `/20–/35`.
-- **Модалки** — только через единый `ui/Modal.tsx` (overlay + анимация + ESC/click-outside). Кнопки-CTA — через `ui/PrimaryButton.tsx` (градиент accent→info). Не дублировать разметку модалок и не хардкодить градиент.
-- **HelpButton / NodeHelpButton** — открывают лёгкий popover (портал в `body`), а не модалку. `HelpButton` рендерится с `z-alert`, чтобы быть поверх модалок.
-- **Пульсация активной ноды** (`nodeActivePulse`) — ограничена 5 минутами (200 итераций × 1.5s, `forwards`), не бесконечная.
-- **Transition** — в `.node-hover`/`.node-dimmed`/`.node-spotlight*` перечислены конкретные свойства (не `transition: all`).
+- **Модалки** — только через единый `ui/Modal.tsx` (overlay + анимация + ESC/click-outside). Кнопки-CTA — через
+  `ui/PrimaryButton.tsx` (градиент accent→info). Не дублировать разметку модалок и не хардкодить градиент.
+- **HelpButton / NodeHelpButton** — открывают лёгкий popover (портал в `body`), а не модалку. `HelpButton` рендерится с
+  `z-alert`, чтобы быть поверх модалок.
+- **Пульсация активной ноды** (`nodeActivePulse`) — ограничена 5 минутами (200 итераций × 1.5s, `forwards`), не
+  бесконечная.
+- **Transition** — в `.node-hover`/`.node-dimmed`/`.node-spotlight*` перечислены конкретные свойства (не
+  `transition: all`).
 - **Цвета рёбер** — через токены темы (`rgb(var(--fg-rgb) / …)`, `--success-rgb`, `--error-rgb`), адаптируются к теме.
 - **Тулбар** — иконки без текстовых подписей (осознанное решение, не добавлять текст, чтобы не перегружать).
 
 ## State Management
 
-- **flowStore.ts** — nodes, edges, metadata, addNode, removeNode, duplicateNode, pasteNode, undo/redo, автосохранение в localStorage
-- **uiStore.ts** — selectedNodeId, selectedEdgeId, propertiesPanelMode (docked/floating), activePreviewNodeId, botSettingsOpen, minimapVisible, theme (dark/light через `data-theme`), locale
-- **validationStore.ts** — результат единого прогона валидации (`nodeErrors` по id узла); заполняется в `Canvas/ValidationSync.tsx`, читается нодами (`useNodeErrors`), панелью свойств и StatusBar
+- **flowStore.ts** — nodes, edges, metadata, addNode, removeNode, duplicateNode, pasteNode, undo/redo, автосохранение в
+  localStorage
+- **uiStore.ts** — selectedNodeId, selectedEdgeId, propertiesPanelMode (docked/floating), activePreviewNodeId,
+  botSettingsOpen, minimapVisible, theme (dark/light через `data-theme`), locale
+- **validationStore.ts** — результат единого прогона валидации (`nodeErrors` по id узла); заполняется в
+  `Canvas/ValidationSync.tsx`, читается нодами (`useNodeErrors`), панелью свойств и StatusBar
 
 ### Автосохранение (честный индикатор)
 
-- **`saveState`**: `'idle' | 'saving' | 'saved' | 'error'` — состояние **по факту записи** в localStorage, не по факту изменения. StatusBar подписан на него; при `'error'` показывает красное «Не сохранено» с кликом → экспорт.
-- **`persistNow()`** — синхронная запись. При `QuotaExceededError` вызывает `evictProjectsForSpace(bytes, currentProjectName)` из `projectsStore.ts`: удаляет самые старые снапшоты истории недавних проектов (текущий проект защищён), затем повторяет запись. Только после неудачной эвикции — `saveState: 'error'`.
-- **`flushSave()`** — немедленная запись без debounce, вешается на `pagehide` и `visibilitychange→hidden` в App.tsx. Пишет только если есть pending-дебаунс (иначе no-op).
-- **Undo-история** — модульные массивы вне стора (50 шагов), коалесцинг правок одной ноды одной формы патча в пределах 1 сек (`COALESCE_WINDOW_MS`) — один шаг undo на ввод текста. **Не переживает перезагрузку** (в ROADMAP).
-- **`normalizeMetadata()`** — «чужой» документ без fallback/welcome/database не должен ронять UI: структурные дефолты из DEFAULT_METADATA, пользовательские тексты — пустые.
-- **schemaVersion** — при несовпадении с `CURRENT_SCHEMA_VERSION` localStorage сбрасывается (миграций пока нет — см. ROADMAP #4).
+- **`saveState`**: `'idle' | 'saving' | 'saved' | 'error'` — состояние **по факту записи** в localStorage, не по факту
+  изменения. StatusBar подписан на него; при `'error'` показывает красное «Не сохранено» с кликом → экспорт.
+- **`persistNow()`** — синхронная запись. При `QuotaExceededError` вызывает
+  `evictProjectsForSpace(bytes, currentProjectName)` из `projectsStore.ts`: удаляет самые старые снапшоты истории
+  недавних проектов (текущий проект защищён), затем повторяет запись. Только после неудачной эвикции —
+  `saveState: 'error'`.
+- **`flushSave()`** — немедленная запись без debounce, вешается на `pagehide` и `visibilitychange→hidden` в App.tsx.
+  Пишет только если есть pending-дебаунс (иначе no-op).
+- **Undo-история** — модульные массивы вне стора (50 шагов), коалесцинг правок одной ноды одной формы патча в пределах 1
+  сек (`COALESCE_WINDOW_MS`) — один шаг undo на ввод текста. **Не переживает перезагрузку** (в ROADMAP).
+- **`normalizeMetadata()`** — «чужой» документ без fallback/welcome/database не должен ронять UI: структурные дефолты из
+  DEFAULT_METADATA, пользовательские тексты — пустые.
+- **schemaVersion** — при несовпадении с `CURRENT_SCHEMA_VERSION` localStorage сбрасывается (миграций пока нет — см.
+  ROADMAP #4).
 
 ### Превью (ChatPreview + utils/previewEngine.ts)
 
-Превью — симуляция бота, сгенерированного `umbot create from-flow`: что показывает превью, то ответит бот. Логика — в чистом модуле `previewEngine.ts` (`startDialog(doc)`, `sendInput(doc, state, text)`), ChatPreview только рисует. Порядок операций в обработчиках повторяет `flowGenerator.js` CLI; поведение сверено прогоном настоящего сгенерированного бота через `BotTest`.
+Превью — симуляция бота, сгенерированного `umbot create from-flow`: что показывает превью, то ответит бот. Логика — в
+чистом модуле `previewEngine.ts` (`startDialog(doc)`, `sendInput(doc, state, text)`), ChatPreview только рисует. Порядок
+операций в обработчиках повторяет `flowGenerator.js` CLI; поведение сверено прогоном настоящего сгенерированного бота
+через `BotTest`.
 
-- **Один ввод → одно сообщение бота.** Response/Action/Condition выполняются сразу (в CLI — прямые вызовы функций), тексты склеиваются через `\n`, кнопки накапливаются.
-- **Ждёт только Step.** Переход на шаг лишь запоминает его (`thisIntentName`); обработчик шага срабатывает на СЛЕДУЮЩИЙ ввод: сохраняет ответ → текст шага (реакция) → actions → связанные блоки. Вопрос задаёт блок ПЕРЕД шагом.
-- Переход на Command ожиданием не является: `thisIntentName` в umbot ищет только шаги, дальше — подбор команды по слотам. Подбор как в umbot: ввод в нижнем регистре; сначала **точное совпадение** со слотом (первая зарегистрированная команда), затем по порядку `includes`/регулярка. У welcome слоты `/start` + «привет»/«здравст» (или собственные), у help — «помощь»/«что ты умеешь». Приоритет: активный шаг → команда → fallback.
-- **Старт диалога** = `/start` в Telegram / новая сессия Алисы: нода welcome, без неё — приветствие (текст+кнопки) из настроек, без него — fallback. `/start` пропускает ожидающий шаг. Без ноды help на «помощь» отвечает текст справки из настроек.
-- **Согласие/отказ/ссылка** (`isSayTrue`/`isSayFalse`/`isUrl`) — те же проверки, что `Text` в umbot (`utils/regex.ts`): «да»/«конечно»/«соглас…»/«подтвер…» и «нет»/«неа»/«не» — отдельными словами; «ок», «ага», «хорошо» согласием не считаются.
-- **Кнопки.** Без `targetNodeId` — ввод текста кнопки. С `targetNodeId` — действие `[go:N]` в CLI: блок-цель выполняется сразу, минуя ожидающий шаг; шаг и команда получают текст кнопки как ввод (`sendInput(doc, state, title, target)`). В Telegram CLI делает все кнопки inline (`options.inline`).
-- Все блоки из нескольких `next` выполняются сразу; текст команды не отправляется, если связанный блок задаёт свой текст (`hasTextFromBlocks` CLI).
+- **Один ввод → одно сообщение бота.** Response/Action/Condition выполняются сразу (в CLI — прямые вызовы функций),
+  тексты склеиваются через `\n`, кнопки накапливаются.
+- **Ждёт только Step.** Переход на шаг лишь запоминает его (`thisIntentName`); обработчик шага срабатывает на СЛЕДУЮЩИЙ
+  ввод: сохраняет ответ → текст шага (реакция) → actions → связанные блоки. Вопрос задаёт блок ПЕРЕД шагом.
+- Переход на Command ожиданием не является: `thisIntentName` в umbot ищет только шаги, дальше — подбор команды по
+  слотам. Подбор как в umbot: ввод в нижнем регистре; сначала **точное совпадение** со слотом (первая зарегистрированная
+  команда), затем по порядку `includes`/регулярка. У welcome слоты `/start` + «привет»/«здравст» (или собственные), у
+  help — «помощь»/«что ты умеешь». Приоритет: активный шаг → команда → fallback.
+- **Старт диалога** = `/start` в Telegram / новая сессия Алисы: нода welcome, без неё — приветствие (текст+кнопки) из
+  настроек, без него — fallback. `/start` пропускает ожидающий шаг. Без ноды help на «помощь» отвечает текст справки из
+  настроек.
+- **Согласие/отказ/ссылка** (`isSayTrue`/`isSayFalse`/`isUrl`) — те же проверки, что `Text` в umbot (`utils/regex.ts`):
+  «да»/«конечно»/«соглас…»/«подтвер…» и «нет»/«неа»/«не» — отдельными словами; «ок», «ага», «хорошо» согласием не
+  считаются.
+- **Кнопки.** Без `targetNodeId` — ввод текста кнопки. С `targetNodeId` — действие `[go:N]` в CLI: блок-цель выполняется
+  сразу, минуя ожидающий шаг; шаг и команда получают текст кнопки как ввод (`sendInput(doc, state, title, target)`). В
+  Telegram CLI делает все кнопки inline (`options.inline`).
+- Все блоки из нескольких `next` выполняются сразу; текст команды не отправляется, если связанный блок задаёт свой
+  текст (`hasTextFromBlocks` CLI).
 - Предохранитель: 200 вызовов блоков за ход, с видимой пометкой в ответе.
 - HTTP в превью — честная заглушка: строка «[имитация HTTP …]» + мок-значение в saveResponseTo.
 
@@ -177,40 +216,56 @@ Actions, conditions, responses are inline code inside these handlers.
 
 ### Standalone-блоки как функции (CLI)
 
-Response, Action, Condition узлы со входящим ребром CLI генерирует как функции `__name(ctrl)`, которые вызываются напрямую из обработчика команды/шага/другого блока — в том же ходе, без ожидания пользователя:
+Response, Action, Condition узлы со входящим ребром CLI генерирует как функции `__name(ctrl)`, которые вызываются
+напрямую из обработчика команды/шага/другого блока — в том же ходе, без ожидания пользователя:
 
 - **Response блок** → `function __name(ctrl) { setText/buttons; вызовы связанных блоков }`
 - **Action блок** → `[async] function __name(ctrl) { actions/text/buttons; вызовы связанных блоков }`
 - **Condition блок** → `function __name(ctrl) { if (...) __true(ctrl) / thisIntentName = 'step' }`
 - **End блоки** пропускаются (не генерируют обработчик)
 
-Следствия (валидатор): цикл только из этих блоков — рекурсия, CLI отклоняет flow (`BLOCK_CYCLE`); несколько `next` — выполнятся все сразу (`getFlowWarnings` → `MULTIPLE_NEXT`).
+Следствия (валидатор): цикл только из этих блоков — рекурсия, CLI отклоняет flow (`BLOCK_CYCLE`); несколько `next` —
+выполнятся все сразу (`getFlowWarnings` → `MULTIPLE_NEXT`).
 
 ### Code Generation Quality Rules
 
-1. **setTTS импорт** — только если хотя бы один узел (command, step, standalone response) имеет `tts`. Проверяется через `hasTTSInDoc()`.
+1. **setTTS импорт** — только если хотя бы один узел (command, step, standalone response) имеет `tts`. Проверяется через
+   `hasTTSInDoc()`.
 2. **Text импорт** — только если есть conditions с isSayTrue/isSayFalse/isUrl операторами.
 3. **rand импорт** — только если есть `random_number` действия.
-4. **sanitizeIdentifier** — импортируется из `utils/identifiers.ts` (ЕДИНЫЙ источник для генератора и валидатора; локальные копии запрещены). Имена блоков с пробелами/спецсимволами заменяются на `_`, кириллица сохраняется (`\p{L}`), цифры в начале — префикс `_`.
-5. **Коллизии санитизированных имён** — валидатор ловит кодом `DUPLICATE_SANITIZED_NAMES` («my cmd» и «my-cmd» → оба `my_cmd`). Role-ноды (welcome/help/fallback) исключены из проверки.
-6. **Инлайн-условия** — каждое условие внутри ноды оборачивается в собственный блок `{}` (регрессия: дубль `const condVar` ломал компиляцию при 2+ условиях; тесты в templateGenerator.test.ts).
-7. **Role-ноды (welcome/help/fallback)** — НЕ генерируют `addCommand`: их тексты идут в `setPlatformParams`/`FALLBACK_COMMAND` через `collectRoleTexts(doc, validNodes)` (нода приоритетнее metadata; пустой текст ноды не затирает непустой текст настроек). Отдельный `addCommand('welcome')` был мёртвым кодом, `addCommand('fallback')` перетирался поздним `FALLBACK_COMMAND`.
+4. **sanitizeIdentifier** — импортируется из `utils/identifiers.ts` (ЕДИНЫЙ источник для генератора и валидатора;
+   локальные копии запрещены). Имена блоков с пробелами/спецсимволами заменяются на `_`, кириллица сохраняется (
+   `\p{L}`), цифры в начале — префикс `_`.
+5. **Коллизии санитизированных имён** — валидатор ловит кодом `DUPLICATE_SANITIZED_NAMES` («my cmd» и «my-cmd» → оба
+   `my_cmd`). Role-ноды (welcome/help/fallback) исключены из проверки.
+6. **Инлайн-условия** — каждое условие внутри ноды оборачивается в собственный блок `{}` (регрессия: дубль
+   `const condVar` ломал компиляцию при 2+ условиях; тесты в templateGenerator.test.ts).
+7. **Role-ноды (welcome/help/fallback)** — НЕ генерируют `addCommand`: их тексты идут в `setPlatformParams`/
+   `FALLBACK_COMMAND` через `collectRoleTexts(doc, validNodes)` (нода приоритетнее metadata; пустой текст ноды не
+   затирает непустой текст настроек). Отдельный `addCommand('welcome')` был мёртвым кодом, `addCommand('fallback')`
+   перетирался поздним `FALLBACK_COMMAND`.
 8. **safeVar** — имена переменных, начинающиеся с цифры, оборачиваются в скобки: `ctrl.userData['123']`.
-9. **resolveVars** — сортировка по длине (длинные имена первые) + `escapeRegExp` для предотвращения partial match (user/userName).
+9. **resolveVars** — сортировка по длине (длинные имена первые) + `escapeRegExp` для предотвращения partial match (
+   user/userName).
 10. **HTTP body с {{variables}}** — передаётся как template literal, а НЕ через JSON.parse.
-11. **filterValidNodes** — null/undefined узлы фильтруются перед обработкой (ВСЕ циклы генератора и валидатора должны идти по validNodes — включая новые хелперы!).
+11. **filterValidNodes** — null/undefined узлы фильтруются перед обработкой (ВСЕ циклы генератора и валидатора должны
+    идти по validNodes — включая новые хелперы!).
 12. **Package name** — начинается с буквы, без спецсимволов, валидный npm identifier.
 13. **random_number min/max** — используют `??` (nullish coalescing), а не `||`, чтобы `min: 0` работал корректно.
 
 ### Известные расхождения с CLI фреймворка
 
-CLI (`umbot/cli/flowGenerator.js`) — **отдельная реализация** от нашего `templateGenerator.ts`. Превью повторяет CLI с исправлениями, которых нет в umbot 3.1.1 из npm (сделаны в репозитории фреймворка, ждут релиза):
+CLI (`umbot/cli/flowGenerator.js`) — **отдельная реализация** от нашего `templateGenerator.ts`. Превью повторяет CLI с
+исправлениями, которых нет в umbot 3.1.1 из npm (сделаны в репозитории фреймворка, ждут релиза):
 
 1. Шаг: сохранить ответ → действия шага → текст шага (в 3.1.1 текст выводился до сохранения: «Привет, undefined!»).
 2. `isEnd` у блока Response завершает диалог (в 3.1.1 генерировался только у команды).
 3. `eq`/`neq` через `isEqual` из utils: значения сравниваются строками (в 3.1.1 — строгое `===`, `"42" === 42` ложно).
-4. Кнопки с `targetNodeId` работают (действие `[go:N]`), в Telegram все кнопки inline; VK-кнопки с payload `{command}` срабатывают через `addAction`.
-5. Старт диалога: приветствие на `/start` и в новой сессии Алисы (в 3.1.1 — fallback); шаг прошлой сессии запуск не съедает; приветствие/справка из настроек работают без нод welcome/help; `mode` → `bot.setAppMode`; `.env` создаётся и читается всегда; генерируется README.md проекта.
+4. Кнопки с `targetNodeId` работают (действие `[go:N]`), в Telegram все кнопки inline; VK-кнопки с payload `{command}`
+   срабатывают через `addAction`.
+5. Старт диалога: приветствие на `/start` и в новой сессии Алисы (в 3.1.1 — fallback); шаг прошлой сессии запуск не
+   съедает; приветствие/справка из настроек работают без нод welcome/help; `mode` → `bot.setAppMode`; `.env` создаётся и
+   читается всегда; генерируется README.md проекта.
 
 Остающееся отличие: `actions` у блока Response (поле схемы без UI) превью выполняет, CLI не генерирует.
 
@@ -223,6 +278,7 @@ npm run lint     # ESLint
 ```
 
 Наборы тестов (`src/__tests__/`):
+
 - `templateGenerator.test.ts` — кодоген (включая регрессии: блоки-обёртки условий, role-ноды)
 - `validator.test.ts` — схема + граф (включая DUPLICATE_SANITIZED_NAMES)
 - `storage.test.ts` — saveState, эвикция при квоте, flushSave
@@ -231,6 +287,7 @@ npm run lint     # ESLint
 - `flowStore.test.ts`, `safeMath.test.ts`, `performance.test.ts`, UI-смоуки
 
 Правила:
+
 - Новый фикс сопровождается тестом, ловящим регрессию (см. блоки `{}` у инлайн-условий).
 - Тесты стора требуют `vi.useFakeTimers()` для debounce-логики (SAVE_DELAY=300 мс);
   при fake timers у `Date.now()` одинаковые метки — учитывается тай-брейком эвикции.
@@ -247,12 +304,19 @@ npm run lint     # ESLint
 
 ## Критичные инварианты (не нарушать)
 
-1. **Позиции нод не входят в `toJSON()`** — FlowDocument без layout; `fromJSON` перестраивает авто-раскладкой. Изменение формата — только с миграцией (ROADMAP #5).
-2. **Демо-контент локализуется**: `buildStarterDocument(locale)` —RU/EN тексты задаются вместе, иначе EN-пользователь получает русское демо.
-3. **Превью = сгенерированный CLI бот** (`previewEngine.ts`) — новый тип ноды или поле требует поддержки и в движке превью (в том же порядке операций, что в `flowGenerator.js`), и в `templateGenerator`. Текст шага — реакция на ответ, вопрос задаёт предыдущий блок.
+1. **Позиции нод не входят в `toJSON()`** — FlowDocument без layout; `fromJSON` перестраивает авто-раскладкой. Изменение
+   формата — только с миграцией (ROADMAP #5).
+2. **Демо-контент локализуется**: `buildStarterDocument(locale)` —RU/EN тексты задаются вместе, иначе EN-пользователь
+   получает русское демо.
+3. **Превью = сгенерированный CLI бот** (`previewEngine.ts`) — новый тип ноды или поле требует поддержки и в движке
+   превью (в том же порядке операций, что в `flowGenerator.js`), и в `templateGenerator`. Текст шага — реакция на ответ,
+   вопрос задаёт предыдущий блок.
 4. **Экранирование U+2028/U+2029** в `escapeStr` обязательно — эти символы реально ломают JS-строки.
-5. **Кириллица — валидная часть имён блоков** (`\p{L}`): не «санитизировать в _», а честно обрабатывать (генерируется валидный TS).
-6. **Clipboard может быть недоступен** (http-контекст) — все `navigator.clipboard.writeText` идут с `?.` и `.catch()` + fallback через localStorage (см. App.tsx Ctrl+C/V/X).
+5. **Кириллица — валидная часть имён блоков** (`\p{L}`): не «санитизировать в _», а честно обрабатывать (генерируется
+   валидный TS).
+6. **Clipboard может быть недоступен** (http-контекст) — все `navigator.clipboard.writeText` идут с `?.` и `.catch()` +
+   fallback через localStorage (см. App.tsx Ctrl+C/V/X).
 7. **`window.confirm`/`alert` запрещены** — только `ui/ConfirmDialog`/`ui/AlertDialog` (единый вид модалок).
 8. **Не хардкодить hex цветов нод** — только `NODE_COLORS[type].cssVar`/`nodeColorAlpha()`.
-9. **Фреймворк приводит `userCommand` к нижнему регистру** — превью и генератор редактора сохраняют оригинальный регистр; расхождение с CLI-генератором до фикса багрепорта (см. выше).
+9. **Фреймворк приводит `userCommand` к нижнему регистру** — превью и генератор редактора сохраняют оригинальный
+   регистр; расхождение с CLI-генератором до фикса багрепорта (см. выше).

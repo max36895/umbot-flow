@@ -1,169 +1,279 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>UM-13 — песочница призрака (Ты ее не нашел)</title>
-<link rel="stylesheet" href="/styles/easter/ghost-sandbox.css" />
-<link rel="stylesheet" href="/styles/um13-ghost.css" />
-</head>
-<body>
-<header>
-    <h1>🕳 песочница призрака UM-13</h1>
-    <p class="sub">
-        Все механики <b>v1.0</b> в одном месте — для ручной проверки перед релизом.
-        Призрак подключён в режиме <b>page</b> (как секретные страницы).
-        Ждите 1–2 сек — он появится и поздоровается. Кнопки дёргают
-        публичный API и показывают, что должно произойти.
-    </p>
-</header>
-<main>
-    <section>
-        <h2>визуальный реворк</h2>
-        <p class="hint">Тело крупнее, подол асимметричный с «надрывом», усталый полуулыб, белые ядра зрачков, янтарный ключ на цепочке качается. В normal — взгляд медленно гуляет ±2px.</p>
-        <div class="row">
-            <button data-call="face" data-arg="normal">normal (усталый полуулыб)</button>
-            <button data-call="face" data-arg="delight">delight</button>
-            <button data-call="face" data-arg="smart">smart (очки)</button>
-            <button data-call="face" data-arg="sad">sad (слеза)</button>
-            <button data-call="face" data-arg="wink">wink</button>
-            <button data-call="face" data-arg="startled">startled</button>
-            <button data-call="face" data-arg="angry">angry</button>
-            <button data-call="face" data-arg="asleep">asleep</button>
-            <button data-call="face" data-arg="skeptic">skeptic</button>
-            <button data-call="face" data-arg="thinking">thinking</button>
-        </div>
-        <div class="log" id="log-visual"><em>ожидание:</em> у normal — асимметричный рот (один уголок вниз), тяжёлые веки, дрейф взгляда. Ключ качается под правым боком.</div>
-    </section>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>UM-13 — песочница призрака (Ты ее не нашел)</title>
+        <link rel="stylesheet" href="/styles/easter/ghost-sandbox.css" />
+        <link rel="stylesheet" href="/styles/um13-ghost.css" />
+    </head>
+    <body>
+        <header>
+            <h1>🕳 песочница призрака UM-13</h1>
+            <p class="sub">
+                Все механики <b>v1.0</b> в одном месте — для ручной проверки перед релизом. Призрак
+                подключён в режиме <b>page</b> (как секретные страницы). Ждите 1–2 сек — он появится
+                и поздоровается. Кнопки дёргают публичный API и показывают, что должно произойти.
+            </p>
+        </header>
+        <main>
+            <section>
+                <h2>визуальный реворк</h2>
+                <p class="hint">
+                    Тело крупнее, подол асимметричный с «надрывом», усталый полуулыб, белые ядра
+                    зрачков, янтарный ключ на цепочке качается. В normal — взгляд медленно гуляет
+                    ±2px.
+                </p>
+                <div class="row">
+                    <button data-call="face" data-arg="normal">normal (усталый полуулыб)</button>
+                    <button data-call="face" data-arg="delight">delight</button>
+                    <button data-call="face" data-arg="smart">smart (очки)</button>
+                    <button data-call="face" data-arg="sad">sad (слеза)</button>
+                    <button data-call="face" data-arg="wink">wink</button>
+                    <button data-call="face" data-arg="startled">startled</button>
+                    <button data-call="face" data-arg="angry">angry</button>
+                    <button data-call="face" data-arg="asleep">asleep</button>
+                    <button data-call="face" data-arg="skeptic">skeptic</button>
+                    <button data-call="face" data-arg="thinking">thinking</button>
+                </div>
+                <div class="log" id="log-visual">
+                    <em>ожидание:</em> у normal — асимметричный рот (один уголок вниз), тяжёлые
+                    веки, дрейф взгляда. Ключ качается под правым боком.
+                </div>
+            </section>
 
-    <section>
-        <h2>стеснительность («бу наоборот») — сигнатурная механика</h2>
-        <p class="hint">Наведите курсор на призрака и держите <b>3 секунды</b>: он отвернётся, закроет лицо юбкой и скажет «не смотри так. я не экспонат». Уведите курсор — «…фух. продолжаем». Кулдаун 3 минуты (второй раз подряд не сработает).</p>
-        <div class="row">
-            <button data-log="log-shy" data-msg="наведите курсор на призрака на 3с — тест руками, кнопка не нужна">подсказка</button>
-        </div>
-        <div class="log" id="log-shy"><em>ожидание:</em> 3с ховера → поза um13g-shy + sad-лицо + реплика стеснительности; mouseleave → relief-реплика.</div>
-    </section>
+            <section>
+                <h2>стеснительность («бу наоборот») — сигнатурная механика</h2>
+                <p class="hint">
+                    Наведите курсор на призрака и держите <b>3 секунды</b>: он отвернётся, закроет
+                    лицо юбкой и скажет «не смотри так. я не экспонат». Уведите курсор — «…фух.
+                    продолжаем». Кулдаун 3 минуты (второй раз подряд не сработает).
+                </p>
+                <div class="row">
+                    <button
+                        data-log="log-shy"
+                        data-msg="наведите курсор на призрака на 3с — тест руками, кнопка не нужна"
+                    >
+                        подсказка
+                    </button>
+                </div>
+                <div class="log" id="log-shy">
+                    <em>ожидание:</em> 3с ховера → поза um13g-shy + sad-лицо + реплика
+                    стеснительности; mouseleave → relief-реплика.
+                </div>
+            </section>
 
-    <section>
-        <h2>давность возвращения</h2>
-        <p class="hint">Призрак помнит последний визит (общая память um13-memory). Разрыв >6 часов → приветствие становится репликой о перерыве. Кнопки имитируют: пишут «вчерашний» last-seen и заново здороваются.</p>
-        <div class="row">
-            <button data-call="simGap" data-arg="24">имитировать: прошёл 1 день</button>
-            <button data-call="simGap" data-arg="120">имитировать: прошла неделя</button>
-            <button data-call="simGap" data-arg="720">имитировать: прошёл месяц</button>
-            <button data-call="simGap" data-arg="2400">имитировать: очень долго</button>
-            <button data-call="clearMem">очистить память (первый визит)</button>
-        </div>
-        <div class="log" id="log-gap"><em>ожидание:</em> после клика — перезагрузка страницы, hello = реплика «сутки. я считал. не вслух, конечно» (или неделя/месяц/долго — по кнопке).</div>
-    </section>
+            <section>
+                <h2>давность возвращения</h2>
+                <p class="hint">
+                    Призрак помнит последний визит (общая память um13-memory). Разрыв >6 часов →
+                    приветствие становится репликой о перерыве. Кнопки имитируют: пишут «вчерашний»
+                    last-seen и заново здороваются.
+                </p>
+                <div class="row">
+                    <button data-call="simGap" data-arg="24">имитировать: прошёл 1 день</button>
+                    <button data-call="simGap" data-arg="120">имитировать: прошла неделя</button>
+                    <button data-call="simGap" data-arg="720">имитировать: прошёл месяц</button>
+                    <button data-call="simGap" data-arg="2400">имитировать: очень долго</button>
+                    <button data-call="clearMem">очистить память (первый визит)</button>
+                </div>
+                <div class="log" id="log-gap">
+                    <em>ожидание:</em> после клика — перезагрузка страницы, hello = реплика «сутки.
+                    я считал. не вслух, конечно» (или неделя/месяц/долго — по кнопке).
+                </div>
+            </section>
 
-    <section>
-        <h2>экспорт = спасение (событие редактора)</h2>
-        <p class="hint">Кнопка дёргает react('flow-export') — ровно то, что делает кнопка «Скачать» в редакторе при экспорте флоу.</p>
-        <div class="row">
-            <button class="primary" data-call="doExport">экспортировать флоу (реакция)</button>
-        </div>
-        <div class="log" id="log-export"><em>ожидание:</em> delight-лицо + реплика «единственная лодка с этого корабля» + конфетти из кубиков-нод.</div>
-    </section>
+            <section>
+                <h2>экспорт = спасение (событие редактора)</h2>
+                <p class="hint">
+                    Кнопка дёргает react('flow-export') — ровно то, что делает кнопка «Скачать» в
+                    редакторе при экспорте флоу.
+                </p>
+                <div class="row">
+                    <button class="primary" data-call="doExport">
+                        экспортировать флоу (реакция)
+                    </button>
+                </div>
+                <div class="log" id="log-export">
+                    <em>ожидание:</em> delight-лицо + реплика «единственная лодка с этого корабля» +
+                    конфетти из кубиков-нод.
+                </div>
+            </section>
 
-    <section>
-        <h2>консоль DevTools</h2>
-        <p class="hint">Откройте DevTools (F12) — там ASCII-призрак и подсказка. Вызовите <b>um13()</b> в консоли: призрак на экране прилетит с репликой, спящий проснётся.</p>
-        <div class="row">
-            <button data-call="callUm13">вызвать um13() (из консоли — интереснее)</button>
-        </div>
-        <div class="log" id="log-console"><em>ожидание:</em> в DevTools — ASCII-арт и «um13()»; вызов → «из консоли? серьёзно? уважаю.» либо побудка спящего.</div>
-    </section>
+            <section>
+                <h2>консоль DevTools</h2>
+                <p class="hint">
+                    Откройте DevTools (F12) — там ASCII-призрак и подсказка. Вызовите
+                    <b>um13()</b> в консоли: призрак на экране прилетит с репликой, спящий
+                    проснётся.
+                </p>
+                <div class="row">
+                    <button data-call="callUm13">вызвать um13() (из консоли — интереснее)</button>
+                </div>
+                <div class="log" id="log-console">
+                    <em>ожидание:</em> в DevTools — ASCII-арт и «um13()»; вызов → «из консоли?
+                    серьёзно? уважаю.» либо побудка спящего.
+                </div>
+            </section>
 
-    <section>
-        <h2>жизнь: тычки, псих, побег, акты, сон</h2>
-        <p class="hint">Регресс после реворка: кликайте по призраку — дуга хихи→«может, не надо»→«хватит»→побег→смирение→ПСИХ с кубиками. Покликайте act() — позы с подписями. Сон: 30с тишины → «ты ещё тут?», ещё 60с → спит на месте.</p>
-        <div class="row">
-            <button data-call="pokeIt">тычок (poke)</button>
-            <button data-ghost="tantrum">ПСИХ (tantrum)</button>
-            <button data-ghost="confetti">конфетти</button>
-            <button data-call="act" data-arg="eat">акт: ест</button>
-            <button data-call="act" data-arg="dance">акт: танцует</button>
-            <button data-call="act" data-arg="glitch">акт: завис</button>
-            <button data-call="act" data-arg="peek">акт: подглядывает</button>
-            <button data-call="act" data-arg="defrag">акт: дефрагментация</button>
-            <button data-call="act" data-arg="dream">акт: мечтает</button>
-            <button data-call="act" data-arg="herd">акт: пастух нод</button>
-            <button data-call="act" data-arg="polish">акт: полирует ключ</button>
-            <button data-call="act" data-arg="watch">акт: провожает невидимое</button>
-            <button class="primary" data-call="act" data-arg="hungry">ГОЛОДАЕТ → покормите кликом!</button>
-            <button data-call="catchNode">ловит удалённую ноду</button>
-            <button data-call="sleepTest">сон-пат (мягко vs рывок)</button>
-            <button data-ghost="hide">hide() (как Konami)</button>
-            <button data-ghost="show">show()</button>
-        </div>
-        <div class="log" id="log-life"><em>ожидание:</em> все реакции как раньше — регрессии нет. Перетаскивание мышью тоже работает (v5.1). «ГОЛОДАЕТ» — покормите его кликом: «спасибо. я думал, ты не заметишь». Сон-пат: спящего будит только РЫВОК курсора; медленное движение рядом — он дрейфует к теплу и бормочет «…ещё пять минут…».</div>
-    </section>
+            <section>
+                <h2>жизнь: тычки, псих, побег, акты, сон</h2>
+                <p class="hint">
+                    Регресс после реворка: кликайте по призраку — дуга хихи→«может, не
+                    надо»→«хватит»→побег→смирение→ПСИХ с кубиками. Покликайте act() — позы с
+                    подписями. Сон: 30с тишины → «ты ещё тут?», ещё 60с → спит на месте.
+                </p>
+                <div class="row">
+                    <button data-call="pokeIt">тычок (poke)</button>
+                    <button data-ghost="tantrum">ПСИХ (tantrum)</button>
+                    <button data-ghost="confetti">конфетти</button>
+                    <button data-call="act" data-arg="eat">акт: ест</button>
+                    <button data-call="act" data-arg="dance">акт: танцует</button>
+                    <button data-call="act" data-arg="glitch">акт: завис</button>
+                    <button data-call="act" data-arg="peek">акт: подглядывает</button>
+                    <button data-call="act" data-arg="defrag">акт: дефрагментация</button>
+                    <button data-call="act" data-arg="dream">акт: мечтает</button>
+                    <button data-call="act" data-arg="herd">акт: пастух нод</button>
+                    <button data-call="act" data-arg="polish">акт: полирует ключ</button>
+                    <button data-call="act" data-arg="watch">акт: провожает невидимое</button>
+                    <button class="primary" data-call="act" data-arg="hungry">
+                        ГОЛОДАЕТ → покормите кликом!
+                    </button>
+                    <button data-call="catchNode">ловит удалённую ноду</button>
+                    <button data-call="sleepTest">сон-пат (мягко vs рывок)</button>
+                    <button data-ghost="hide">hide() (как Konami)</button>
+                    <button data-ghost="show">show()</button>
+                </div>
+                <div class="log" id="log-life">
+                    <em>ожидание:</em> все реакции как раньше — регрессии нет. Перетаскивание мышью
+                    тоже работает (v5.1). «ГОЛОДАЕТ» — покормите его кликом: «спасибо. я думал, ты
+                    не заметишь». Сон-пат: спящего будит только РЫВОК курсора; медленное движение
+                    рядом — он дрейфует к теплу и бормочет «…ещё пять минут…».
+                </div>
+            </section>
 
-    <section>
-        <h2>взгляд, тело, память</h2>
-        <p class="hint">Взгляд следит за курсором (зрачки едут за мышью, ближе 500px; 10с покоя — «теряет интерес»). Головокружение: кружите курсором вокруг призрака 2 оборота. Доверие: visit() копит встречи; локации (в памяти) поднимают уровень. Сны: спящий бормочет ваши реальные флаги. Потеряшка: после ПСИХа кликните кубик у края.</p>
-        <div class="row">
-            <button data-log="log-gaze" data-msg="водите мышью — зрачки следят. кружите вокруг него — головокружение">взгляд: тест руками</button>
-            <button data-call="setTrust">поднять доверие (локации+визиты)</button>
-            <button data-call="resetTrust">обнулить доверие (незнакомец)</button>
-            <button data-call="testSleep">усыпить (сны+фавикон+титул)</button>
-            <button data-ghost="visit">visit() — ход визита</button>
-            <button data-call="showState">state (trust/pressure/key)</button>
-        </div>
-        <div class="log" id="log-gaze"><em>ожидание:</em> setTrust → призрак «свой»: дарит um13() и считает спасённые ключи. Незнакомец — короткие реплики и выскальзывает из драга (один раз). Сны: с флагами колодца — «(снится колодец… ключи падают…)».</div>
-    </section>
+            <section>
+                <h2>взгляд, тело, память</h2>
+                <p class="hint">
+                    Взгляд следит за курсором (зрачки едут за мышью, ближе 500px; 10с покоя —
+                    «теряет интерес»). Головокружение: кружите курсором вокруг призрака 2 оборота.
+                    Доверие: visit() копит встречи; локации (в памяти) поднимают уровень. Сны:
+                    спящий бормочет ваши реальные флаги. Потеряшка: после ПСИХа кликните кубик у
+                    края.
+                </p>
+                <div class="row">
+                    <button
+                        data-log="log-gaze"
+                        data-msg="водите мышью — зрачки следят. кружите вокруг него — головокружение"
+                    >
+                        взгляд: тест руками
+                    </button>
+                    <button data-call="setTrust">поднять доверие (локации+визиты)</button>
+                    <button data-call="resetTrust">обнулить доверие (незнакомец)</button>
+                    <button data-call="testSleep">усыпить (сны+фавикон+титул)</button>
+                    <button data-ghost="visit">visit() — ход визита</button>
+                    <button data-call="showState">state (trust/pressure/key)</button>
+                </div>
+                <div class="log" id="log-gaze">
+                    <em>ожидание:</em> setTrust → призрак «свой»: дарит um13() и считает спасённые
+                    ключи. Незнакомец — короткие реплики и выскальзывает из драга (один раз). Сны: с
+                    флагами колодца — «(снится колодец… ключи падают…)».
+                </div>
+            </section>
 
-    <section>
-        <h2>редакторские события (как из React)</h2>
-        <p class="hint">Те же события, что шлёт редактор: ошибка валидации (призрак летит к точке), деструктивный диалог (закрывает лицо юбкой), светлая тема (янтарные очки), давление квоты.</p>
-        <div class="row">
-            <button data-call="fakeReview">ошибка валидации (um13:review)</button>
-            <button data-ghost="react" data-arg="confirm-scary">confirm-scary (страх)</button>
-            <button data-ghost="react" data-arg="confirm-relief">confirm-relief (выдох)</button>
-            <button data-call="fakeLight">светлая тема (очки)</button>
-            <button data-call="fakeDark">тёмная тема (снять)</button>
-            <button data-call="fakeQuota">квота ≥95% (мерцание)</button>
-        </div>
-        <div class="log" id="log-editor"><em>ожидание:</em> review — призрак летит к центру экрана + sad-реплика «у этой ноды нет выхода». confirm-scary — поза закрытого лица. Светлая тема — очки поверх эмоции. Квота — юбка чаще + мерцание.</div>
-    </section>
+            <section>
+                <h2>редакторские события (как из React)</h2>
+                <p class="hint">
+                    Те же события, что шлёт редактор: ошибка валидации (призрак летит к точке),
+                    деструктивный диалог (закрывает лицо юбкой), светлая тема (янтарные очки),
+                    давление квоты.
+                </p>
+                <div class="row">
+                    <button data-call="fakeReview">ошибка валидации (um13:review)</button>
+                    <button data-ghost="react" data-arg="confirm-scary">
+                        confirm-scary (страх)
+                    </button>
+                    <button data-ghost="react" data-arg="confirm-relief">
+                        confirm-relief (выдох)
+                    </button>
+                    <button data-call="fakeLight">светлая тема (очки)</button>
+                    <button data-call="fakeDark">тёмная тема (снять)</button>
+                    <button data-call="fakeQuota">квота ≥95% (мерцание)</button>
+                </div>
+                <div class="log" id="log-editor">
+                    <em>ожидание:</em> review — призрак летит к центру экрана + sad-реплика «у этой
+                    ноды нет выхода». confirm-scary — поза закрытого лица. Светлая тема — очки
+                    поверх эмоции. Квота — юбка чаще + мерцание.
+                </div>
+            </section>
 
-    <section>
-        <h2>финал приёмной (ключ и окно №13)</h2>
-        <p class="hint">Призрак носит ключ от окна №13 с самого начала. После финала приёмной (queue.html) его тело меняется на ВСЕХ страницах: key-turned — ключа нет (остался в замке), key-given — цепочка пуста (ключ у вас). Симуляция — как если бы вы прошли сцену.</p>
-        <div class="row">
-            <button data-call="setKey" data-arg="key-turned">симуляция: окно открыто</button>
-            <button data-call="setKey" data-arg="key-given">симуляция: ключ отдан вам</button>
-            <button data-call="setKey">сброс (ключ на цепочке)</button>
-            <button data-ghost="keyFinale" data-arg="turned">keyFinale('turned') — реплика</button>
-            <button data-ghost="keyFinale" data-arg="given">keyFinale('given') — реплика</button>
-        </div>
-        <div class="log" id="log-key"><em>ожидание:</em> при key-turned ключ исчезает с цепочки (он в замке навсегда). При key-given — тоже, но реплики грустнее. Реальная сцена — /queue.html: спросить о ключе (нужны флаги колодца+терминала).</div>
-    </section>
+            <section>
+                <h2>финал приёмной (ключ и окно №13)</h2>
+                <p class="hint">
+                    Призрак носит ключ от окна №13 с самого начала. После финала приёмной
+                    (queue.html) его тело меняется на ВСЕХ страницах: key-turned — ключа нет
+                    (остался в замке), key-given — цепочка пуста (ключ у вас). Симуляция — как если
+                    бы вы прошли сцену.
+                </p>
+                <div class="row">
+                    <button data-call="setKey" data-arg="key-turned">
+                        симуляция: окно открыто
+                    </button>
+                    <button data-call="setKey" data-arg="key-given">
+                        симуляция: ключ отдан вам
+                    </button>
+                    <button data-call="setKey">сброс (ключ на цепочке)</button>
+                    <button data-ghost="keyFinale" data-arg="turned">
+                        keyFinale('turned') — реплика
+                    </button>
+                    <button data-ghost="keyFinale" data-arg="given">
+                        keyFinale('given') — реплика
+                    </button>
+                </div>
+                <div class="log" id="log-key">
+                    <em>ожидание:</em> при key-turned ключ исчезает с цепочки (он в замке навсегда).
+                    При key-given — тоже, но реплики грустнее. Реальная сцена — /queue.html:
+                    спросить о ключе (нужны флаги колодца+терминала).
+                </div>
+            </section>
 
-    <section>
-        <h2>новое · v1.0 (по креативному аудиту)</h2>
-        <p class="hint">Что добавлено: занавесь стеснительности реально закрывает лицо (поза shy); пузырь у верхней кромки уходит ПОД тело; сны молчат на лендинге (quiet); сомнамбула рисует грезу из кубиков в скрытой вкладке (5 мин сна + вкладка скрыта); потеряшка, не забранная до ухода, висит на цепочке следующим визитом; карточка дружбы (PNG) вручается «своим»; реплики двуязычны; вход в секреты — слово «um13» (u-m-1-3 на странице).</p>
-        <div class="row">
-            <button data-ghost="friendCard">карточка дружбы (PNG)</button>
-            <button data-ghost="chime">колокольчик (3 ноты)</button>
-            <button data-call="adoptPet">потеряшка-питомец (на цепочке)</button>
-            <button data-call="clearPet">питомец: сброс</button>
-            <button data-ghost="setLocale" data-arg="en">язык: EN</button>
-            <button data-ghost="setLocale" data-arg="ru">язык: RU</button>
-            <button data-call="missedLook">«постарел без тебя»</button>
-        </div>
-        <div class="log" id="log-new"><em>ожидание:</em> friendCard — canvas-справка о дружбе (буфер/файл). chime — единственный звук вселенной (в проде — только финал приёмной). Питомец — кубик слева от ключа после психа, потеряшку с которым вы ушли. setLocale — реплики переключаются на лету. missed — призрак придёт тусклым, оживёт после hello. Сомнамбула: усыпите (кнопка «сон-пат»), уйдите на другую вкладку на 5 минут — вернитесь к рисунку из кубиков.</div>
-    </section>
-</main>
-<footer>
-    Память пишется в общий ключ um13-memory (одна вселенная с терминалом/колодцем).
-    «Очистить память» затрёт и имя, и first-met — на других страницах призрак «забудет» вас. Это ожидаемо.
-</footer>
+            <section>
+                <h2>новое · v1.0 (по креативному аудиту)</h2>
+                <p class="hint">
+                    Что добавлено: занавесь стеснительности реально закрывает лицо (поза shy);
+                    пузырь у верхней кромки уходит ПОД тело; сны молчат на лендинге (quiet);
+                    сомнамбула рисует грезу из кубиков в скрытой вкладке (5 мин сна + вкладка
+                    скрыта); потеряшка, не забранная до ухода, висит на цепочке следующим визитом;
+                    карточка дружбы (PNG) вручается «своим»; реплики двуязычны; вход в секреты —
+                    слово «um13» (u-m-1-3 на странице).
+                </p>
+                <div class="row">
+                    <button data-ghost="friendCard">карточка дружбы (PNG)</button>
+                    <button data-ghost="chime">колокольчик (3 ноты)</button>
+                    <button data-call="adoptPet">потеряшка-питомец (на цепочке)</button>
+                    <button data-call="clearPet">питомец: сброс</button>
+                    <button data-ghost="setLocale" data-arg="en">язык: EN</button>
+                    <button data-ghost="setLocale" data-arg="ru">язык: RU</button>
+                    <button data-call="missedLook">«постарел без тебя»</button>
+                </div>
+                <div class="log" id="log-new">
+                    <em>ожидание:</em> friendCard — canvas-справка о дружбе (буфер/файл). chime —
+                    единственный звук вселенной (в проде — только финал приёмной). Питомец — кубик
+                    слева от ключа после психа, потеряшку с которым вы ушли. setLocale — реплики
+                    переключаются на лету. missed — призрак придёт тусклым, оживёт после hello.
+                    Сомнамбула: усыпите (кнопка «сон-пат»), уйдите на другую вкладку на 5 минут —
+                    вернитесь к рисунку из кубиков.
+                </div>
+            </section>
+        </main>
+        <footer>
+            Память пишется в общий ключ um13-memory (одна вселенная с терминалом/колодцем).
+            «Очистить память» затрёт и имя, и first-met — на других страницах призрак «забудет» вас.
+            Это ожидаемо.
+        </footer>
 
-<script type="module" src="/scripts/easter/ghost-sandbox.js"></script>
-<script src="/um13-ghost.js?v=4" data-um13-mode="page" defer></script>
-</body>
+        <script type="module" src="/scripts/easter/ghost-sandbox.js"></script>
+        <script src="/um13-ghost.js?v=4" data-um13-mode="page" defer></script>
+    </body>
 </html>

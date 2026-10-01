@@ -122,14 +122,18 @@ const ActionBlock = memo(function ActionBlock({
                         <input
                             type="number"
                             value={action.min ?? 1}
-                            onChange={(e) => onUpdate(index, { min: parseInt(e.target.value) || 0 })}
+                            onChange={(e) =>
+                                onUpdate(index, { min: parseInt(e.target.value) || 0 })
+                            }
                             placeholder={t('action.min')}
                             className={ACTION_INPUT_CLASS}
                         />
                         <input
                             type="number"
                             value={action.max ?? 10}
-                            onChange={(e) => onUpdate(index, { max: parseInt(e.target.value) || 10 })}
+                            onChange={(e) =>
+                                onUpdate(index, { max: parseInt(e.target.value) || 10 })
+                            }
                             placeholder={t('action.max')}
                             className={ACTION_INPUT_CLASS}
                         />

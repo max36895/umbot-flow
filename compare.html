@@ -1,0 +1,490 @@
+<!doctype html>
+<!--
+    ═══════════════════════════════════════════════════════════════
+    umbot Flow · страница сравнения. ты опять смотришь исходник.
+    спойлер: в таблице ниже мы побеждаем. но ты и сам видишь.
+    ═══════════════════════════════════════════════════════════════
+-->
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0a0f" />
+    <title>Umbot Flow против облачных конструкторов ботов — сравнение</title>
+    <meta
+        name="description"
+        content="Чем Umbot Flow отличается от SaleBot, Botmother и других облачных конструкторов чат-ботов: открытый исходный код, без подписок и платежей, бот работает на вашем сервере, без лимитов на сообщения. Open-source аналог конструкторов ботов."
+    />
+    <meta
+        property="og:title"
+        content="Umbot Flow против облачных конструкторов ботов — сравнение"
+    />
+    <meta
+        property="og:description"
+        content="Открытый исходный код, без подписок и платежей, бот на вашем сервере и без лимитов. Чем open-source конструктор Umbot Flow отличается от SaleBot, Botmother и других облачных сервисов."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://flow.maxim-m.ru/compare/" />
+    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt"
+          content="Umbot Flow — визуальный редактор чат-ботов: тёмный холст с неоновыми блоками сценария" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content="Umbot Flow" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+        name="twitter:title"
+        content="Umbot Flow против облачных конструкторов ботов — сравнение"
+    />
+    <meta
+        name="twitter:description"
+        content="Открытый исходный код, без подписок и платежей, бот на вашем сервере и без лимитов. Open-source альтернатива облачным конструкторам чат-ботов."
+    />
+    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <link rel="canonical" href="https://flow.maxim-m.ru/compare/" />
+    <link rel="stylesheet" href="/styles/landing.css" />
+    <link rel="stylesheet" href="/src/landing-fonts.css" />
+</head>
+<body>
+<header class="site-header" id="site-header">
+    <div class="container header-inner">
+        <a class="logo" href="/">
+                    <span class="logo-mark">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path
+                                d="M5 7h5M5 12h9M5 17h13"
+                                stroke="#051015"
+                                stroke-width="2.4"
+                                stroke-linecap="round"
+                            />
+                            <circle cx="19" cy="7" r="2.2" fill="#051015" />
+                        </svg>
+                    </span>
+            Umbot Flow
+        </a>
+        <nav class="main" aria-label="Основная навигация">
+            <a href="/#features">Возможности</a>
+            <a href="/#how">Как работает</a>
+            <a href="/docs/">Документация</a>
+            <a href="https://github.com/max36895/umbot-flow" rel="noopener">GitHub</a>
+            <a class="cta-mini" href="/app">
+                <span class="cta-full">Открыть редактор</span>
+                <span class="cta-short">В редактор</span>
+            </a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <!-- ============ ХИРО ============ -->
+    <section class="page-hero">
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="container">
+            <div class="page-hero-inner">
+                <nav class="breadcrumbs" aria-label="Хлебные крошки">
+                    <a href="/">Главная</a>
+                    <span aria-hidden="true">/</span>
+                    <span>Сравнение</span>
+                </nav>
+                <h1>Umbot Flow против облачных конструкторов</h1>
+                <p class="subtitle">
+                    SaleBot, Botmother, Aimylogic и другие облачные сервисы сдают бота
+                    <strong>в аренду</strong>: код и данные живут у них, а вы платите
+                    подписку. Umbot Flow — <strong>open-source</strong> конструктор: вы
+                    собираете сценарий визуально, скачиваете проект целиком и запускаете
+                    его на своём сервере. Весь код — у вас, а не у стороннего сервиса.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ ТАБЛИЦА СРАВНЕНИЯ ============ -->
+    <section class="block container">
+        <div class="table-scroll reveal">
+            <table class="compare-table">
+                <caption class="visually-hidden">
+                    Сравнение облачных конструкторов чат-ботов и Umbot Flow
+                </caption>
+                <thead>
+                <tr>
+                    <th scope="col">Критерий</th>
+                    <th scope="col" class="col-cloud">
+                        Облачные конструкторы
+                        <span class="th-sub">SaleBot, Botmother и др.</span>
+                    </th>
+                    <th scope="col" class="col-us">
+                        Umbot Flow
+                        <span class="th-sub">open-source, MIT</span>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">Исходный код</th>
+                    <td class="cell-bad">Закрыт, живёт на серверах сервиса</td>
+                    <td class="cell-good">
+                        Полный TypeScript-проект скачивается и принадлежит вам
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Оплата</th>
+                    <td class="cell-bad">Ежемесячная подписка по тарифу</td>
+                    <td class="cell-good">0 ₽ — бесплатно, без тарифов и подписок</td>
+                </tr>
+                <tr>
+                    <th scope="row">Если не оплатить</th>
+                    <td class="cell-bad">Бот останавливается или блокируется</td>
+                    <td class="cell-good">
+                        Не применимо: бот работает, пока жив ваш сервер
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Лимиты</th>
+                    <td class="cell-bad">
+                        Сообщения, пользователи и боты ограничены тарифом
+                    </td>
+                    <td class="cell-good">
+                        Безлимит — упирается только в мощности вашего сервера
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Данные пользователей</th>
+                    <td class="cell-bad">Хранятся на сторонних серверах</td>
+                    <td class="cell-good">Только на вашем сервере, под вашим контролем</td>
+                </tr>
+                <tr>
+                    <th scope="row">Если сервис закроется</th>
+                    <td class="cell-bad">Боты перестают работать вместе с сервисом</td>
+                    <td class="cell-good">
+                        Ничего не меняется: код и данные уже у вас
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Доработка</th>
+                    <td class="cell-bad">Только возможности, заложенные сервисом</td>
+                    <td class="cell-good">
+                        Любые: сгенерированный код свободно дописывается
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Платформы</th>
+                    <td class="cell-mid">Обычно 1–3 мессенджера на тариф</td>
+                    <td class="cell-good">
+                        7 платформ из одной логики: Telegram, Алиса, VK, Маруся, Max,
+                        Viber, SmartApp. Дополнительно можно подключить любую свою платформу
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Что нужно для запуска</th>
+                    <td class="cell-mid">Только браузер — всё в облаке</td>
+                    <td class="cell-mid">
+                        Node.js 22+ на вашем VPS (или час работы разработчика)
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="table-note reveal">
+            Формулировки про облачные сервисы — обобщение типичных условий тарифов;
+            детали зависят от конкретного сервиса и плана.
+        </p>
+    </section>
+
+    <!-- ============ КАК ЭТО РАБОТАЕТ ============ -->
+    <section class="block container" id="how">
+        <div class="block-head reveal">
+            <h2>Как Umbot Flow отдаёт код вам</h2>
+            <p>
+                Конструктор — визуальная обёртка над open-source фреймворком
+                <a href="https://github.com/max36895/umbot" rel="noopener">umbot</a>.
+                На выходе — обычный проект, а не «чёрный ящик».
+            </p>
+        </div>
+        <div class="steps">
+            <div class="step reveal">
+                <h3>Соберите сценарий</h3>
+                <p>
+                    В визуальном редакторе: блоки команд, шагов, условий и ответов,
+                    живое превью чата. Без регистрации и без кода.
+                </p>
+            </div>
+            <div class="step reveal">
+                <h3>Скачайте flow.json</h3>
+                <p>
+                    Редактор проверит сценарий и отдаст открытый, документированный
+                    <a href="/docs/json-format/">JSON-формат</a> — его можно править
+                    и вручную.
+                </p>
+            </div>
+            <div class="step reveal">
+                <h3>Сгенерируйте проект</h3>
+                <p>
+                    Одна команда CLI разворачивает TypeScript-проект:
+                    <code>npx umbot create from-flow flow.json</code>
+                </p>
+            </div>
+            <div class="step reveal">
+                <h3>Положите на свой сервер</h3>
+                <p>
+                    npm install, токены в .env — и бот работает на вашем VPS. Код
+                    версионируется в git и дорабатывается как обычный проект.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ ЧЕСТНО: КОГДА ЧТО ВЫБРАТЬ ============ -->
+    <section class="block container">
+        <div class="block-head reveal">
+            <h2>Честно: кому что подходит</h2>
+            <p>У обоих подходов есть свои сценарии — выбирайте осознанно.</p>
+        </div>
+        <div class="choice-grid">
+            <div class="feature reveal tone-action">
+                <h3>Облачный конструктор — если</h3>
+                <ul class="plain-list">
+                    <li>Нужен бот «на вчера» для короткой акции;</li>
+                    <li>Нет своего сервера и не хочется разбираться с Node.js;</li>
+                    <li>Нужны готовые рассылки и интеграции с CRM из коробки;</li>
+                    <li>Подписка дешевле, чем арендовать VPS или нанимать разработчика.</li>
+                </ul>
+            </div>
+            <div class="feature reveal tone-response">
+                <h3>Umbot Flow — если</h3>
+                <ul class="plain-list">
+                    <li>Бот — часть бизнеса, а не одноразовая акция;</li>
+                    <li>Важно владеть кодом и данными, а не арендовать их;</li>
+                    <li>Не хотите платить подписку годами и зависеть от чужого сервиса;</li>
+                    <li>Нужны несколько платформ сразу — от Telegram до Алисы;</li>
+                    <li>Сценарий будет расти и его захочется дописывать кодом.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="block container" id="faq">
+        <div class="block-head reveal">
+            <h2>Частые вопросы о переходе</h2>
+        </div>
+        <div class="faq">
+            <div class="faq-item reveal">
+                <details open>
+                    <summary>
+                        <span class="q">Чем Umbot Flow отличается от SaleBot или Botmother?</span>
+                        <span class="chev"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" /></svg
+                        ></span>
+                    </summary>
+                    <div class="a">
+                        Моделью владения. Облачные сервисы хранят сценарий, код и данные
+                        у себя и сдают их в аренду за подписку. Umbot Flow генерирует
+                        открытый TypeScript-проект, который вы скачиваете и запускаете на
+                        своём сервере: никакой подписки, лимитов и зависимости от чужого
+                        сервиса.
+                    </div>
+                </details>
+            </div>
+            <div class="faq-item reveal">
+                <details>
+                    <summary>
+                        <span class="q">Правда бесплатно? В чём подвох?</span>
+                        <span class="chev"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" /></svg
+                        ></span>
+                    </summary>
+                    <div class="a">
+                        Подвоха нет: и редактор, и фреймворк umbot — open-source под
+                        лицензией MIT. Единственная возможная трата — ваш сервер для
+                        запуска бота (простого VPS хватает за несколько сотен рублей в
+                        месяц), и та же трата нужна любому боту на собственном коде.
+                    </div>
+                </details>
+            </div>
+            <div class="faq-item reveal">
+                <details>
+                    <summary>
+                        <span class="q">Нужен ли разработчик?</span>
+                        <span class="chev"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" /></svg
+                        ></span>
+                    </summary>
+                    <div class="a">
+                        Сценарий собирается визуально, без кода. Для запуска нужен сервер
+                        с Node.js 22+ и одна команда CLI — по
+                        <a href="/docs/quick-start/">пошаговой инструкции</a> это делает
+                        любой человек за вечер. Если совсем не хочется — передайте
+                        скачанный проект разработчику или нейросети: это обычный TypeScript-код.
+                    </div>
+                </details>
+            </div>
+            <div class="faq-item reveal">
+                <details>
+                    <summary>
+                        <span class="q">Можно ли перенести бота из облачного конструктора?</span>
+                        <span class="chev"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" /></svg
+                        ></span>
+                    </summary>
+                    <div class="a">
+                        Автоматического импорта нет — сценарий собирается заново, но на
+                        холсте это вопрос часов, а не недель. Зато дальше бот целиком
+                        ваш: код, данные и логика больше не зависят от чужого сервиса.
+                    </div>
+                </details>
+            </div>
+            <div class="faq-item reveal">
+                <details>
+                    <summary>
+                        <span class="q">Что такое umbot?</span>
+                        <span class="chev"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" /></svg
+                        ></span>
+                    </summary>
+                    <div class="a">
+                        Open-source фреймворк для мультиплатформенных чат-ботов и
+                        голосовых навыков. Umbot Flow рисует сценарий визуально, а CLI
+                        umbot превращает его в готовый проект. Фреймворк можно
+                        использовать и без конструктора — чисто кодом.
+                    </div>
+                </details>
+            </div>
+            <div class="faq-item reveal">
+                <details>
+                    <summary>
+                        <span class="q">А если мне какого-то функционала не хватает?</span>
+                        <span class="chev"
+                        ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 5v14M5 12h14" /></svg
+                        ></span>
+                    </summary>
+                    <div class="a">
+                        Всё просто: откройте <a href="https://github.com/max36895/umbot-flow/issues">раздел Issues на GitHub</a>
+                        и опишите, какой возможности вам не хватает. Мы берём предложение в работу,
+                        а после релиза присылаем инструкцию — как использовать новую функцию
+                        и обновить своего бота.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ ФИНАЛЬНЫЙ CTA ============ -->
+    <section class="final-cta">
+        <div class="container reveal">
+            <h2>Заберите своего бота себе</h2>
+            <p>
+                Откройте редактор с демо-сценарием, соберите логику и скачайте проект —
+                код останется у вас.
+            </p>
+            <a class="btn-primary" href="/app">Собрать бота бесплатно →</a>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container footer-inner">
+        <div>
+            © 2026 Umbot Flow · открытый код на
+            <a href="https://github.com/max36895/umbot-flow" rel="noopener">GitHub</a>
+        </div>
+        <div class="footer-links">
+            <a href="/">Главная</a>
+            <a href="/docs/">Документация</a>
+            <a href="/docs/quick-start/">Быстрый старт</a>
+            <a href="/docs/faq/">FAQ</a>
+        </div>
+    </div>
+</footer>
+
+<script type="module" src="/scripts/landing.js"></script>
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Главная",
+                "item": "https://flow.maxim-m.ru/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Сравнение с облачными конструкторами",
+                "item": "https://flow.maxim-m.ru/compare/"
+            }
+        ]
+    }
+</script>
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Чем Umbot Flow отличается от SaleBot или Botmother?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Моделью владения. Облачные сервисы хранят сценарий, код и данные у себя и сдают их в аренду за подписку. Umbot Flow генерирует открытый TypeScript-проект, который вы скачиваете и запускаете на своём сервере: никакой подписки, лимитов и зависимости от чужого сервиса."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Правда бесплатно? В чём подвох?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Подвоха нет: и редактор, и фреймворк umbot — open-source под лицензией MIT. Единственная возможная трата — ваш сервер для запуска бота (простого VPS хватает за несколько сотен рублей в месяц), и та же трата нужна любому боту на собственном коде."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Нужен ли разработчик?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Сценарий собирается визуально, без кода. Для запуска нужен сервер с Node.js 22+ и одна команда CLI — по пошаговой инструкции это делает любой человек за вечер. Если совсем не хочется — передайте скачанный проект разработчику: это обычный TypeScript-код."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Можно ли перенести бота из облачного конструктора?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Автоматического импорта нет — сценарий собирается заново, но на холсте это вопрос часов, а не недель. Зато дальше бот целиком ваш: код, данные и логика больше не зависят от чужого сервиса."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Что такое umbot?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Open-source фреймворк для мультиплатформенных чат-ботов и голосовых навыков. Umbot Flow рисует сценарий визуально, а CLI umbot превращает его в готовый проект. Фреймворк можно использовать и без конструктора — чисто кодом."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "А если мне какого-то функционала не хватает?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Всё просто: откройте раздел Issues на GitHub и опишите, какой возможности вам не хватает. Мы берём предложение в работу, а после релиза присылаем инструкцию — как использовать новую функцию и обновить своего бота."
+                }
+            }
+        ]
+    }
+</script>
+<script src="/metrika.js" async></script>
+</body>
+</html>

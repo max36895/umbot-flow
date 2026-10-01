@@ -26,13 +26,13 @@ interface Um13Memory {
     'well-rescued'?: number; // всего спасено ключей (сумма)
     'terminal-visited'?: number;
     'terminal-chat'?: number;
-    'confession'?: number;
+    confession?: number;
     'queue-waited'?: number;
     'skynet-won'?: number;
     'pizza-courier'?: number; // визиты пицца-бота из приёмной
     'konami-games'?: number; // прогрессия игр редактора (угадайка → КНБ → побег → заговор)
     'um13-taken'?: number; // забрал UM-13 с собой (финальный флаг)
-    'humanName'?: string; // имя человека (знакомство в терминале) — читает призрак
+    humanName?: string; // имя человека (знакомство в терминале) — читает призрак
     'first-met'?: number; // timestamp первой встречи с призраком — годовщины
     [k: string]: number | string | undefined;
 }

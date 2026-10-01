@@ -1,9 +1,11 @@
 :root {
     color-scheme: dark;
 }
+
 * {
     box-sizing: border-box;
 }
+
 body {
     margin: 0;
     min-height: 100vh;
@@ -15,38 +17,45 @@ body {
         radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 240, 255, 0.08), transparent),
         radial-gradient(circle at 85% 90%, rgba(188, 19, 254, 0.05), transparent);
 }
+
 header {
     max-width: 880px;
     margin: 0 auto 28px;
 }
+
 h1 {
     font-size: 22px;
     margin: 0 0 8px;
     color: #00f0ff;
     font-weight: 600;
 }
+
 .sub {
     font-size: 13px;
     color: rgba(232, 232, 239, 0.6);
     line-height: 1.6;
     margin: 0;
 }
+
 .sub b {
     color: #e8e8ef;
     font-weight: 600;
 }
+
 main {
     max-width: 880px;
     margin: 0 auto;
     display: grid;
     gap: 14px;
 }
+
 section {
     border: 1px solid rgba(0, 240, 255, 0.18);
     border-radius: 14px;
     padding: 18px 20px;
     background: rgba(8, 12, 20, 0.6);
 }
+
 h2 {
     font-size: 13px;
     margin: 0 0 6px;
@@ -55,17 +64,20 @@ h2 {
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
+
 .hint {
     font-size: 12px;
     color: rgba(232, 232, 239, 0.55);
     line-height: 1.6;
     margin: 0 0 12px;
 }
+
 .row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
+
 button {
     font-family: inherit;
     font-size: 12px;
@@ -79,15 +91,18 @@ button {
         background 0.15s ease,
         border-color 0.15s ease;
 }
+
 button:hover {
     background: rgba(0, 240, 255, 0.16);
     border-color: rgba(0, 240, 255, 0.6);
 }
+
 button.primary {
     background: linear-gradient(90deg, rgba(0, 240, 255, 0.2), rgba(0, 150, 255, 0.2));
     border-color: rgba(0, 240, 255, 0.6);
     font-weight: 600;
 }
+
 .log {
     margin-top: 14px;
     font-size: 11px;
@@ -98,10 +113,12 @@ button.primary {
     min-height: 20px;
     white-space: pre-wrap;
 }
+
 .log em {
     color: #00f0ff;
     font-style: normal;
 }
+
 footer {
     max-width: 880px;
     margin: 24px auto 0;

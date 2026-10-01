@@ -1,7 +1,12 @@
 import { memo, useCallback, useMemo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import useUiStore from '../../../store/uiStore';
-import { NODE_COLORS, nodeColorAlpha, HANDLE_STYLES_GLOW, type NodeTypeKey } from './useNodeClasses';
+import {
+    NODE_COLORS,
+    nodeColorAlpha,
+    HANDLE_STYLES_GLOW,
+    type NodeTypeKey,
+} from './useNodeClasses';
 import { NodeIcon, type NodeIconName } from '../../ui/NodeIcons';
 
 interface RoundTerminalNodeProps {
@@ -38,7 +43,9 @@ function RoundTerminalNodeComponent({
     const rootStyle = useMemo(
         () => ({
             borderColor: isSelected ? color.cssVar : nodeColorAlpha(nodeType, 30),
-            backgroundColor: isSelected ? nodeColorAlpha(nodeType, 15) : 'var(--surface-container-low)',
+            backgroundColor: isSelected
+                ? nodeColorAlpha(nodeType, 15)
+                : 'var(--surface-container-low)',
             boxShadow: isSelected ? `0 0 20px ${nodeColorAlpha(nodeType, 40)}` : undefined,
         }),
         [isSelected, color, nodeType],

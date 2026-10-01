@@ -797,7 +797,9 @@ function generateIndexTs(doc: FlowDocument): string {
         }
 
         // Навигация для next-ребра
-        lines.push(...generateNextNavigation(node.id, doc, validNodes, '    ', generatedStandaloneIds));
+        lines.push(
+            ...generateNextNavigation(node.id, doc, validNodes, '    ', generatedStandaloneIds),
+        );
 
         lines.push(`});`);
         lines.push(``);

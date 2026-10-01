@@ -446,7 +446,7 @@ textarea {
     border-radius: 0;
 }
 
-.z-toolbar{
+.z-toolbar {
     z-index: 99;
 }
 
@@ -454,6 +454,7 @@ textarea {
 .toolbar-scroll {
     scrollbar-width: none;
 }
+
 .toolbar-scroll::-webkit-scrollbar {
     display: none;
 }

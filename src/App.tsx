@@ -54,7 +54,8 @@ export default function App() {
     // show() НЕ показывает сразу: он только снимает запрет — в editor-режиме
     // призрак всё равно приходит лишь после 30с тишины (editorLoop).
     useEffect(() => {
-        const env = (window as unknown as { __UM13_ENV__?: { setBusy: (b: boolean) => void } }).__UM13_ENV__;
+        const env = (window as unknown as { __UM13_ENV__?: { setBusy: (b: boolean) => void } })
+            .__UM13_ENV__;
         env?.setBusy(
             previewOpen ||
                 exportDialogOpen ||
@@ -98,11 +99,13 @@ export default function App() {
                     // Учебный характер демо: две ноды-сироты намеренно
                     // некорректны — иначе «ошибки» при первом заходе
                     // читаются как «я что-то сломал».
-                    useUiStore.getState().showToast(
-                        getLocale() === 'ru'
-                            ? 'UM-13: вот твой внутренний бот. Два блока специально не подключены — потренируйся на валидации или удали их.'
-                            : 'UM-13: here is your inner bot. Two blocks are intentionally left unconnected — practice with validation or delete them.',
-                    );
+                    useUiStore
+                        .getState()
+                        .showToast(
+                            getLocale() === 'ru'
+                                ? 'UM-13: вот твой внутренний бот. Два блока специально не подключены — потренируйся на валидации или удали их.'
+                                : 'UM-13: here is your inner bot. Two blocks are intentionally left unconnected — practice with validation or delete them.',
+                        );
                 }
             } catch {
                 /* повреждённый payload — тихо игнорируем */

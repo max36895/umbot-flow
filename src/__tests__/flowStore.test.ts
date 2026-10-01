@@ -167,7 +167,9 @@ describe('flowStore', () => {
         // Первый undo откатывает только saveTo
         useFlowStore.getState().undo();
         expect(useFlowStore.getState().nodes[0]?.data.name).toBe('renamed');
-        expect((useFlowStore.getState().nodes[0]?.data as { saveTo?: string }).saveTo).toBeUndefined();
+        expect(
+            (useFlowStore.getState().nodes[0]?.data as { saveTo?: string }).saveTo,
+        ).toBeUndefined();
 
         // Второй undo откатывает name
         useFlowStore.getState().undo();
@@ -224,12 +226,10 @@ describe('flowStore', () => {
         expect(edges).toHaveLength(1);
         expect(edges[0]?.source).toBe(step);
         expect(edges[0]?.target).toBe(target);
-        expect(
-            (edges[0]?.data as { edgeType?: string } | undefined)?.edgeType,
-        ).toBe('next');
-        const stepData = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        expect((edges[0]?.data as { edgeType?: string } | undefined)?.edgeType).toBe('next');
+        const stepData = useFlowStore.getState().nodes.find((n) => n.id === step)?.data as {
+            next?: string;
+        };
         expect(stepData.next).toBe(target);
     });
 
@@ -244,9 +244,9 @@ describe('flowStore', () => {
         const edges = useFlowStore.getState().edges;
         expect(edges).toHaveLength(1);
         expect(edges[0]?.target).toBe(second);
-        const stepData = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        const stepData = useFlowStore.getState().nodes.find((n) => n.id === step)?.data as {
+            next?: string;
+        };
         expect(stepData.next).toBe(second);
     });
 
@@ -258,9 +258,9 @@ describe('flowStore', () => {
         useFlowStore.getState().setNextTarget(step, null);
 
         expect(useFlowStore.getState().edges).toHaveLength(0);
-        const stepData = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        const stepData = useFlowStore.getState().nodes.find((n) => n.id === step)?.data as {
+            next?: string;
+        };
         expect(stepData.next).toBeUndefined();
     });
 
@@ -273,9 +273,9 @@ describe('flowStore', () => {
         // React Flow удаляет рёбра через applyEdgeChanges → setEdges([])
         useFlowStore.getState().setEdges([]);
 
-        const stepData = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        const stepData = useFlowStore.getState().nodes.find((n) => n.id === step)?.data as {
+            next?: string;
+        };
         expect(stepData.next).toBeUndefined();
     });
 
@@ -286,9 +286,9 @@ describe('flowStore', () => {
 
         useFlowStore.getState().removeNode(target);
 
-        const stepData = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        const stepData = useFlowStore.getState().nodes.find((n) => n.id === step)?.data as {
+            next?: string;
+        };
         expect(stepData.next).toBeUndefined();
         expect(useFlowStore.getState().edges).toHaveLength(0);
     });
@@ -374,9 +374,7 @@ describe('flowStore', () => {
         expect(edges).toHaveLength(1);
         expect(edges[0]?.source).toBe(stepId);
         expect(edges[0]?.target).toBe(respId);
-        expect(
-            (edges[0]?.data as { edgeType?: string } | undefined)?.edgeType,
-        ).toBe('next');
+        expect((edges[0]?.data as { edgeType?: string } | undefined)?.edgeType).toBe('next');
     });
 
     it('undo откатывает и ребро, и поле data.next (единый шаг истории)', () => {
@@ -387,9 +385,9 @@ describe('flowStore', () => {
         useFlowStore.getState().undo();
 
         expect(useFlowStore.getState().edges).toHaveLength(0);
-        const stepData = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === step)?.data as { next?: string };
+        const stepData = useFlowStore.getState().nodes.find((n) => n.id === step)?.data as {
+            next?: string;
+        };
         expect(stepData.next).toBeUndefined();
     });
 
@@ -511,14 +509,13 @@ describe('flowStore', () => {
         const target = useFlowStore.getState().addNode('response', { x: 300, y: 0 });
         useFlowStore.getState().setNextTarget(step, target);
 
-        const sourceData = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === step)?.data as NodeData;
+        const sourceData = useFlowStore.getState().nodes.find((n) => n.id === step)
+            ?.data as NodeData;
         const newId = useFlowStore.getState().pasteNode(sourceData, { x: 100, y: 100 });
 
-        const pasted = useFlowStore
-            .getState()
-            .nodes.find((n) => n.id === newId)?.data as { next?: string };
+        const pasted = useFlowStore.getState().nodes.find((n) => n.id === newId)?.data as {
+            next?: string;
+        };
         expect(pasted.next).toBeUndefined();
     });
 });

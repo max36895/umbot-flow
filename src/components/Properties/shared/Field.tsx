@@ -23,9 +23,7 @@ export function Field({ label, children, help, errors, errorVisibility = true }:
     return (
         <div className={`mb-5 ${hasError ? 'input-error-container' : ''}`}>
             <div className="mb-1.5 flex items-center gap-1">
-                <label
-                    className={`text-xs font-medium ${hasError ? 'text-error' : 'text-fg/75'}`}
-                >
+                <label className={`text-xs font-medium ${hasError ? 'text-error' : 'text-fg/75'}`}>
                     {label}
                 </label>
                 {hasError && (

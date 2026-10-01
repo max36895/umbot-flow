@@ -13,11 +13,7 @@ export function useNodeErrors(nodeId: string): string[] | undefined {
 }
 
 /** Маленький бейдж-индикатор ошибок для отображения на ноде. */
-export const NodeErrorsBadge = memo(function NodeErrorsBadge({
-    errors,
-}: {
-    errors?: string[];
-}) {
+export const NodeErrorsBadge = memo(function NodeErrorsBadge({ errors }: { errors?: string[] }) {
     if (!errors || errors.length === 0) return null;
     return (
         <span

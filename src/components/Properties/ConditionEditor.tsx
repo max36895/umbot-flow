@@ -96,10 +96,7 @@ export function ConditionEditor({ conditions, onChange }: Props) {
             </button>
 
             {conditions.map((cond, i) => (
-                <div
-                    key={i}
-                    className="rounded border border-accent/20 bg-accent/[0.08] p-2"
-                >
+                <div key={i} className="rounded border border-accent/20 bg-accent/[0.08] p-2">
                     <div className="mb-2 flex items-center justify-between">
                         <span className="flex items-center gap-1 text-xs font-bold text-accent">
                             <NodeIcon name="condition" size={12} />

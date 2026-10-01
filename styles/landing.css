@@ -274,6 +274,15 @@ h1 {
     font-weight: 600;
 }
 
+/* УТП под H1 на лендинге (open-source, код у вас) — раньше был h2 без стилей */
+.hero-lead {
+    font-size: clamp(1rem, 2vw, 1.18rem);
+    font-weight: 500;
+    color: var(--fg);
+    max-width: 640px;
+    margin: 0 auto 20px;
+}
+
 /* ===== Кнопки ===== */
 .cta-row {
     display: flex;
@@ -1130,4 +1139,190 @@ footer {
     display: flex;
     gap: 22px;
     flex-wrap: wrap;
+}
+
+/* ===== Страница сравнения (/compare/) ===== */
+
+/* Скрытый, но доступный текст (caption таблицы) */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Компактный хиро внутренних страниц */
+.page-hero {
+    position: relative;
+    padding: 150px 0 70px;
+    overflow: hidden;
+}
+
+.page-hero-inner {
+    max-width: 760px;
+}
+
+.page-hero h1 {
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 22px;
+}
+
+.page-hero .subtitle {
+    font-size: 1.08rem;
+}
+
+.breadcrumbs {
+    display: flex;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: var(--fg-faint);
+    margin-bottom: 28px;
+}
+
+.breadcrumbs a {
+    color: var(--fg-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumbs a:hover {
+    color: var(--accent);
+}
+
+/* Таблица сравнения */
+.table-scroll {
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(232, 232, 239, 0.08);
+    background: var(--surface);
+}
+
+.compare-table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.compare-table th,
+.compare-table td {
+    padding: 16px 20px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(232, 232, 239, 0.07);
+}
+
+.compare-table tbody tr:last-child th,
+.compare-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.compare-table thead th {
+    font-size: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(232, 232, 239, 0.14);
+}
+
+.compare-table thead .col-us {
+    color: var(--accent);
+}
+
+.th-sub {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--fg-faint);
+    margin-top: 3px;
+}
+
+.compare-table tbody th {
+    font-weight: 600;
+    width: 22%;
+    color: var(--fg);
+}
+
+/* Колонка Umbot Flow — мягкое свечение, как у активной ноды */
+.compare-table .col-us,
+.compare-table td.cell-good {
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+
+.cell-good {
+    color: var(--fg);
+}
+
+.cell-good::before,
+.cell-bad::before,
+.cell-mid::before {
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+.cell-good::before {
+    content: '✓';
+    color: var(--node-response);
+}
+
+.cell-bad {
+    color: var(--fg-dim);
+}
+
+.cell-bad::before {
+    content: '✕';
+    color: var(--node-end);
+}
+
+.cell-mid {
+    color: var(--fg-dim);
+}
+
+.cell-mid::before {
+    content: '~';
+    color: var(--node-action);
+}
+
+.table-note {
+    margin-top: 14px;
+    font-size: 0.85rem;
+    color: var(--fg-faint);
+    text-align: center;
+}
+
+/* Две карточки «кому что подходит» */
+.choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
+}
+
+.plain-list {
+    list-style: none;
+    margin-top: 6px;
+}
+
+.plain-list li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 10px;
+    color: var(--fg-dim);
+    font-size: 0.95rem;
+}
+
+.plain-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tone, var(--accent));
+    box-shadow: 0 0 8px var(--tone, var(--accent));
 }

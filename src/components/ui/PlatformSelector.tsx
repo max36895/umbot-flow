@@ -135,43 +135,43 @@ export default function PlatformSelector({ value, onChange }: PlatformSelectorPr
                         style={{ top: pos.top, left: pos.left, maxHeight: pos.maxHeight }}
                         className="fixed z-menu w-56 overflow-y-auto rounded-lg border border-glass-border bg-surface-modal shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
                     >
-                    {/* Группы */}
-                    <div className="border-b border-outline-variant p-2">
-                        {PLATFORM_GROUPS.map((group) => {
-                            const allSelected = group.platforms.every((p) => value.includes(p));
-                            return (
-                                <button
-                                    key={group.labelKey}
-                                    onClick={() => selectGroup(group.platforms)}
-                                    className={`block w-full rounded px-2 py-1 text-left text-xs ${
-                                        allSelected
-                                            ? 'bg-info/10 text-info'
-                                            : 'text-fg/50 hover:bg-fg/5'
-                                    }`}
-                                >
-                                    {t(group.labelKey)}
-                                </button>
-                            );
-                        })}
-                    </div>
+                        {/* Группы */}
+                        <div className="border-b border-outline-variant p-2">
+                            {PLATFORM_GROUPS.map((group) => {
+                                const allSelected = group.platforms.every((p) => value.includes(p));
+                                return (
+                                    <button
+                                        key={group.labelKey}
+                                        onClick={() => selectGroup(group.platforms)}
+                                        className={`block w-full rounded px-2 py-1 text-left text-xs ${
+                                            allSelected
+                                                ? 'bg-info/10 text-info'
+                                                : 'text-fg/50 hover:bg-fg/5'
+                                        }`}
+                                    >
+                                        {t(group.labelKey)}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                    {/* Отдельные платформы */}
-                    <div className="p-2">
-                        {ALL_PLATFORMS.map((platform) => (
-                            <label
-                                key={platform}
-                                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs text-fg/70 hover:bg-fg/5"
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={value.includes(platform)}
-                                    onChange={() => togglePlatform(platform)}
-                                    className="h-3 w-3 rounded accent-info"
-                                />
-                                <span>{t(PLATFORM_I18N[platform])}</span>
-                            </label>
-                        ))}
-                    </div>
+                        {/* Отдельные платформы */}
+                        <div className="p-2">
+                            {ALL_PLATFORMS.map((platform) => (
+                                <label
+                                    key={platform}
+                                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs text-fg/70 hover:bg-fg/5"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={value.includes(platform)}
+                                        onChange={() => togglePlatform(platform)}
+                                        className="h-3 w-3 rounded accent-info"
+                                    />
+                                    <span>{t(PLATFORM_I18N[platform])}</span>
+                                </label>
+                            ))}
+                        </div>
                     </div>,
                     document.body,
                 )}

@@ -96,7 +96,11 @@ export function ConditionProps({ nodeId }: Props) {
                         }
                         update({ variable: cleanVal });
                     }}
-                    placeholder={USER_INPUT_OPERATORS.has(data.operator) ? t('condition.userInput') : t('props.fieldPlaceholder')}
+                    placeholder={
+                        USER_INPUT_OPERATORS.has(data.operator)
+                            ? t('condition.userInput')
+                            : t('props.fieldPlaceholder')
+                    }
                     className="w-full border-b border-outline bg-transparent px-3 py-2 text-sm text-fg placeholder-fg/35 focus:border-b-2 focus:border-info focus:shadow-[0_4px_8px_-4px_rgba(0,240,255,0.4)] focus:outline-none"
                 />
                 {USER_INPUT_OPERATORS.has(data.operator) ? (
@@ -145,7 +149,7 @@ export function ConditionProps({ nodeId }: Props) {
                     <code className="text-accent">
                         {USER_INPUT_OPERATORS.has(data.operator)
                             ? t('condition.userInput')
-                            : (data.variable || '?')}
+                            : data.variable || '?'}
                     </code>{' '}
                     <span className="text-fg/60">{operatorLabel(data.operator)}</span>{' '}
                     {!NO_VALUE_OPERATORS.has(data.operator) && (

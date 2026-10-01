@@ -29,14 +29,22 @@ const UM13_DEMO: FlowDocument = {
     nodes: [
         // связанная цепочка (валидна)…
         {
-            type: 'command', id: 'welcome', name: 'welcome', slots: [], isPattern: false,
+            type: 'command',
+            id: 'welcome',
+            name: 'welcome',
+            slots: [],
+            isPattern: false,
             role: 'welcome',
             response: { text: 'Привет', buttons: [], sounds: [] },
         },
         { type: 'end', id: 'end_um13' },
         // …и намеренный блок-сирота как в реальном демо
         {
-            type: 'command', id: 'orphan', name: 'command', slots: [], isPattern: false,
+            type: 'command',
+            id: 'orphan',
+            name: 'command',
+            slots: [],
+            isPattern: false,
             response: { text: '', buttons: [], sounds: [] },
         },
     ],

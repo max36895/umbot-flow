@@ -101,9 +101,14 @@ export function um13LeaveNode(): string | null {
     // раз за проект — метка живёт в общей памяти, переживает перезагрузку
     um13Add('coauthor-visit', 1);
     try {
-        const m = JSON.parse(localStorage.getItem('um13-memory') ?? '{}') as Record<string, unknown>;
+        const m = JSON.parse(localStorage.getItem('um13-memory') ?? '{}') as Record<
+            string,
+            unknown
+        >;
         m[coauthorDoneKey()] = Date.now();
         localStorage.setItem('um13-memory', JSON.stringify(m));
-    } catch { /* приватный режим — записка всё равно осталась на холсте */ }
+    } catch {
+        /* приватный режим — записка всё равно осталась на холсте */
+    }
     return id;
 }

@@ -24,15 +24,13 @@ export function useValidationDoc(): FlowDocument {
             nodes: nodes.map((n) => n.data as FlowNodeData),
             edges: edges
                 .filter((e) => e.data)
-                .map(
-                    (e): FlowEdge => ({
-                        from: e.source,
-                        to: e.target,
-                        type: ((e.data as { edgeType?: string })?.edgeType ??
-                            'next') as FlowEdge['type'],
-                        label: (e.data as { label?: string })?.label,
-                    }),
-                ),
+                .map((e): FlowEdge => ({
+                    from: e.source,
+                    to: e.target,
+                    type: ((e.data as { edgeType?: string })?.edgeType ??
+                        'next') as FlowEdge['type'],
+                    label: (e.data as { label?: string })?.label,
+                })),
         }),
         [nodes, edges, metadata],
     );

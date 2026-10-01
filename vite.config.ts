@@ -14,7 +14,8 @@ export default defineConfig({
     },
     build: {
         // Мультистраничность: / — статический лендинг (index.html),
-        // /app — SPA-редактор (app.html). Стили и скрипты статических страниц
+        // /app — SPA-редактор (app.html), /compare/ — страница сравнения
+        // с облачными конструкторами (compare.html). Стили и скрипты статических страниц
         // лежат в styles/ и scripts/ и собираются Vite с хэшем в имени.
         // Docs-страницы и прочая статика из public/ копируются в dist/ как есть
         // (publicDir по умолчанию): общие docs.css и metrika.js — без хэша.
@@ -25,6 +26,7 @@ export default defineConfig({
             input: {
                 main: resolve(__dirname, 'index.html'),
                 app: resolve(__dirname, 'app.html'),
+                compare: resolve(__dirname, 'compare.html'),
                 secret: resolve(__dirname, 'secret.html'),
                 skynet: resolve(__dirname, 'sky-net.html'),
                 confession: resolve(__dirname, 'confession.html'),

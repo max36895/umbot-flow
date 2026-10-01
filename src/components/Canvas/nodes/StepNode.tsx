@@ -55,7 +55,8 @@ function StepNodeComponent({ data, id }: NodeProps & { data: StepNodeData }) {
             />
 
             <div className="mb-2 flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-fg"
+                <span
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-fg"
                     style={BADGE_STYLES.step}
                 >
                     <NodeIcon name="step" size={12} />
@@ -70,7 +71,8 @@ function StepNodeComponent({ data, id }: NodeProps & { data: StepNodeData }) {
             </div>
 
             {data.saveTo && (
-                <div className="mt-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                <div
+                    className="mt-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
                     style={SAVE_TO_BADGE_STYLE}
                 >
                     <svg

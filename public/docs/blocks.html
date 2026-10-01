@@ -1,169 +1,170 @@
 <!doctype html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>Типы блоков конструктора — Umbot Flow</title>
-    <meta
-        name="description"
-        content="Подробное описание каждого типа блока в Umbot Flow: команды, шаги, условия, действия, ответы, завершение и служебные блоки (старт, помощь, ответ по умолчанию)."
-    />
-    <link rel="canonical" href="https://flow.maxim-m.ru/docs/blocks/" />
-    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
-    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
-    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
-    <meta property="og:title" content="Типы блоков — Umbot Flow" />
-    <meta
-        property="og:description"
-        content="Подробное описание каждого типа блока в Umbot Flow: команды, шаги, условия, действия, ответы, завершение и служебные блоки."
-    />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content="https://flow.maxim-m.ru/docs/blocks/" />
-    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-    <meta property="og:locale" content="ru_RU" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <title>Типы блоков конструктора чат-ботов — Umbot Flow</title>
+        <meta
+            name="description"
+            content="Подробное описание каждого типа блока в Umbot Flow: команды, шаги, условия, действия, ответы, завершение и служебные блоки (старт, помощь, ответ по умолчанию)."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/blocks/" />
+        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/blocks/" />
+        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/blocks/" />
+        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/blocks/" />
+        <meta property="og:title" content="Типы блоков конструктора чат-ботов — Umbot Flow" />
+        <meta
+            property="og:description"
+            content="Подробное описание каждого типа блока в Umbot Flow: команды, шаги, условия, действия, ответы, завершение и служебные блоки."
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://flow.maxim-m.ru/docs/blocks/" />
+        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="ru_RU" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    <link rel="stylesheet" href="/docs/docs.css?v=1" />
-</head>
-<body>
+        <link rel="stylesheet" href="/docs/docs.css?v=1" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="topbar">
+                <a class="back" href="/docs/">← Документация</a>
+                <a class="lang" href="/docs/en/blocks/">EN</a>
+            </div>
+            <h1>Типы блоков</h1>
+            <p class="subtitle">Подробное описание каждого типа блока в редакторе</p>
 
-<div class="container">
-    <div class="topbar">
-        <a class="back" href="/docs/">← Документация</a>
-        <a class="lang" href="/docs/en/blocks/">EN</a>
-    </div>
-    <h1>Типы блоков</h1>
-    <p class="subtitle">Подробное описание каждого типа блока в редакторе</p>
+            <div class="block cmd">
+                <h3>Команда</h3>
+                <p>
+                    Реагирует на определённые слова. Пользователь вводит слово — бот отвечает
+                    настроенным текстом и кнопками.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Блок "Команда" со словами "привет", "здравствуй" и
+                    текстом "Привет! Как дела?" — бот ответит при вводе любого из этих слов.
+                </div>
+            </div>
 
-    <div class="block cmd">
-        <h3>Команда</h3>
-        <p>
-            Реагирует на определённые слова. Пользователь вводит слово — бот отвечает
-            настроенным текстом и кнопками.
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Блок "Команда" со словами "привет", "здравствуй" и
-            текстом "Привет! Как дела?" — бот ответит при вводе любого из этих слов.
+            <div class="block step">
+                <h3>Шаг</h3>
+                <p>
+                    Ждёт ответ пользователя, сохраняет его в поле и ведёт диалог дальше. Только шаг
+                    останавливает бота в ожидании ввода: ответы, действия и условия выполняются
+                    сразу, и их тексты приходят одним сообщением. Вопрос задаёт блок
+                    <em>перед</em> шагом (команда или ответ), а текст самого шага — необязательная
+                    реакция, которая отправится уже после ответа пользователя.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Ответ «Как вас зовут?» → Шаг с настройкой "Сохранить в"
+                    = "userName" → Ответ «Приятно познакомиться, {{userName}}!». Чтобы дать выбор
+                    кнопками, после шага разведите ветки Условиями: нажатая кнопка приходит боту как
+                    обычное сообщение с её текстом.
+                </div>
+            </div>
+
+            <div class="block cond">
+                <h3>Условие</h3>
+                <p>
+                    Проверяет значение переменной и ведёт диалог по разным веткам. Позволяет
+                    создавать ветвления: "если условие выполнено — идти туда, иначе — сюда".
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Если <code>возраст >= 18</code> — показать одно
+                    сообщение, иначе — другое.
+                </div>
+            </div>
+
+            <div class="block action">
+                <h3>Действие</h3>
+                <p>
+                    Выполняет дополнительные действия: установка переменных, генерация случайных
+                    чисел, HTTP-запросы. Показывает текст после выполнения.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Генерация случайного числа от 1 до 100, отправка
+                    HTTP-запроса к API, установка переменной.
+                </div>
+            </div>
+
+            <div class="block response">
+                <h3>Ответ</h3>
+                <p>
+                    Показывает текст пользователю без запроса ввода. Используйте для информационных
+                    сообщений или как промежуточный блок.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Блок "Ответ" с текстом "Это справка по боту" — просто
+                    покажет сообщение.
+                </div>
+            </div>
+
+            <div class="block end">
+                <h3>Завершение</h3>
+                <p>
+                    Завершает диалог. Бот перестаёт отвечать, пока пользователь не начнёт новый
+                    разговор.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> После сообщения "До свидания!" диалог завершается.
+                </div>
+            </div>
+
+            <h2>Служебные блоки</h2>
+            <p class="muted spaced">
+                Эти блоки не соединяются с другими — каждый из них существует в единственном
+                экземпляре и срабатывает в определённый момент.
+            </p>
+
+            <div class="block welcome">
+                <h3>Старт</h3>
+                <p>
+                    Приветствие при запуске бота. Показывается пользователю, когда он впервые
+                    открывает диалог или начинает новый разговор.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Текст "Привет! Я помогу вам с заказом. Напишите
+                    'помощь', если что-то непонятно."
+                </div>
+            </div>
+
+            <div class="block help">
+                <h3>Помощь</h3>
+                <p>
+                    Ответ на команду помощи. Срабатывает, когда пользователь запрашивает справку
+                    (например, пишет "помощь" или нажимает кнопку помощи платформы).
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Текст "Я умею отвечать на команды 'заказ' и 'статус'.
+                    Напишите одно из этих слов."
+                </div>
+            </div>
+
+            <div class="block fallback">
+                <h3>Ответ по умолчанию</h3>
+                <p>
+                    Ответ, когда бот не распознал команду пользователя. Вместо молчания или
+                    системной ошибки пользователь получит понятное сообщение.
+                </p>
+                <div class="example">
+                    <strong>Пример:</strong> Текст "Извините, я вас не понял. Напишите 'помощь',
+                    чтобы увидеть список команд."
+                </div>
+            </div>
+
+            <h2>Как соединять блоки</h2>
+            <p class="muted">
+                Перетаскивайте от края одного блока к другому, чтобы создать связь. Бот будет
+                двигаться по блокам в порядке соединений. Используйте условие для ветвления: один
+                выход для "да", другой для "нет".
+            </p>
         </div>
-    </div>
-
-    <div class="block step">
-        <h3>Шаг</h3>
-        <p>
-            Ждёт ответ пользователя, сохраняет его в поле и ведёт диалог дальше. Только шаг
-            останавливает бота в ожидании ввода: ответы, действия и условия выполняются сразу,
-            и их тексты приходят одним сообщением. Вопрос задаёт блок <em>перед</em> шагом
-            (команда или ответ), а текст самого шага — необязательная реакция, которая
-            отправится уже после ответа пользователя.
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Ответ «Как вас зовут?» → Шаг с настройкой
-            "Сохранить в" = "userName" → Ответ «Приятно познакомиться, {{userName}}!».
-            Чтобы дать выбор кнопками, после шага разведите ветки Условиями: нажатая кнопка
-            приходит боту как обычное сообщение с её текстом.
-        </div>
-    </div>
-
-    <div class="block cond">
-        <h3>Условие</h3>
-        <p>
-            Проверяет значение переменной и ведёт диалог по разным веткам. Позволяет
-            создавать ветвления: "если условие выполнено — идти туда, иначе — сюда".
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Если <code>возраст >= 18</code> — показать одно
-            сообщение, иначе — другое.
-        </div>
-    </div>
-
-    <div class="block action">
-        <h3>Действие</h3>
-        <p>
-            Выполняет дополнительные действия: установка переменных, генерация случайных
-            чисел, HTTP-запросы. Показывает текст после выполнения.
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Генерация случайного числа от 1 до 100, отправка
-            HTTP-запроса к API, установка переменной.
-        </div>
-    </div>
-
-    <div class="block response">
-        <h3>Ответ</h3>
-        <p>
-            Показывает текст пользователю без запроса ввода. Используйте для информационных
-            сообщений или как промежуточный блок.
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Блок "Ответ" с текстом "Это справка по боту" — просто
-            покажет сообщение.
-        </div>
-    </div>
-
-    <div class="block end">
-        <h3>Завершение</h3>
-        <p>
-            Завершает диалог. Бот перестаёт отвечать, пока пользователь не начнёт новый
-            разговор.
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> После сообщения "До свидания!" диалог завершается.
-        </div>
-    </div>
-
-    <h2>Служебные блоки</h2>
-    <p class="muted spaced">
-        Эти блоки не соединяются с другими — каждый из них существует в единственном
-        экземпляре и срабатывает в определённый момент.
-    </p>
-
-    <div class="block welcome">
-        <h3>Старт</h3>
-        <p>
-            Приветствие при запуске бота. Показывается пользователю, когда он впервые
-            открывает диалог или начинает новый разговор.
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Текст "Привет! Я помогу вам с заказом. Напишите
-            'помощь', если что-то непонятно."
-        </div>
-    </div>
-
-    <div class="block help">
-        <h3>Помощь</h3>
-        <p>
-            Ответ на команду помощи. Срабатывает, когда пользователь запрашивает справку
-            (например, пишет "помощь" или нажимает кнопку помощи платформы).
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Текст "Я умею отвечать на команды 'заказ' и 'статус'.
-            Напишите одно из этих слов."
-        </div>
-    </div>
-
-    <div class="block fallback">
-        <h3>Ответ по умолчанию</h3>
-        <p>
-            Ответ, когда бот не распознал команду пользователя. Вместо молчания или
-            системной ошибки пользователь получит понятное сообщение.
-        </p>
-        <div class="example">
-            <strong>Пример:</strong> Текст "Извините, я вас не понял. Напишите 'помощь',
-            чтобы увидеть список команд."
-        </div>
-    </div>
-
-    <h2>Как соединять блоки</h2>
-    <p class="muted">
-        Перетаскивайте от края одного блока к другому, чтобы создать связь. Бот будет
-        двигаться по блокам в порядке соединений. Используйте условие для ветвления: один
-        выход для "да", другой для "нет".
-    </p>
-</div>
-<script src="/metrika.js" async></script>
-</body>
+        <script src="/metrika.js" async></script>
+    </body>
 </html>

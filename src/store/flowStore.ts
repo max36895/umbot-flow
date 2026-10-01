@@ -196,7 +196,8 @@ function normalizeNextState(nodes: Node[], edges: Edge[]): { nodes: Node[]; edge
     return { nodes: [...mirrored], edges: newEdges };
 }
 
-const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит текущее состояние в undo-историю и очищает redo. */
+const useFlowStore = create<FlowStore>((set, get) => {
+    /** Пушит текущее состояние в undo-историю и очищает redo. */
     const pushHistoryEntry = () => {
         const { nodes, edges } = get();
         const history = getHistory();
@@ -219,472 +220,482 @@ const useFlowStore = create<FlowStore>((set, get) => {    /** Пушит тек�
     };
 
     return {
-    nodes: [],
-    edges: [],
-    metadata: { ...DEFAULT_METADATA },
-    saveState: 'idle',
+        nodes: [],
+        edges: [],
+        metadata: { ...DEFAULT_METADATA },
+        saveState: 'idle',
 
-    addNode: (type: NodeData['type'] | 'welcome' | 'help' | 'fallback', position) => {
-        const id = generateNodeId();
-        const { nodes, metadata } = get();
+        addNode: (type: NodeData['type'] | 'welcome' | 'help' | 'fallback', position) => {
+            const id = generateNodeId();
+            const { nodes, metadata } = get();
 
-        // Push current state to history before mutation
-        pushHistoryEntry();
-
-        const defaultData = getDefaultNodeData(type, id, nodes);
-        // Welcome/Help/Fallback ноды — это command с role
-        const isRoleNode = type === 'welcome' || type === 'help' || type === 'fallback';
-        const nodeType = isRoleNode ? 'command' : type;
-
-        // Копируем текст из настроек бота в ноду
-        if (isRoleNode) {
-            const cmdData = defaultData as CommandNodeData;
-            const sourceText =
-                type === 'welcome'
-                    ? metadata.welcome.text
-                    : type === 'help'
-                      ? (metadata.helpText?.text ?? '')
-                      : (metadata.fallback?.text ?? '');
-            cmdData.response = { ...cmdData.response, text: sourceText };
-        }
-
-        const newNode: Node = {
-            id,
-            type: nodeType,
-            position,
-            data: defaultData,
-        };
-        set({ nodes: [...nodes, newNode] });
-        get().autoSave();
-        return id;
-    },
-
-    updateNodeData: (id, data) => {
-        // Коалесцинг быстрых правок: ввод текста в одно поле генерирует
-        // обновление на каждый символ; правки одной ноды с одинаковой формой
-        // патча в пределах окна схлопываются в один шаг undo.
-        const now = Date.now();
-        const coalesceKey = `${id}:${Object.keys(data).sort().join(',')}`;
-        const shouldCoalesce =
-            lastCoalesceKey === coalesceKey && now - lastCoalesceTime < COALESCE_WINDOW_MS;
-        lastCoalesceKey = coalesceKey;
-        lastCoalesceTime = now;
-        if (!shouldCoalesce) {
+            // Push current state to history before mutation
             pushHistoryEntry();
-        }
-        applyNodeData(id, data);
-    },
 
-    removeNode: (id) => {
-        const { nodes, edges } = get();
-        pushHistoryEntry();
+            const defaultData = getDefaultNodeData(type, id, nodes);
+            // Welcome/Help/Fallback ноды — это command с role
+            const isRoleNode = type === 'welcome' || type === 'help' || type === 'fallback';
+            const nodeType = isRoleNode ? 'command' : type;
 
-        const nextEdges = edges.filter((e) => e.source !== id && e.target !== id);
-        set({
-            nodes: syncNextMirrors(nodes.filter((n) => n.id !== id), nextEdges),
-            edges: nextEdges,
-        });
-        get().autoSave();
-    },
+            // Копируем текст из настроек бота в ноду
+            if (isRoleNode) {
+                const cmdData = defaultData as CommandNodeData;
+                const sourceText =
+                    type === 'welcome'
+                        ? metadata.welcome.text
+                        : type === 'help'
+                          ? (metadata.helpText?.text ?? '')
+                          : (metadata.fallback?.text ?? '');
+                cmdData.response = { ...cmdData.response, text: sourceText };
+            }
 
-    removeSelection: (nodeIds, edgeIds) => {
-        if (nodeIds.length === 0 && edgeIds.length === 0) return;
-        const { nodes, edges } = get();
-        pushHistoryEntry();
-
-        const nodeSet = new Set(nodeIds);
-        const edgeSet = new Set(edgeIds);
-        const nextEdges = edges.filter(
-            (e) => !edgeSet.has(e.id) && !nodeSet.has(e.source) && !nodeSet.has(e.target),
-        );
-        set({
-            nodes: syncNextMirrors(nodes.filter((n) => !nodeSet.has(n.id)), nextEdges),
-            edges: nextEdges,
-        });
-        get().autoSave();
-    },
-
-    duplicateNode: (id) => {
-        const { nodes, edges } = get();
-        const sourceNode = nodes.find((n) => n.id === id);
-        if (!sourceNode) return null;
-
-        pushHistoryEntry();
-
-        const newId = generateNodeId();
-        const newNode: Node = {
-            id: newId,
-            type: sourceNode.type,
-            position: {
-                x: sourceNode.position.x + 50,
-                y: sourceNode.position.y + 50,
-            },
-            data: {
-                ...structuredClone(sourceNode.data),
-                id: newId,
-                name: `${(sourceNode.data as { name?: string })?.name ?? 'node'}_${t('node.copySuffix')}`,
-            } as NodeData,
-        };
-
-        // Копируем связанные рёбра с обновлением ID
-        const newEdges: Edge[] = edges
-            .filter((e) => e.source === id || e.target === id)
-            .map((e) => ({
-                ...e,
-                id: `e-${newId}-${e.source === id ? e.target : e.source}-${Date.now()}-${Math.random()}`,
-                source: e.source === id ? newId : e.source,
-                target: e.target === id ? newId : e.target,
-            }));
-
-        set({
-            nodes: [...nodes, newNode],
-            edges: [...edges, ...newEdges],
-        });
-        get().autoSave();
-        return newId;
-    },
-
-    pasteNode: (data, position) => {
-        const { nodes } = get();
-
-        pushHistoryEntry();
-
-        const newId = generateNodeId();
-        const cloned = structuredClone(data) as Record<string, unknown>;
-        // Вставленный шаг не наследует переход оригинала: его data.next указывал
-        // бы на чужую цель без ребра, а ребро — источник правды (поле = зеркало).
-        delete cloned.next;
-        const newNode: Node = {
-            id: newId,
-            type: data.type as NodeData['type'],
-            position,
-            data: {
-                ...cloned,
-                id: newId,
-            } as NodeData,
-        };
-
-        set({ nodes: [...nodes, newNode] });
-        get().autoSave();
-        return newId;
-    },
-
-    addEdge: (edge) => {
-        const { edges } = get();
-        pushHistoryEntry();
-
-        // Prevent duplicate edges
-        const exists = edges.some(
-            (e) => e.source === edge.source && e.target === edge.target && e.type === edge.type,
-        );
-        if (!exists) {
-            set({ edges: [...edges, edge] });
+            const newNode: Node = {
+                id,
+                type: nodeType,
+                position,
+                data: defaultData,
+            };
+            set({ nodes: [...nodes, newNode] });
             get().autoSave();
-        }
-    },
+            return id;
+        },
 
-    removeEdge: (id) => {
-        const { edges, nodes } = get();
-        pushHistoryEntry();
+        updateNodeData: (id, data) => {
+            // Коалесцинг быстрых правок: ввод текста в одно поле генерирует
+            // обновление на каждый символ; правки одной ноды с одинаковой формой
+            // патча в пределах окна схлопываются в один шаг undo.
+            const now = Date.now();
+            const coalesceKey = `${id}:${Object.keys(data).sort().join(',')}`;
+            const shouldCoalesce =
+                lastCoalesceKey === coalesceKey && now - lastCoalesceTime < COALESCE_WINDOW_MS;
+            lastCoalesceKey = coalesceKey;
+            lastCoalesceTime = now;
+            if (!shouldCoalesce) {
+                pushHistoryEntry();
+            }
+            applyNodeData(id, data);
+        },
 
-        const nextEdges = edges.filter((e) => e.id !== id);
-        set({ nodes: syncNextMirrors(nodes, nextEdges), edges: nextEdges });
-        get().autoSave();
-    },
-
-    setNextTarget: (nodeId, targetId) => {
-        const { nodes, edges } = get();
-        const node = nodes.find((n) => n.id === nodeId);
-        if (!node || node.type !== 'step') return;
-        pushHistoryEntry();
-
-        // Шаг может иметь только один переход next: убираем старое ребро, ставим новое.
-        // data.next пересчитает syncNextMirrors — поле всегда зеркало ребра.
-        const cleanedEdges = edges.filter((e) => {
-            const data = e.data as { edgeType?: EdgeType } | undefined;
-            return !(e.source === nodeId && data?.edgeType === 'next');
-        });
-
-        const newEdges = [...cleanedEdges];
-        if (targetId) {
-            newEdges.push({
-                id: `e-${nodeId}-${targetId}-${Date.now()}`,
-                source: nodeId,
-                target: targetId,
-                type: 'flowEdge',
-                data: { edgeType: 'next', label: '' },
-                animated: false,
-            });
-        }
-
-        set({ nodes: syncNextMirrors(nodes, newEdges), edges: newEdges });
-        get().autoSave();
-    },
-
-    setNodes: (nodes) => {
-        set({ nodes });
-        get().autoSave();
-    },
-
-    setEdges: (edges) => {
-        const { nodes } = get();
-        set({ nodes: syncNextMirrors(nodes, edges), edges });
-        get().autoSave();
-    },
-
-    setMetadata: (meta) => {
-        set((state) => ({ metadata: { ...state.metadata, ...meta } }));
-        get().autoSave();
-    },
-
-    updateNodeDataWithMetadata: (id, data, meta) => {
-        // Коалесцинг — как в updateNodeData
-        const now = Date.now();
-        const coalesceKey = `${id}:${Object.keys(data).sort().join(',')}`;
-        const shouldCoalesce =
-            lastCoalesceKey === coalesceKey && now - lastCoalesceTime < COALESCE_WINDOW_MS;
-        lastCoalesceKey = coalesceKey;
-        lastCoalesceTime = now;
-        if (!shouldCoalesce) {
+        removeNode: (id) => {
+            const { nodes, edges } = get();
             pushHistoryEntry();
-        }
-        // Один set() — один проход уведомлений подписчиков
-        set((state) => ({
-            nodes: state.nodes.map((n) =>
-                n.id === id ? { ...n, data: { ...n.data, ...data } as NodeData } : n,
-            ),
-            metadata: { ...state.metadata, ...meta },
-        }));
-        get().autoSave();
-    },
 
-    pushHistory: () => {
-        pushHistoryEntry();
-    },
-
-    pushHistorySnapshot: (snapshot) => {
-        const history = getHistory();
-        history.push({
-            nodes: [...snapshot.nodes],
-            edges: [...snapshot.edges],
-        });
-        setHistory(history);
-        setRedoStack([]);
-    },
-
-    undo: () => {
-        const history = getHistory();
-        if (history.length === 0) return;
-
-        // Сбрасываем коалесцинг — следующая правка должна начать новый шаг
-        lastCoalesceKey = null;
-        lastCoalesceTime = 0;
-
-        const { nodes, edges } = get();
-        const redoStack = getRedoStack();
-        redoStack.push({ nodes: [...nodes], edges: [...edges] });
-        setRedoStack(redoStack);
-
-        const prev = history.pop()!;
-        set({ nodes: prev.nodes, edges: prev.edges });
-        get().autoSave();
-    },
-
-    redo: () => {
-        const redoStack = getRedoStack();
-        if (redoStack.length === 0) return;
-
-        // Сбрасываем коалесцинг — следующая правка должна начать новый шаг
-        lastCoalesceKey = null;
-        lastCoalesceTime = 0;
-
-        const { nodes, edges } = get();
-        const history = getHistory();
-        history.push({ nodes: [...nodes], edges: [...edges] });
-        setHistory(history);
-
-        const next = redoStack.pop()!;
-        set({ nodes: next.nodes, edges: next.edges });
-        get().autoSave();
-    },
-
-    toJSON: () => {
-        const { nodes, edges, metadata } = get();
-        return {
-            ...metadata,
-            nodes: nodes.map((n) => n.data as NodeData),
-            edges: edges.map((e) => fromReactFlowEdge(e)).filter(Boolean) as FlowDocument['edges'],
-        };
-    },
-
-    fromJSON: (doc) => {
-        const flowNodes: Node[] = doc.nodes.map((n) => {
-            // Определяем role для команд с базовыми именами
-            const name = (n as { name?: string }).name;
-            const role =
-                n.type === 'command' && name === 'welcome'
-                    ? 'welcome'
-                    : n.type === 'command' && name === 'help'
-                      ? 'help'
-                      : n.type === 'command' && name === 'fallback'
-                        ? 'fallback'
-                        : (n as { role?: string }).role;
-            return {
-                id: n.id,
-                type: n.type,
-                position: { x: 0, y: 0 },
-                data: role ? { ...n, role } : n,
-            };
-        });
-
-        // Layout nodes in a simple grid
-        const COLS = 4;
-        const X_GAP = 300;
-        const Y_GAP = 200;
-        flowNodes.forEach((node, i) => {
-            node.position = {
-                x: (i % COLS) * X_GAP,
-                y: Math.floor(i / COLS) * Y_GAP,
-            };
-        });
-
-        const flowEdges: Edge[] = doc.edges.map((e, i) => toReactFlowEdge(e, i)).filter(Boolean);
-
-        // Нормализация переходов step: data.next без ребра → создаём ребро,
-        // затем поле приводится к зеркалу рёбер (общая логика с autoLoad).
-        const normalized = normalizeNextState(flowNodes, flowEdges);
-        flowNodes.length = 0;
-        flowNodes.push(...normalized.nodes);
-        flowEdges.length = 0;
-        flowEdges.push(...normalized.edges);
-
-        // Auto-layout: simple force-directed approximation
-        // Sort by topological position for better layout
-        const adjacency = new Map<string, string[]>();
-        const inDegree = new Map<string, number>();
-        for (const n of flowNodes) {
-            adjacency.set(n.id, []);
-            inDegree.set(n.id, 0);
-        }
-        for (const e of flowEdges) {
-            adjacency.get(e.source)?.push(e.target);
-            inDegree.set(e.target, (inDegree.get(e.target) ?? 0) + 1);
-        }
-
-        // Topological sort
-        const queue: string[] = [];
-        for (const [id, deg] of inDegree) {
-            if (deg === 0) queue.push(id);
-        }
-
-        const layers: string[][] = [];
-        const visited = new Set<string>();
-        while (queue.length > 0) {
-            const layer: string[] = [];
-            const nextQueue: string[] = [];
-            for (const id of queue) {
-                if (visited.has(id)) continue;
-                visited.add(id);
-                layer.push(id);
-                for (const child of adjacency.get(id) ?? []) {
-                    const deg = (inDegree.get(child) ?? 1) - 1;
-                    inDegree.set(child, deg);
-                    if (deg === 0) nextQueue.push(child);
-                }
-            }
-            layers.push(layer);
-            queue.length = 0;
-            queue.push(...nextQueue);
-        }
-
-        // Position by layers
-        const nodeMap = new Map(flowNodes.map((n) => [n.id, n]));
-        layers.forEach((layer, layerIdx) => {
-            layer.forEach((id, posIdx) => {
-                const node = nodeMap.get(id);
-                if (node) {
-                    node.position = {
-                        x: layerIdx * X_GAP,
-                        y: posIdx * Y_GAP,
-                    };
-                }
+            const nextEdges = edges.filter((e) => e.source !== id && e.target !== id);
+            set({
+                nodes: syncNextMirrors(
+                    nodes.filter((n) => n.id !== id),
+                    nextEdges,
+                ),
+                edges: nextEdges,
             });
-        });
+            get().autoSave();
+        },
 
-        // Position unvisited nodes
-        const lastLayer = layers[layers.length - 1];
-        let maxY = lastLayer ? lastLayer.length * Y_GAP : 0;
-        for (const node of flowNodes) {
-            if (!visited.has(node.id)) {
-                node.position = { x: 0, y: maxY };
-                maxY += Y_GAP;
+        removeSelection: (nodeIds, edgeIds) => {
+            if (nodeIds.length === 0 && edgeIds.length === 0) return;
+            const { nodes, edges } = get();
+            pushHistoryEntry();
+
+            const nodeSet = new Set(nodeIds);
+            const edgeSet = new Set(edgeIds);
+            const nextEdges = edges.filter(
+                (e) => !edgeSet.has(e.id) && !nodeSet.has(e.source) && !nodeSet.has(e.target),
+            );
+            set({
+                nodes: syncNextMirrors(
+                    nodes.filter((n) => !nodeSet.has(n.id)),
+                    nextEdges,
+                ),
+                edges: nextEdges,
+            });
+            get().autoSave();
+        },
+
+        duplicateNode: (id) => {
+            const { nodes, edges } = get();
+            const sourceNode = nodes.find((n) => n.id === id);
+            if (!sourceNode) return null;
+
+            pushHistoryEntry();
+
+            const newId = generateNodeId();
+            const newNode: Node = {
+                id: newId,
+                type: sourceNode.type,
+                position: {
+                    x: sourceNode.position.x + 50,
+                    y: sourceNode.position.y + 50,
+                },
+                data: {
+                    ...structuredClone(sourceNode.data),
+                    id: newId,
+                    name: `${(sourceNode.data as { name?: string })?.name ?? 'node'}_${t('node.copySuffix')}`,
+                } as NodeData,
+            };
+
+            // Копируем связанные рёбра с обновлением ID
+            const newEdges: Edge[] = edges
+                .filter((e) => e.source === id || e.target === id)
+                .map((e) => ({
+                    ...e,
+                    id: `e-${newId}-${e.source === id ? e.target : e.source}-${Date.now()}-${Math.random()}`,
+                    source: e.source === id ? newId : e.source,
+                    target: e.target === id ? newId : e.target,
+                }));
+
+            set({
+                nodes: [...nodes, newNode],
+                edges: [...edges, ...newEdges],
+            });
+            get().autoSave();
+            return newId;
+        },
+
+        pasteNode: (data, position) => {
+            const { nodes } = get();
+
+            pushHistoryEntry();
+
+            const newId = generateNodeId();
+            const cloned = structuredClone(data) as Record<string, unknown>;
+            // Вставленный шаг не наследует переход оригинала: его data.next указывал
+            // бы на чужую цель без ребра, а ребро — источник правды (поле = зеркало).
+            delete cloned.next;
+            const newNode: Node = {
+                id: newId,
+                type: data.type as NodeData['type'],
+                position,
+                data: {
+                    ...cloned,
+                    id: newId,
+                } as NodeData,
+            };
+
+            set({ nodes: [...nodes, newNode] });
+            get().autoSave();
+            return newId;
+        },
+
+        addEdge: (edge) => {
+            const { edges } = get();
+            pushHistoryEntry();
+
+            // Prevent duplicate edges
+            const exists = edges.some(
+                (e) => e.source === edge.source && e.target === edge.target && e.type === edge.type,
+            );
+            if (!exists) {
+                set({ edges: [...edges, edge] });
+                get().autoSave();
             }
-        }
+        },
 
-        // Сохраняем предыдущее состояние в историю — чтобы можно было отменить импорт/переключение
-        pushHistoryEntry();
+        removeEdge: (id) => {
+            const { edges, nodes } = get();
+            pushHistoryEntry();
 
-        set({
-            nodes: flowNodes,
-            edges: flowEdges,
-            metadata: normalizeMetadata(doc),
-        });
-        get().autoSave();
-    },
+            const nextEdges = edges.filter((e) => e.id !== id);
+            set({ nodes: syncNextMirrors(nodes, nextEdges), edges: nextEdges });
+            get().autoSave();
+        },
 
-    autoSave: () => {
-        // Откладываем сохранение для уменьшения нагрузки
-        if (saveTimeout) clearTimeout(saveTimeout);
-        set({ saveState: 'saving' });
-        saveTimeout = setTimeout(() => {
-            persistNow();
-        }, SAVE_DELAY);
-    },
+        setNextTarget: (nodeId, targetId) => {
+            const { nodes, edges } = get();
+            const node = nodes.find((n) => n.id === nodeId);
+            if (!node || node.type !== 'step') return;
+            pushHistoryEntry();
 
-    flushSave: () => {
-        // Записываем только если есть несохранённые изменения (ждёт debounce).
-        // Иначе каждое переключение вкладки писало бы одно и то же состояние.
-        if (!saveTimeout) return;
-        clearTimeout(saveTimeout);
-        saveTimeout = null;
-        persistNow();
-    },
+            // Шаг может иметь только один переход next: убираем старое ребро, ставим новое.
+            // data.next пересчитает syncNextMirrors — поле всегда зеркало ребра.
+            const cleanedEdges = edges.filter((e) => {
+                const data = e.data as { edgeType?: EdgeType } | undefined;
+                return !(e.source === nodeId && data?.edgeType === 'next');
+            });
 
-    autoLoad: () => {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return;
-            const data = JSON.parse(raw);
-            if (data.nodes && data.edges && data.metadata) {
-                // Проверка schemaVersion — если версия не поддерживается, сбрасываем
-                const savedVersion = data.metadata.schemaVersion;
-                if (savedVersion && savedVersion !== CURRENT_SCHEMA_VERSION) {
-                    console.warn(
-                        `[umbot-flow] localStorage содержит schemaVersion=${savedVersion}, ожидается ${CURRENT_SCHEMA_VERSION}. Сбрасываем состояние.`,
-                    );
-                    localStorage.removeItem(STORAGE_KEY);
-                    return;
-                }
-                // Нормализация переходов из старых сохранений: data.next без ребра
-                // → создаём ребро (как fromJSON), затем поле — зеркало рёбер.
-                const restored = normalizeNextState(data.nodes, data.edges);
-                set({
-                    nodes: restored.nodes,
-                    edges: restored.edges,
-                    metadata: normalizeMetadata(data.metadata),
+            const newEdges = [...cleanedEdges];
+            if (targetId) {
+                newEdges.push({
+                    id: `e-${nodeId}-${targetId}-${Date.now()}`,
+                    source: nodeId,
+                    target: targetId,
+                    type: 'flowEdge',
+                    data: { edgeType: 'next', label: '' },
+                    animated: false,
                 });
             }
-        } catch {
-            // Corrupted data
-        }
-    },
 
-    clearHistory: () => {
-        undoStack = [];
-        redoStackRef = [];
-        lastCoalesceKey = null;
-        lastCoalesceTime = 0;
-    },
+            set({ nodes: syncNextMirrors(nodes, newEdges), edges: newEdges });
+            get().autoSave();
+        },
+
+        setNodes: (nodes) => {
+            set({ nodes });
+            get().autoSave();
+        },
+
+        setEdges: (edges) => {
+            const { nodes } = get();
+            set({ nodes: syncNextMirrors(nodes, edges), edges });
+            get().autoSave();
+        },
+
+        setMetadata: (meta) => {
+            set((state) => ({ metadata: { ...state.metadata, ...meta } }));
+            get().autoSave();
+        },
+
+        updateNodeDataWithMetadata: (id, data, meta) => {
+            // Коалесцинг — как в updateNodeData
+            const now = Date.now();
+            const coalesceKey = `${id}:${Object.keys(data).sort().join(',')}`;
+            const shouldCoalesce =
+                lastCoalesceKey === coalesceKey && now - lastCoalesceTime < COALESCE_WINDOW_MS;
+            lastCoalesceKey = coalesceKey;
+            lastCoalesceTime = now;
+            if (!shouldCoalesce) {
+                pushHistoryEntry();
+            }
+            // Один set() — один проход уведомлений подписчиков
+            set((state) => ({
+                nodes: state.nodes.map((n) =>
+                    n.id === id ? { ...n, data: { ...n.data, ...data } as NodeData } : n,
+                ),
+                metadata: { ...state.metadata, ...meta },
+            }));
+            get().autoSave();
+        },
+
+        pushHistory: () => {
+            pushHistoryEntry();
+        },
+
+        pushHistorySnapshot: (snapshot) => {
+            const history = getHistory();
+            history.push({
+                nodes: [...snapshot.nodes],
+                edges: [...snapshot.edges],
+            });
+            setHistory(history);
+            setRedoStack([]);
+        },
+
+        undo: () => {
+            const history = getHistory();
+            if (history.length === 0) return;
+
+            // Сбрасываем коалесцинг — следующая правка должна начать новый шаг
+            lastCoalesceKey = null;
+            lastCoalesceTime = 0;
+
+            const { nodes, edges } = get();
+            const redoStack = getRedoStack();
+            redoStack.push({ nodes: [...nodes], edges: [...edges] });
+            setRedoStack(redoStack);
+
+            const prev = history.pop()!;
+            set({ nodes: prev.nodes, edges: prev.edges });
+            get().autoSave();
+        },
+
+        redo: () => {
+            const redoStack = getRedoStack();
+            if (redoStack.length === 0) return;
+
+            // Сбрасываем коалесцинг — следующая правка должна начать новый шаг
+            lastCoalesceKey = null;
+            lastCoalesceTime = 0;
+
+            const { nodes, edges } = get();
+            const history = getHistory();
+            history.push({ nodes: [...nodes], edges: [...edges] });
+            setHistory(history);
+
+            const next = redoStack.pop()!;
+            set({ nodes: next.nodes, edges: next.edges });
+            get().autoSave();
+        },
+
+        toJSON: () => {
+            const { nodes, edges, metadata } = get();
+            return {
+                ...metadata,
+                nodes: nodes.map((n) => n.data as NodeData),
+                edges: edges
+                    .map((e) => fromReactFlowEdge(e))
+                    .filter(Boolean) as FlowDocument['edges'],
+            };
+        },
+
+        fromJSON: (doc) => {
+            const flowNodes: Node[] = doc.nodes.map((n) => {
+                // Определяем role для команд с базовыми именами
+                const name = (n as { name?: string }).name;
+                const role =
+                    n.type === 'command' && name === 'welcome'
+                        ? 'welcome'
+                        : n.type === 'command' && name === 'help'
+                          ? 'help'
+                          : n.type === 'command' && name === 'fallback'
+                            ? 'fallback'
+                            : (n as { role?: string }).role;
+                return {
+                    id: n.id,
+                    type: n.type,
+                    position: { x: 0, y: 0 },
+                    data: role ? { ...n, role } : n,
+                };
+            });
+
+            // Layout nodes in a simple grid
+            const COLS = 4;
+            const X_GAP = 300;
+            const Y_GAP = 200;
+            flowNodes.forEach((node, i) => {
+                node.position = {
+                    x: (i % COLS) * X_GAP,
+                    y: Math.floor(i / COLS) * Y_GAP,
+                };
+            });
+
+            const flowEdges: Edge[] = doc.edges
+                .map((e, i) => toReactFlowEdge(e, i))
+                .filter(Boolean);
+
+            // Нормализация переходов step: data.next без ребра → создаём ребро,
+            // затем поле приводится к зеркалу рёбер (общая логика с autoLoad).
+            const normalized = normalizeNextState(flowNodes, flowEdges);
+            flowNodes.length = 0;
+            flowNodes.push(...normalized.nodes);
+            flowEdges.length = 0;
+            flowEdges.push(...normalized.edges);
+
+            // Auto-layout: simple force-directed approximation
+            // Sort by topological position for better layout
+            const adjacency = new Map<string, string[]>();
+            const inDegree = new Map<string, number>();
+            for (const n of flowNodes) {
+                adjacency.set(n.id, []);
+                inDegree.set(n.id, 0);
+            }
+            for (const e of flowEdges) {
+                adjacency.get(e.source)?.push(e.target);
+                inDegree.set(e.target, (inDegree.get(e.target) ?? 0) + 1);
+            }
+
+            // Topological sort
+            const queue: string[] = [];
+            for (const [id, deg] of inDegree) {
+                if (deg === 0) queue.push(id);
+            }
+
+            const layers: string[][] = [];
+            const visited = new Set<string>();
+            while (queue.length > 0) {
+                const layer: string[] = [];
+                const nextQueue: string[] = [];
+                for (const id of queue) {
+                    if (visited.has(id)) continue;
+                    visited.add(id);
+                    layer.push(id);
+                    for (const child of adjacency.get(id) ?? []) {
+                        const deg = (inDegree.get(child) ?? 1) - 1;
+                        inDegree.set(child, deg);
+                        if (deg === 0) nextQueue.push(child);
+                    }
+                }
+                layers.push(layer);
+                queue.length = 0;
+                queue.push(...nextQueue);
+            }
+
+            // Position by layers
+            const nodeMap = new Map(flowNodes.map((n) => [n.id, n]));
+            layers.forEach((layer, layerIdx) => {
+                layer.forEach((id, posIdx) => {
+                    const node = nodeMap.get(id);
+                    if (node) {
+                        node.position = {
+                            x: layerIdx * X_GAP,
+                            y: posIdx * Y_GAP,
+                        };
+                    }
+                });
+            });
+
+            // Position unvisited nodes
+            const lastLayer = layers[layers.length - 1];
+            let maxY = lastLayer ? lastLayer.length * Y_GAP : 0;
+            for (const node of flowNodes) {
+                if (!visited.has(node.id)) {
+                    node.position = { x: 0, y: maxY };
+                    maxY += Y_GAP;
+                }
+            }
+
+            // Сохраняем предыдущее состояние в историю — чтобы можно было отменить импорт/переключение
+            pushHistoryEntry();
+
+            set({
+                nodes: flowNodes,
+                edges: flowEdges,
+                metadata: normalizeMetadata(doc),
+            });
+            get().autoSave();
+        },
+
+        autoSave: () => {
+            // Откладываем сохранение для уменьшения нагрузки
+            if (saveTimeout) clearTimeout(saveTimeout);
+            set({ saveState: 'saving' });
+            saveTimeout = setTimeout(() => {
+                persistNow();
+            }, SAVE_DELAY);
+        },
+
+        flushSave: () => {
+            // Записываем только если есть несохранённые изменения (ждёт debounce).
+            // Иначе каждое переключение вкладки писало бы одно и то же состояние.
+            if (!saveTimeout) return;
+            clearTimeout(saveTimeout);
+            saveTimeout = null;
+            persistNow();
+        },
+
+        autoLoad: () => {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (data.nodes && data.edges && data.metadata) {
+                    // Проверка schemaVersion — если версия не поддерживается, сбрасываем
+                    const savedVersion = data.metadata.schemaVersion;
+                    if (savedVersion && savedVersion !== CURRENT_SCHEMA_VERSION) {
+                        console.warn(
+                            `[umbot-flow] localStorage содержит schemaVersion=${savedVersion}, ожидается ${CURRENT_SCHEMA_VERSION}. Сбрасываем состояние.`,
+                        );
+                        localStorage.removeItem(STORAGE_KEY);
+                        return;
+                    }
+                    // Нормализация переходов из старых сохранений: data.next без ребра
+                    // → создаём ребро (как fromJSON), затем поле — зеркало рёбер.
+                    const restored = normalizeNextState(data.nodes, data.edges);
+                    set({
+                        nodes: restored.nodes,
+                        edges: restored.edges,
+                        metadata: normalizeMetadata(data.metadata),
+                    });
+                }
+            } catch {
+                // Corrupted data
+            }
+        },
+
+        clearHistory: () => {
+            undoStack = [];
+            redoStackRef = [];
+            lastCoalesceKey = null;
+            lastCoalesceTime = 0;
+        },
     };
 });
 
@@ -716,12 +727,7 @@ function persistNow(): void {
         // QuotaExceededError или storage unavailable. Пытаемся освободить место:
         // удаляем самые старые снапшоты истории, но не текущий проект.
         try {
-            if (
-                evictProjectsForSpace(
-                    data.length,
-                    useFlowStore.getState().metadata.name,
-                )
-            ) {
+            if (evictProjectsForSpace(data.length, useFlowStore.getState().metadata.name)) {
                 localStorage.setItem(STORAGE_KEY, data);
                 useFlowStore.setState({ saveState: 'saved' });
                 return;

@@ -13,7 +13,5 @@ interface Props {
  * Использует общий ActionBlockEditor — одинаковый внешний вид с ActionProps.
  */
 export function ActionEditor({ actions, onChange, actionErrors }: Props) {
-    return (
-        <ActionBlockEditor actions={actions} onChange={onChange} actionErrors={actionErrors} />
-    );
+    return <ActionBlockEditor actions={actions} onChange={onChange} actionErrors={actionErrors} />;
 }

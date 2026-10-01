@@ -55,9 +55,11 @@ describe('UM-13 «Угадайка»: честные «7 попыток» из w
     const ids = new Set(doc.nodes.map((n) => n.id));
 
     it('счётчик попыток: tries обнуляется на старте, тикает на каждом ответе', () => {
-        const withActions = (id: string) => doc.nodes.find((n) => n.id === id) as
-            { actions?: { field: string; value: string }[] } | undefined;
-        const acts = (id: string) => withActions(id)?.actions?.map((a) => `${a.field}=${a.value}`) ?? [];
+        const withActions = (id: string) =>
+            doc.nodes.find((n) => n.id === id) as
+                { actions?: { field: string; value: string }[] } | undefined;
+        const acts = (id: string) =>
+            withActions(id)?.actions?.map((a) => `${a.field}=${a.value}`) ?? [];
         expect(acts('start_round')).toContain('tries=0');
         expect(acts('ask_guess')).toContain('tries=tries + 1');
     });
@@ -77,11 +79,29 @@ describe('UM-13 «Угадайка»: честные «7 попыток» из w
 
     it('граф: подсказка → проверка лимита → проигрыш ИЛИ новый вопрос → шаг', () => {
         const edges = doc.edges;
-        expect(edges.some((e) => e.from === 'say_higher' && e.to === 'check_tries' && e.type === 'next')).toBe(true);
-        expect(edges.some((e) => e.from === 'say_lower' && e.to === 'check_tries' && e.type === 'next')).toBe(true);
-        expect(edges.some((e) => e.from === 'check_tries' && e.to === 'say_lose' && e.type === 'branch_true')).toBe(true);
-        expect(edges.some((e) => e.from === 'check_tries' && e.to === 'ask_more' && e.type === 'branch_false')).toBe(true);
-        expect(edges.some((e) => e.from === 'ask_more' && e.to === 'ask_guess' && e.type === 'next')).toBe(true);
+        expect(
+            edges.some(
+                (e) => e.from === 'say_higher' && e.to === 'check_tries' && e.type === 'next',
+            ),
+        ).toBe(true);
+        expect(
+            edges.some(
+                (e) => e.from === 'say_lower' && e.to === 'check_tries' && e.type === 'next',
+            ),
+        ).toBe(true);
+        expect(
+            edges.some(
+                (e) => e.from === 'check_tries' && e.to === 'say_lose' && e.type === 'branch_true',
+            ),
+        ).toBe(true);
+        expect(
+            edges.some(
+                (e) => e.from === 'check_tries' && e.to === 'ask_more' && e.type === 'branch_false',
+            ),
+        ).toBe(true);
+        expect(
+            edges.some((e) => e.from === 'ask_more' && e.to === 'ask_guess' && e.type === 'next'),
+        ).toBe(true);
         // все цели рёбер существуют (нет висячих ссылок после правок графа)
         for (const e of edges) {
             expect(ids.has(e.from)).toBe(true);
@@ -123,7 +143,10 @@ describe('UM-13 квесты: одна сцена за ход, выбор кно
         // Старт — только вступление, без склейки со следующими сценами
         expect(replies[0]?.text).toMatch(/^Хранилище\. Квота на 92%/);
         expect(replies[0]?.text).not.toContain('\n');
-        expect(replies[0]?.buttons?.map((b) => b.title)).toEqual(['Осмотреть камеру', 'Журнал эвикции']);
+        expect(replies[0]?.buttons?.map((b) => b.title)).toEqual([
+            'Осмотреть камеру',
+            'Журнал эвикции',
+        ]);
         expect(replies[1]?.text).toMatch(/^Камера-ключ um13/);
         // Кнопка сцены несёт блок-цель — переход без шага и условий на текст
         expect(replies[1]?.buttons?.every((b) => !!b.target)).toBe(true);

@@ -81,7 +81,10 @@ function NodeHelpButtonComponent({ content, color }: NodeHelpButtonProps) {
                         className="fixed z-popover w-72 rounded-lg border bg-surface-modal p-3.5 shadow-dropdown backdrop-blur-xl"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="mb-2 h-0.5 w-8 rounded-full" style={{ backgroundColor: color }} />
+                        <div
+                            className="mb-2 h-0.5 w-8 rounded-full"
+                            style={{ backgroundColor: color }}
+                        />
                         <p className="text-xs leading-relaxed text-fg/80">{content}</p>
                     </div>,
                     document.body,

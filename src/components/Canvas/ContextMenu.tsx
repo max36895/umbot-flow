@@ -145,9 +145,7 @@ export default function ContextMenu({ x, y, flowX, flowY, onClose }: ContextMenu
         >
             {menuItems.map((item, i) => {
                 if (item.type === 'divider') {
-                    return (
-                        <div key={i} className="my-1 border-t border-outline-variant" />
-                    );
+                    return <div key={i} className="my-1 border-t border-outline-variant" />;
                 }
                 if (item.type === 'node') {
                     return (

@@ -1,83 +1,84 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>Documentation — Umbot Flow</title>
-    <meta
-        name="description"
-        content="Documentation for the Umbot Flow visual editor. Quick start, block types, JSON format specification, FAQ."
-    />
-    <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/" />
-    <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
-    <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
-    <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
-    <meta property="og:title" content="Documentation — Umbot Flow" />
-    <meta
-        property="og:description"
-        content="Documentation for the Umbot Flow visual editor. Quick start, block types, JSON format specification."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/" />
-    <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
-    <meta property="og:locale" content="en_US" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <title>Umbot Flow Documentation — open-source chatbot builder</title>
+        <meta
+            name="description"
+            content="Documentation for Umbot Flow, the open-source visual chatbot builder: quick start, block types, flow.json format specification, FAQ."
+        />
+        <link rel="canonical" href="https://flow.maxim-m.ru/docs/en/" />
+        <link rel="alternate" hreflang="ru" href="https://flow.maxim-m.ru/docs/" />
+        <link rel="alternate" hreflang="en" href="https://flow.maxim-m.ru/docs/en/" />
+        <link rel="alternate" hreflang="x-default" href="https://flow.maxim-m.ru/docs/" />
+        <meta property="og:title" content="Umbot Flow Documentation — open-source chatbot builder" />
+        <meta
+            property="og:description"
+            content="Documentation for Umbot Flow, the open-source visual chatbot builder: quick start, block types, flow.json format specification, FAQ."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://flow.maxim-m.ru/docs/en/" />
+        <meta property="og:image" content="https://flow.maxim-m.ru/og-image.png" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://flow.maxim-m.ru/og-image.png" />
 
-    <link rel="stylesheet" href="/docs/docs.css?v=1" />
-</head>
-<body class="page-home">
+        <link rel="stylesheet" href="/docs/docs.css?v=1" />
+    </head>
+    <body class="page-home">
+        <div class="container">
+            <div class="topbar">
+                <a class="back" href="/">← Home</a>
+                <a class="lang" href="/docs/">RU</a>
+            </div>
+            <h1>Documentation</h1>
+            <p class="subtitle">Everything you need to work with Umbot Flow</p>
 
-<div class="container">
-    <div class="topbar">
-        <a class="back" href="/">← Home</a>
-        <a class="lang" href="/docs/">RU</a>
-    </div>
-    <h1>Documentation</h1>
-    <p class="subtitle">Everything you need to work with Umbot Flow</p>
+            <p class="intro">
+                Umbot Flow is a visual chatbot builder: you assemble the scenario with blocks on a
+                canvas, the editor validates it and turns it into a ready TypeScript project for
+                Telegram, Alisa, VK and other platforms. Four sections below: start with the quick
+                start guide and keep the references handy.
+            </p>
 
-    <p class="intro">
-        Umbot Flow is a visual chatbot builder: you assemble the scenario with blocks
-        on a canvas, the editor validates it and turns it into a ready TypeScript project
-        for Telegram, Alisa, VK and other platforms. Four sections below: start with the
-        quick start guide and keep the references handy.
-    </p>
-
-    <div class="cards">
-        <a class="card" href="/docs/en/quick-start/">
-            <h2>Quick Start</h2>
-            <p>
-                A step-by-step guide with examples and screenshots: from the first block on
-                the canvas to a running bot — in about 15 minutes.
-            </p>
-        </a>
-        <a class="card" href="/docs/en/blocks/">
-            <h2>Block Types</h2>
-            <p>
-                A detailed description of every block type: commands with trigger words,
-                input steps, conditions, actions, responses and end. With setup examples.
-            </p>
-        </a>
-        <a class="card" href="/docs/en/json-format/">
-            <h2>JSON Format</h2>
-            <p>
-                The flow.json reference: document structure, all node and edge types,
-                condition operators and variable substitution. For editing the config by
-                hand.
-            </p>
-        </a>
-        <a class="card" href="/docs/en/faq/">
-            <h2>FAQ</h2>
-            <p>
-                Answers to common questions: pricing and license, platform support,
-                launching the generated bot on your own server.
-            </p>
-        </a>
-    </div>
-</div>
-<script src="/metrika.js" async></script>
-</body>
+            <div class="cards">
+                <a class="card" href="/docs/en/quick-start/">
+                    <h2>Quick Start</h2>
+                    <p>
+                        A step-by-step guide with examples and screenshots: from the first block on
+                        the canvas to a running bot — in about 15 minutes.
+                    </p>
+                </a>
+                <a class="card" href="/docs/en/blocks/">
+                    <h2>Block Types</h2>
+                    <p>
+                        A detailed description of every block type: commands with trigger words,
+                        input steps, conditions, actions, responses and end. With setup examples.
+                    </p>
+                </a>
+                <a class="card" href="/docs/en/json-format/">
+                    <h2>JSON Format</h2>
+                    <p>
+                        The flow.json reference: document structure, all node and edge types,
+                        condition operators and variable substitution. For editing the config by
+                        hand.
+                    </p>
+                </a>
+                <a class="card" href="/docs/en/faq/">
+                    <h2>FAQ</h2>
+                    <p>
+                        Answers to common questions: pricing and license, platform support,
+                        launching the generated bot on your own server.
+                    </p>
+                </a>
+            </div>
+        </div>
+        <script src="/metrika.js" async></script>
+    </body>
 </html>

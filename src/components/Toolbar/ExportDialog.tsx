@@ -42,7 +42,9 @@ export default function ExportDialog() {
         // Экспорт = спасение флоу из хранилища: UM-13 благословляет
         // единственную лодку с корабля квот (центральная метафора лора).
         // Зарегистрированное событие — призрак сам решает, как ответить.
-        (window as unknown as { UM13Ghost?: { react(e: string): void } }).UM13Ghost?.react('flow-export');
+        (window as unknown as { UM13Ghost?: { react(e: string): void } }).UM13Ghost?.react(
+            'flow-export',
+        );
     };
 
     const handleCopy = () => {
@@ -280,16 +282,16 @@ export default function ExportDialog() {
                                                 npx umbot create from-flow {safeFileName}.json
                                                 --output ./my-bot --usecloud
                                             </code>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard
-                                                    ?.writeText(
-                                                        `npx umbot create from-flow ${safeFileName}.json --output ./my-bot --usecloud`,
-                                                    )
-                                                    .catch(() => {
-                                                        /* clipboard недоступен — молча игнорируем */
-                                                    });
-                                            }}
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard
+                                                        ?.writeText(
+                                                            `npx umbot create from-flow ${safeFileName}.json --output ./my-bot --usecloud`,
+                                                        )
+                                                        .catch(() => {
+                                                            /* clipboard недоступен — молча игнорируем */
+                                                        });
+                                                }}
                                                 title={t('export.copyCommand')}
                                                 className="flex-shrink-0 rounded border border-success/30 bg-success/10 p-1 text-success transition-colors hover:bg-success/20"
                                             >
@@ -318,9 +320,7 @@ export default function ExportDialog() {
 
                         <p className="mt-3 text-[11px] text-fg/60">{t('export.afterCommand')}</p>
 
-                        <p className="mt-2 text-[11px] text-info/70 italic">
-                            {t('export.tip')}
-                        </p>
+                        <p className="mt-2 text-[11px] text-info/70 italic">{t('export.tip')}</p>
 
                         <p className="mt-2 text-[11px] text-info/60">
                             {t('export.jsonFormatHint')}

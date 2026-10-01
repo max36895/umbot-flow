@@ -115,9 +115,7 @@ export default function StatusBar() {
                         saveState === 'saved' ? 'text-success/60' : 'text-fg/40'
                     }`}
                 >
-                    {saveState === 'saved' && (
-                        <NodeIcon name="check" size={10} strokeWidth={2} />
-                    )}
+                    {saveState === 'saved' && <NodeIcon name="check" size={10} strokeWidth={2} />}
                     {saveState === 'saved' ? t('statusbar.saved') : t('statusbar.saving')}
                 </span>
             ) : null}

@@ -80,9 +80,7 @@ export function IconButton({
         <button
             title={title}
             className={`rounded-lg ${size === 'md' ? 'p-2' : 'p-1.5'} transition-colors ${
-                active
-                    ? 'bg-info/15 text-info'
-                    : 'text-fg/55 hover:bg-fg/10 hover:text-fg/70'
+                active ? 'bg-info/15 text-info' : 'text-fg/55 hover:bg-fg/10 hover:text-fg/70'
             } ${className}`}
             {...props}
         >

@@ -13,13 +13,29 @@ import { useKonami } from '../hooks/useKonami';
  */
 
 const konamiKeys = [
-    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
-    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a',
+    'ArrowUp',
+    'ArrowUp',
+    'ArrowDown',
+    'ArrowDown',
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowLeft',
+    'ArrowRight',
+    'b',
+    'a',
 ];
 
 const konamiCodes = [
-    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
-    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA',
+    'ArrowUp',
+    'ArrowUp',
+    'ArrowDown',
+    'ArrowDown',
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowLeft',
+    'ArrowRight',
+    'KeyB',
+    'KeyA',
 ];
 
 function press(key: string, code: string) {
@@ -37,9 +53,7 @@ describe('useKonami — детекторы секрета', () => {
     it('Konami-код вызывает unlock', () => {
         const unlock = vi.fn();
         render(<Probe onUnlock={unlock} />);
-        konamiKeys.forEach((k, i) =>
-            act(() => press(k, konamiCodes[i] ?? 'Key' + k)),
-        );
+        konamiKeys.forEach((k, i) => act(() => press(k, konamiCodes[i] ?? 'Key' + k)));
         expect(unlock).toHaveBeenCalledTimes(1);
     });
 
@@ -68,7 +82,18 @@ describe('useKonami — детекторы секрета', () => {
         // WASD-вариант Konami: wwssadadba — содержит a/m-подобные клавиши,
         // но НЕ u-m-1-3 подряд: слово не должно сработать раньше кода
         const wasd = ['w', 'w', 's', 's', 'a', 'd', 'a', 'd', 'b', 'a'];
-        const wasdCodes = ['KeyW', 'KeyW', 'KeyS', 'KeyS', 'KeyA', 'KeyD', 'KeyA', 'KeyD', 'KeyB', 'KeyA'];
+        const wasdCodes = [
+            'KeyW',
+            'KeyW',
+            'KeyS',
+            'KeyS',
+            'KeyA',
+            'KeyD',
+            'KeyA',
+            'KeyD',
+            'KeyB',
+            'KeyA',
+        ];
         wasd.forEach((k, i) => act(() => press(k, wasdCodes[i]!)));
         expect(unlock).toHaveBeenCalledTimes(1); // только Konami
     });
@@ -80,7 +105,7 @@ describe('useKonami — детекторы секрета', () => {
         act(() => press('m', 'KeyM'));
         act(() => press('1', 'Digit1'));
         act(() => press('4', 'Digit4')); // промах — сброс
-        act(() => press('u', 'KeyU'));   // снова начало
+        act(() => press('u', 'KeyU')); // снова начало
         expect(unlock).not.toHaveBeenCalled();
         act(() => press('m', 'KeyM'));
         act(() => press('1', 'Digit1'));

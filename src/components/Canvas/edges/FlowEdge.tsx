@@ -92,11 +92,7 @@ function FlowEdgeComponent({
                 : color
             : color;
 
-    const glowDropShadow = isSelected
-        ? SELECTED_COLOR
-        : hovered
-          ? HOVER_COLOR
-          : glowColor;
+    const glowDropShadow = isSelected ? SELECTED_COLOR : hovered ? HOVER_COLOR : glowColor;
 
     // Мемоизированный стиль основной линии — пересоздаётся только при изменении зависимостей
     const baseEdgeStyle = useMemo(

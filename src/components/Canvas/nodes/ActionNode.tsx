@@ -60,10 +60,7 @@ function ActionNodeComponent({ data, id }: NodeProps & { data: ActionNodeData })
             {data.actions?.length ? (
                 <div className="space-y-1">
                     {data.actions.slice(0, 3).map((action, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center gap-1.5 text-[11px] text-fg/60"
-                        >
+                        <div key={i} className="flex items-center gap-1.5 text-[11px] text-fg/60">
                             <NodeIcon name={ACTION_ICONS[action.type] ?? 'gear'} size={12} />
                             <span className="truncate">
                                 {action.type === 'set_variable' &&
@@ -74,9 +71,7 @@ function ActionNodeComponent({ data, id }: NodeProps & { data: ActionNodeData })
                         </div>
                     ))}
                     {data.actions.length > 3 && (
-                        <span className="text-[11px] text-fg/50">
-                            +{data.actions.length - 3}
-                        </span>
+                        <span className="text-[11px] text-fg/50">+{data.actions.length - 3}</span>
                     )}
                 </div>
             ) : (

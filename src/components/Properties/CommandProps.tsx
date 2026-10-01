@@ -32,9 +32,12 @@ export function CommandProps({ nodeId }: Props) {
     const isBuiltin = data.role === 'welcome' || data.role === 'help' || data.role === 'fallback';
 
     /** Строит патч metadata для встроенных узлов (welcome/help/fallback). */
-    const builtinMetaPatch = (response: CommandNodeData['response']): Partial<FlowMetadata> | null => {
+    const builtinMetaPatch = (
+        response: CommandNodeData['response'],
+    ): Partial<FlowMetadata> | null => {
         if (!isBuiltin) return null;
-        if (data.role === 'welcome') return { welcome: { text: response.text, buttons: response.buttons } };
+        if (data.role === 'welcome')
+            return { welcome: { text: response.text, buttons: response.buttons } };
         if (data.role === 'help') return { helpText: { text: response.text } };
         if (data.role === 'fallback') return { fallback: { text: response.text } };
         return null;

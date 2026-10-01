@@ -75,7 +75,6 @@ export default function PropertiesPanel() {
         };
     }, [selectedNode, selectedNodeId]);
 
-
     const typeLabel: Record<string, string> = {
         command: t('sidebar.command.label'),
         step: t('sidebar.step.label'),
@@ -243,7 +242,8 @@ export default function PropertiesPanel() {
                     <div className="min-w-0">
                         <h2 className="flex items-center gap-2 truncate text-sm font-bold text-fg/90">
                             <span className="truncate">
-                                {typeLabel[selectedNode.type ?? ''] ?? selectedNode.type?.toUpperCase()}
+                                {typeLabel[selectedNode.type ?? ''] ??
+                                    selectedNode.type?.toUpperCase()}
                             </span>
                             {justSaved && (
                                 <span

@@ -86,7 +86,12 @@ export default function KonamiGhost({ active }: { active: boolean }) {
                 setGhost((g) => ({ ...g, ...c }));
                 await sleep(650);
             }
-            setCaption(t('UM-13: осматриваюсь. место подходящее.', 'UM-13: looking around. suitable place.'));
+            setCaption(
+                t(
+                    'UM-13: осматриваюсь. место подходящее.',
+                    'UM-13: looking around. suitable place.',
+                ),
+            );
             await sleep(1000);
 
             // ── Акт 2: сборка игры (один честный шаг undo) ─────────────
@@ -133,8 +138,10 @@ export default function KonamiGhost({ active }: { active: boolean }) {
             // ── Акт 3: имя игры пишется в шапку ────────────────────────
             setCaption(t('пишу имя в шапку…', 'typing the name into the header…'));
             const nameField = document.querySelector<HTMLInputElement>('input[placeholder]');
-            const botNameInput = [...document.querySelectorAll('input')].find((i) =>
-                (i.placeholder || '').includes('Имя бота') || (i.placeholder || '').includes('Bot name'),
+            const botNameInput = [...document.querySelectorAll('input')].find(
+                (i) =>
+                    (i.placeholder || '').includes('Имя бота') ||
+                    (i.placeholder || '').includes('Bot name'),
             );
             const target = botNameInput ?? nameField;
             if (target) {
@@ -150,7 +157,12 @@ export default function KonamiGhost({ active }: { active: boolean }) {
             }
 
             // ── Акт 4: UM-13 открывает превью — играй прямо здесь ──────
-            setCaption(t('играй прямо в превью. или забери меня с собой ↓', 'play right in the preview. or take me with you ↓'));
+            setCaption(
+                t(
+                    'играй прямо в превью. или забери меня с собой ↓',
+                    'play right in the preview. or take me with you ↓',
+                ),
+            );
             await sleep(900);
             if (!useUiStore.getState().previewOpen) ui.togglePreview();
 
@@ -161,9 +173,14 @@ export default function KonamiGhost({ active }: { active: boolean }) {
             // ── Акт 5: тост с кнопкой скачивания flow.json ──────────────
             await sleep(400);
             setDownloadShown(true);
-            useUiStore.getState().showToast(
-                t(`UM-13 собрал «${title}» — играть в превью`, `UM-13 assembled "${title}" — play in the preview`),
-            );
+            useUiStore
+                .getState()
+                .showToast(
+                    t(
+                        `UM-13 собрал «${title}» — играть в превью`,
+                        `UM-13 assembled "${title}" — play in the preview`,
+                    ),
+                );
 
             // Затемнение гаснет; сцена оставляет после себя:
             // игру на холсте, открытое превью и один шаг undo
@@ -204,7 +221,12 @@ export default function KonamiGhost({ active }: { active: boolean }) {
                 className="absolute left-0 top-0 transition-[left,top] duration-500 ease-out"
                 style={{ left: ghost.x, top: ghost.y }}
             >
-                <svg width="30" height="30" viewBox="0 0 24 24" className="drop-shadow-[0_0_8px_rgba(0,240,255,0.9)]">
+                <svg
+                    width="30"
+                    height="30"
+                    viewBox="0 0 24 24"
+                    className="drop-shadow-[0_0_8px_rgba(0,240,255,0.9)]"
+                >
                     <path
                         d="M5 3l14 8-6 2-2 6z"
                         fill="rgba(0, 240, 255, 0.85)"
@@ -235,12 +257,23 @@ export default function KonamiGhost({ active }: { active: boolean }) {
                         }}
                         className="flex items-center gap-2 rounded-full border border-info/50 bg-surface-modal/95 px-5 py-2.5 text-sm font-medium text-info shadow-[0_0_30px_rgba(0,240,255,0.3)] backdrop-blur-md transition-colors hover:bg-info/10"
                     >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
                             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        {getLocale() === 'ru' ? 'Скачать flow.json игры' : 'Download the game flow.json'}
+                        {getLocale() === 'ru'
+                            ? 'Скачать flow.json игры'
+                            : 'Download the game flow.json'}
                     </button>
                 </div>
             )}
