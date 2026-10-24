@@ -3164,7 +3164,7 @@
         stopSleepDrift();
         sleepAnchor = { x: pos.x, y: pos.y };
         S.timers.drift = setInterval(function () {
-            if (!S.asleep || !S.visible || !sleepAnchor) return;
+            if (!S.asleep || !S.visible || !sleepAnchor || drag.on) return;
             flyTo(
                 sleepAnchor.x + (Math.random() - 0.5) * 10,
                 sleepAnchor.y + (Math.random() - 0.5) * 10,
@@ -3191,7 +3191,7 @@
        при посадке — реплика приземления. Точку помнит до отлёта:
        перелёты продолжаются ОТТУДА. Тычок и драг различаем по
        смещению: <6px = клик, больше = перенос. */
-    const drag = { on: false, moved: false, dx: 0, dy: 0, resisted: false };
+    const drag = { on: false, moved: false, dx: 0, dy: 0, resisted: false, sailAfter: false };
 
     function onPointerDown(e) {
         if (!S.visible || S.sailing || S.dodging) return;
@@ -3234,11 +3234,10 @@
             // вздрагивание при подъёме — только раз за драг
             setFace('startled');
             enqueue(pick(L.dragLift), 2400, 'startled', 'user');
-            // «догоняющий» переход ставится ОДИН раз при старте переноса:
-            // раньше писался на каждый mousemove — браузер рестартовал
-            // анимацию каждый кадр (очередь transitions = лаги переноса)
-            body.style.transition =
-                'left .18s ease-out, top .18s ease-out, opacity .6s ease, transform .5s ease';
+            // в руке тело идёт за курсором без перехода left/top: переход
+            // .18s перезапускался каждым pointermove и тянулся за курсором
+            // (перенос ощущался заторможенным). Наклон по-прежнему плавный.
+            body.style.transition = 'opacity .6s ease, transform .5s ease';
         }
         if (drag.moved) {
             // ПРУЖИНА ВНИЗ: ниже 85% высоты — сопротивление нарастает,
@@ -3290,6 +3289,11 @@
                 }, 1600);
             }
             drag.resisted = false;
+        }
+        // уход, отложенный на время переноса (см. sailAway), — теперь
+        if (drag.sailAfter) {
+            drag.sailAfter = false;
+            sailAway();
         }
     }
     function nearestSpot(x, y) {
@@ -3882,6 +3886,11 @@
 
     function sailAway() {
         if (!S.visible || S.sailing) return;
+        // из руки не уплывает (прощание редактора, warn): уйдёт, когда отпустят
+        if (drag.on) {
+            drag.sailAfter = true;
+            return;
+        }
         S.sailing = true;
         S.dodging = false;
         offscreen = true;
@@ -4238,7 +4247,8 @@
             window.addEventListener(
                 ev,
                 function (e) {
-                    onMouseMove(e);
+                    // у keydown/touchstart нет clientX — мышь не трогаем
+                    if (ev !== 'keydown' && ev !== 'touchstart') onMouseMove(e);
                     const now = Date.now();
                     if (frequent && !S.asleep && now - lastActivityAt < 250) {
                         if (MODE === 'quiet' && S.visible && !drag.on) quietLeave();

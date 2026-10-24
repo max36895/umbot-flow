@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useState } from 'react';
 import useFlowStore from '../../store/flowStore';
 import useUiStore from '../../store/uiStore';
 import { t, tf } from '../../i18n';
-import { validate } from '../../utils/validator';
+import { validateSchemaLevel } from '../../utils/validator';
 import PlatformSelector from '../ui/PlatformSelector';
 import ProjectsMenu from './ProjectsMenu';
 import {
@@ -164,8 +164,9 @@ export default function Toolbar() {
             reader.onload = () => {
                 try {
                     const doc = JSON.parse(reader.result as string);
-                    // Валидация перед загрузкой в state
-                    const errors = validate(doc);
+                    // Перед загрузкой проверяем только формат файла: ошибки графа
+                    // (недоделанный флоу) открываются и подсвечиваются как при работе
+                    const errors = validateSchemaLevel(doc);
                     if (errors.length > 0) {
                         setAlertDialog({
                             title: t('error.importTitle'),

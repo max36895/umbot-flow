@@ -6,7 +6,11 @@ import { ResponseText } from './shared/ResponseText';
 import { ActionBlockEditor } from './shared/ActionBlockEditor';
 import { ButtonEditor } from './shared/ButtonEditor';
 import CardEditor from './CardEditor';
-import { useNodeFieldErrors, getFieldErrorList } from '../../hooks/useNodeFieldErrors';
+import {
+    useNodeFieldErrors,
+    getFieldErrorList,
+    getActionErrorsMap,
+} from '../../hooks/useNodeFieldErrors';
 
 interface Props {
     nodeId: string;
@@ -45,7 +49,7 @@ export function ActionProps({ nodeId }: Props) {
                 <ActionBlockEditor
                     actions={data.actions ?? []}
                     onChange={updateActions}
-                    actionErrors={getFieldErrorList(fieldErrors, 'actions')}
+                    actionErrors={getActionErrorsMap(fieldErrors)}
                 />
             </Field>
 

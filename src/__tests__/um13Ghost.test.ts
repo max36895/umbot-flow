@@ -52,6 +52,8 @@ interface Um13GhostApi {
     warn(kind: string): void;
     hide(): void;
     show(): void;
+    /** Уложить спать (сцена засыпания). */
+    sleep(): void;
     poke(): void;
     /** v7: новая встреча — ход визита (доверие). */
     visit(): void;
@@ -873,6 +875,89 @@ describe('UM-13 Ghost — общий модуль призрака', () => {
             advance(60_000);
             expect(ghost().visible).toBe(false);
             expect(ghostEl()!.style.left).toBe(before);
+        });
+    });
+
+    describe('перенос: без отставания, таймеры не вырывают из руки', () => {
+        // знакомый (доверие 1): первый перенос не выскальзывает
+        beforeEach(() => {
+            localStorage.setItem('um13-memory', JSON.stringify({ 'terminal-visited': Date.now() }));
+        });
+        afterEach(() => {
+            localStorage.removeItem('um13-memory');
+        });
+
+        const ptr = (type: string, x: number, y: number, target: Window | Element) => {
+            const e = new Event(type, { bubbles: true }) as Event & {
+                clientX: number;
+                clientY: number;
+                pointerId: number;
+                button: number;
+            };
+            e.clientX = x;
+            e.clientY = y;
+            e.pointerId = 1;
+            e.button = 0;
+            target.dispatchEvent(e);
+        };
+        const grabAndMove = (el: HTMLElement) => {
+            const sx = parseFloat(el.style.left) || 512;
+            const sy = parseFloat(el.style.top) || 384;
+            ptr('pointerdown', sx, sy, el);
+            ptr('pointermove', sx + 120, sy + 80, window);
+            return { x: sx + 120, y: sy + 80 };
+        };
+
+        it('в руке left/top без перехода: тело не догоняет курсор (регрессия «тормозит»)', () => {
+            loadGhost('page');
+            advance(13_200);
+            const el = ghostEl()!;
+            const at = grabAndMove(el);
+            expect(el.style.transition).not.toMatch(/left|top/);
+            ptr('pointerup', at.x, at.y, window);
+            expect(el.style.transition).toBe('');
+        });
+
+        it('editor: прощание во время переноса — уплывает только после того, как отпустят', () => {
+            loadGhost('editor');
+            advance(43_000); // прилетел и уснул
+            expect(ghost().asleep).toBe(true);
+            window.dispatchEvent(new Event('mousemove')); // побудка → прощание → уход
+            const el = ghostEl()!;
+            const at = grabAndMove(el);
+            advance(60_000); // прощание прочитано, уход уже должен был случиться
+            expect(el.classList.contains('um13g-sailing')).toBe(false);
+            expect(ghost().visible).toBe(true);
+            ptr('pointerup', at.x, at.y, window);
+            expect(el.classList.contains('um13g-sailing')).toBe(true);
+            advance(1900);
+            expect(ghost().visible).toBe(false);
+        });
+
+        it('page: дрейф сна не тянет спящего обратно к якорю, пока его несут', () => {
+            loadGhost('page');
+            advance(13_200);
+            ghost().sleep();
+            const el = ghostEl()!;
+            const at = grabAndMove(el);
+            const left = el.style.left;
+            advance(5100); // тик дрейфа сна
+            expect(el.style.left).toBe(left);
+            ptr('pointerup', at.x, at.y, window);
+        });
+
+        it('keydown не сбивает координаты мыши: взгляд за курсором остаётся', () => {
+            loadGhost('page');
+            advance(13_200);
+            const el = ghostEl()!;
+            const x = parseFloat(el.style.left) + 100;
+            const y = parseFloat(el.style.top);
+            window.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y }));
+            expect(el.getAttribute('data-gaze')).toBe('mouse');
+            advance(200); // за троттлом взгляда
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            // раньше keydown писал в мышь undefined — зрачки получали NaN
+            expect(el.style.getPropertyValue('--um13-gaze-x')).toBe('1.00');
         });
     });
 

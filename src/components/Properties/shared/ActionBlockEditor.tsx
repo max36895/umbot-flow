@@ -51,7 +51,7 @@ interface ActionBlockEditorProps {
     /** Дополнительные пресеты переменных для VariableConfig */
     variablePresets?: { labelKey: string; value: string }[];
     /** Ошибки валидации по индексу блока: Map<actionIndex, messages[]> */
-    actionErrors?: string[] | Map<number, string[]>;
+    actionErrors?: Map<number, string[]>;
 }
 
 /** Рендерит один блок действия (set_variable/random_number/http_request) с VariableConfig, инпутами и кнопкой удаления.
@@ -238,10 +238,7 @@ export function ActionBlockEditor({
                     onUpdate={updateBlock}
                     onRemove={removeBlock}
                     variablePresets={variablePresets}
-                    error={
-                        (actionErrors as Map<number, string[]>)?.get(i)?.[0] ??
-                        (actionErrors as string[])?.[0]
-                    }
+                    error={actionErrors?.get(i)?.[0]}
                 />
             ))}
         </div>
